@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Nova Style - Create an Account</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+</head>
+
+<body>
+
+<div class="page-container">
+
+    <main class="main-content">
+
+        <div class="left-panel">
+
+            <div class="form-container">
+
+                <header>
+
+                    <span class="brand">
+                        NOVA STYLE
+                    </span>
+
+                    <h1>Create an account</h1>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            {% if forloop.last %}
+                                <div class="error {{ message.tags }}" style="color: red;">
+                                    {{ message }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if form.non_field_errors %}
+                        <div class="form-errors" style="color: red;">
+                            {% for error in form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                </header>
+
+                <form method="post" novalidate>
+
+                    {% csrf_token %}
+
+                    <div class="form-group">
+
+                        <label for="name">
+                            NAME
+                        </label>
+
+                        <input
+                            type="text"
+                            name="name"
+                            id="name"
+                            placeholder="Your Name"
+                            value="{{ form.name.value|default:'' }}"
+                            autocomplete="name"
+                        >
+
+                        {% if form.name.errors %}
+                            <div class="form-errors" style="color: red;">
+                                {% for error in form.name.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="email">
+                            EMAIL ADDRESS
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            placeholder="Your Email"
+                            value="{{ form.email.value|default:'' }}"
+                            autocomplete="email"
+                        >
+
+                        {% if form.email.errors %}
+                            <div class="form-errors" style="color: red;">
+                                {% for error in form.email.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                    </div>
+                    <div class="form-group">
+
+                        <label for="password">
+                            PASSWORD
+                        </label>
+
+                        <div class="password-wrapper">
+
+                            <input
+                                type="password"
+                                name="password"
+                                id="password"
+                                autocomplete="new-password"
+                            >
+
+                            <button
+                                type="button"
+                                class="toggle-password"
+                                onclick="togglePassword('password', this)"
+                            >
+                                Show
+                            </button>
+
+                        </div>
+
+                        {% if form.password.errors %}
+                            <div class="form-errors" style="color: red;">
+                                {% for error in form.password.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                    </div>
+                    <div class="form-group">
+
+                        <label for="confirm-password">
+                            CONFIRM PASSWORD
+                        </label>
+
+                        <div class="password-wrapper">
+
+                            <input
+                                type="password"
+                                name="confirm_password"
+                                id="confirm-password"
+                                autocomplete="new-password"
+                            >
+
+                            <button
+                                type="button"
+                                class="toggle-password"
+                                onclick="togglePassword('confirm-password', this)"
+                            >
+                                Show
+                            </button>
+
+                        </div>
+
+                        {% if form.confirm_password.errors %}
+                            <div class="form-errors" style="color: red;">
+                                {% for error in form.confirm_password.errors %}
+                                    <p>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="checkbox-group">
+
+                        <input
+                            type="checkbox"
+                            id="terms"
+                            name="terms"
+                            required
+                            {% if form.terms.value %}checked{% endif %}
+                        >
+
+                        <label for="terms">
+                            I agree to the
+                            <a href="#">
+                                Privacy Policy
+                            </a>
+                            and
+                            <a href="#">
+                                Terms of Service
+                            </a>.
+                        </label>
+
+                    </div>
+
+                    {% if form.terms.errors %}
+                        <div class="form-errors" style="color: red;">
+                            {% for error in form.terms.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <button
+                        type="submit"
+                        class="btn-primary"
+                    >
+                        Create Account
+                    </button>
+
+                </form>
+
+               
+
+               
+
+                <p class="login-link">
+                    Already a member?
+                    <a href="{% url "login" %}">
+                        Log in
+                    </a>
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="right-panel">
+
+            <img src={% static 'images/model.png' %}
+                class="bg-img"
+                alt="Fashion model in suit"
+            >
+
+            <div class="quote-container">
+
+                <hr class="quote-line">
+
+                <p class="quote">
+                    "Style is a way to say who you are
+                    <br>
+                    without having to speak."
+                </p>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer class="site-footer">
+
+        <p>
+            &copy; 2024 NOVA STYLE. ALL RIGHTS RESERVED.
+        </p>
+
+        <div class="footer-links">
+
+            <a href="#">PRIVACY</a>
+            <a href="#">TERMS</a>
+            <a href="#">SUPPORT</a>
+
+        </div>
+
+    </footer>
+
+</div>
+<script>
+
+    function togglePassword(inputId, button) {
+
+        const input = document.getElementById(inputId);
+
+        if (input.type === "password") {
+
+            input.type = "text";
+            button.textContent = "Hide";
+
+        } else {
+
+            input.type = "password";
+            button.textContent = "Show";
+        }
+    }
+
+</script>
+
+</body>
+</html>

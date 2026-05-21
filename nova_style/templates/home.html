@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        {% load static %}
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Discover Nova Style's  collection.">
+    <title>Nova Style </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static "css/home.css" %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <div class="logo-wrapper">
+                <a href="#" class="logo" id="header-logo">NOVA STYLE</a>
+                 <nav class="main-nav" aria-label="Main Navigation">
+                {% if user.is_authenticated %}
+    <a href="{% url 'logout' %}">Logout</a>
+{% else %}
+    <a href="{% url 'login' %}">Login</a>
+{% endif %}
+            </nav>
+            </div>
+            
+            <nav class="main-nav" aria-label="Main Navigation">
+                <ul class="nav-links">
+                    <li><a href="#" class="nav-link" id="nav-women">Women</a></li>
+                    <li><a href="#" class="nav-link" id="nav-men">Men</a></li>
+                    <li><a href="#" class="nav-link" id="nav-kids">Kids</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-actions">
+                <button class="action-btn" id="action-search" aria-label="Search Catalog">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+                <button class="action-btn" id="action-wishlist" aria-label="Favorites Wishlist">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </button>
+                <button class="action-btn" id="action-cart" aria-label="Shopping Bag">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                </button>
+                <div class="user-profile" id="user-profile-menu">
+                       <a href='{% url "profile" %}'>
+                    <img  src="{% static 'images/profile.jpg' %}" alt="User Profile Avatar" class="profile-pic">
+                       </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-section" id="hero">
+            <div class="hero-split-container">
+                <div class="hero-col hero-col-left" style="background-image: url('{% static "images/left.png" %}');">
+                    <div class="hero-overlay-content">
+                        <span class="hero-subtitle">AUTUMN / WINTER 2024</span>
+                        <h1 class="hero-title">New<br>Season</h1>
+                        <a href="#" class="btn btn-primary" id="btn-shop-now">Shop Now</a>
+                    </div>
+                </div>
+                <!-- Right Column -->
+                <div class="hero-col hero-col-right" style="background-image:url('{% static "images/right.png" %}');">
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="categories-section" id="categories">
+            <div class="section-container">
+                <header class="section-header">
+                    <h2 class="section-title">Categories</h2>
+                    <p class="section-subtitle">
+                        Discover our latest editorial drops, meticulously crafted for the modern silhouette. From raw textures to refined tailoring.
+                    </p>
+                </header>
+
+                <div class="categories-grid">
+                    <div class="category-card" id="card-kids">
+                        <div class="card-image-wrapper">
+                            <img src="{% static 'images/kid.png' %}" alt="Kids Sustainable Essentials collection" class="card-img">
+                        </div>
+                        <div class="card-meta">
+                            <div class="meta-left">
+                                <h3 class="card-title">Kids</h3>
+                                <p class="card-desc">Sustainable Essentials</p>
+                            </div>
+                            <div class="meta-right">
+                                <span class="badge"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="category-card" id="card-women">
+                        <div class="card-image-wrapper">
+                            <img src="{% static 'images/woman.png' %}" alt="Women The Winter Suit collection" class="card-img">
+                        </div>
+                        <div class="card-meta">
+                            <div class="meta-left">
+                                <h3 class="card-title">Women</h3>
+                                <p class="card-desc">The Winter Suit</p>
+                            </div>
+                            <div class="meta-right">
+                                <span class="badge"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Men Card -->
+                    <div class="category-card" id="card-men">
+                        <div class="card-image-wrapper">
+                            <img src="{% static 'images/man.png' %}" alt="Men Modern Sartorial collection" class="card-img">
+                        </div>
+                        <div class="card-meta">
+                            <div class="meta-left">
+                                <h3 class="card-title">Men</h3>
+                                <p class="card-desc">Modern Sartorial</p>
+                            </div>
+                            <div class="meta-right">
+                                <span class="badge"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="transparency-section" id="transparency">
+            <div class="section-container transparency-grid">
+                <div class="transparency-visual-wrapper">
+                    <div class="transparency-image-card">
+                        <img src="{% static 'images/footer.png' %}" alt="Artisan hands crafting premium leather" class="transparency-img">
+                        
+                        <div class="materiality-overlay-card">
+                            <h4 class="overlay-title">MATERIALITY</h4>
+                            <p class="overlay-text">
+                                We source only the finest LWG-certified leathers and GOTS organic cottons.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="transparency-content">
+                    <h2 class="content-heading">Radical Transparency.<br>Refined Aesthetics.</h2>
+                    <p class="content-text">
+                        Every piece at The Atelier is a testament to the hands that made it. We bridge the gap between artisanal heritage and contemporary digital curation.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <nav class="footer-nav" aria-label="Footer Quick Links">
+                <ul class="footer-links">
+                    <li><a href="#" class="footer-link" id="footer-privacy">PRIVACY</a></li>
+                    <li><a href="#" class="footer-link" id="footer-terms">TERMS</a></li>
+                    <li><a href="#" class="footer-link" id="footer-shipping">SHIPPING</a></li>
+                    <li><a href="#" class="footer-link" id="footer-contact">CONTACT</a></li>
+                </ul>
+            </nav>
+            <p class="footer-copyright">&copy; 2024 NOVA STYLE. ALL RIGHTS RESERVED.</p>
+        </div>
+    </footer>
+</body>
+</html>

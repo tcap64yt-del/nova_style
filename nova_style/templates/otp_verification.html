@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Account - NOVA STYLE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/otp_verification.css' %}">
+</head>
+<body>
+    <div class="page-container">
+        <header class="header">
+            <h1 class="logo">NOVA STYLE</h1>
+        </header>
+
+        <main class="main-content">
+            <div class="verification-card">
+                <h2 class="card-title">Verify Your Account</h2>
+                <p class="card-subtitle">Enter the 6-digit OTP sent to your email.</p>
+
+                {% if messages %}
+                    <div class="otp-message-area">
+                        {% for message in messages %}
+                            {% if message.tags != "success" %}
+                                <p class="otp-message {{ message.tags }}">{{ message }}</p>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" id="otpForm" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="otp" id="otp-hidden">
+
+                    <div class="code-inputs">
+                        <input type="text" maxlength="1" class="code-input" aria-label="Digit 1" inputmode="numeric" pattern="[0-9]*">
+                        <input type="text" maxlength="1" class="code-input" aria-label="Digit 2" inputmode="numeric" pattern="[0-9]*">
+                        <input type="text" maxlength="1" class="code-input" aria-label="Digit 3" inputmode="numeric" pattern="[0-9]*">
+                        <input type="text" maxlength="1" class="code-input" aria-label="Digit 4" inputmode="numeric" pattern="[0-9]*">
+                        <input type="text" maxlength="1" class="code-input" aria-label="Digit 5" inputmode="numeric" pattern="[0-9]*">
+                        <input type="text" maxlength="1" class="code-input" aria-label="Digit 6" inputmode="numeric" pattern="[0-9]*">
+                    </div>
+
+                    {% if form.otp.errors %}
+                        <div class="otp-message-area">
+                            {% for error in form.otp.errors %}
+                                <p class="otp-message error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <button type="submit" class="verify-button">Verify</button>
+                </form>
+
+                <p id="timer-text" class="timer-text">
+                    Resend available in <span id="timer">60</span>s
+                </p>
+
+                <div class="card-footer-actions">
+                    <form method="post" action="{% url 'resend_otp' %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="resend-btn" id="resend-btn" disabled>RESEND CODE</button>
+                    </form>
+
+                    <a href="{% url 'signup' %}" class="change-email-link">Change email</a>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-left">
+                &copy; 2024 NOVA STYLE. ALL RIGHTS RESERVED.
+            </div>
+            <div class="footer-right">
+                <a href="#">PRIVACY</a>
+                <a href="#">TERMS</a>
+                <a href="#">SUPPORT</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const inputs = document.querySelectorAll('.code-input');
+        const otpHidden = document.getElementById('otp-hidden');
+        const otpForm = document.getElementById('otpForm');
+
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '').slice(0, 1);
+
+                if (e.target.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+                pasted.split('').forEach((char, i) => {
+                    if (inputs[i]) inputs[i].value = char;
+                });
+                if (inputs[pasted.length - 1]) inputs[pasted.length - 1].focus();
+            });
+        });
+
+        otpForm.addEventListener('submit', (e) => {
+            const otp = Array.from(inputs).map(input => input.value).join('');
+            otpHidden.value = otp;
+
+            if (otp.length !== 6) {
+                e.preventDefault();
+                alert('Enter the 6-digit OTP.');
+            }
+        });
+
+        const resendBtn = document.getElementById('resend-btn');
+        const timerElement = document.getElementById('timer');
+        const timerText = document.getElementById('timer-text');
+
+        let timeLeft = 60;
+
+        const interval = setInterval(() => {
+            timeLeft -= 1;
+            timerElement.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                resendBtn.disabled = false;
+                timerText.textContent = 'You can now resend the OTP.';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
