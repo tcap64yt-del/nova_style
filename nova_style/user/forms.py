@@ -1,6 +1,17 @@
 from django import forms
 from .models import Users
+from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth import get_user_model
 
+
+User = get_user_model()
+class CustomPasswordResetForm(PasswordResetForm):
+
+    def get_users(self, email):
+        return User.objects.filter(
+            email=email,
+            status=True
+        )
 
 class SignupForm(forms.ModelForm):
     name = forms.CharField(min_length=5, max_length=255)
@@ -48,3 +59,9 @@ class OTPForm(forms.Form):
 class LoginForm(forms.Form):
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput())
+
+
+class ProfileForm(forms.Form):
+    name = forms.CharField(min_length=5, max_length=255)
+    email = forms.EmailField()
+    
