@@ -51,7 +51,7 @@
                             type="email"
                             name="{{ form.email.name }}"
                             id="{{ form.email.id_for_label }}"
-                            placeholder="curator@atelier.com"
+                            placeholder="your@gmail.com"
                             autocomplete="email"
                             value="{{ form.email.value|default_if_none:'' }}"
                         >
@@ -60,22 +60,44 @@
                         {% endfor %}
                     </div>
 
-                    <div class="input-group">
-                        <div class="input-label-row">
-                            <label for="{{ form.password.id_for_label }}">PASSWORD</label>
-                            <a href="{% url "forgot_password" %}" class="forgot-password-link">FORGOT PASSWORD</a>
+                   <div class="input-group">
+                            <div class="input-label-row">
+                                <label for="{{ form.password.id_for_label }}">PASSWORD</label>
+                                <a href="{% url "password_reset" %}" class="forgot-password-link">
+                                    FORGOT PASSWORD
+                                </a>
+                            </div>
+
+                            <div style="position: relative;">
+                                <input
+                                    type="password"
+                                    name="{{ form.password.name }}"
+                                    id="{{ form.password.id_for_label }}"
+                                    placeholder="••••••••"
+                                    autocomplete="current-password"
+                                >
+
+                                <span
+                                    id="togglePassword"
+                                    style="
+                                        position:absolute;
+                                        right:15px;
+                                        top:50%;
+                                        transform:translateY(-50%);
+                                        cursor:pointer;
+                                        font-size:13px;
+                                        color:#777;
+                                        user-select:none;
+                                    "
+                                >
+                                    Show
+                                </span>
+                            </div>
+
+                            {% for error in form.password.errors %}
+                                <small class="text-danger">{{ error }}</small>
+                            {% endfor %}
                         </div>
-                        <input
-                            type="password"
-                            name="{{ form.password.name }}"
-                            id="{{ form.password.id_for_label }}"
-                            placeholder="••••••••"
-                            autocomplete="current-password"
-                        >
-                        {% for error in form.password.errors %}
-                            <small class="text-danger">{{ error }}</small>
-                        {% endfor %}
-                    </div>
 
                     <div class="form-actions">
                         <button type="submit" class="btn-submit">Sign In</button>
@@ -108,5 +130,22 @@
             </div>
         </aside>
     </div>
+    <script>
+    const passwordInput = document.getElementById('{{ form.password.id_for_label }}');
+    const togglePassword = document.getElementById('togglePassword');
+
+    togglePassword.addEventListener('click', () => {
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            togglePassword.textContent = 'Hide';
+        } else {
+            passwordInput.type = 'password';
+            togglePassword.textContent = 'Show';
+        }
+
+    });
+</script>
 </body>
+
 </html>
