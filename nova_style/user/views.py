@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .forms import SignupForm,LoginForm,OTPForm
 from .models import EmailOTP,Users
+from django.contrib.auth.decorators import login_required
 
 MAX_ATTEMPTS = 5
 MAX_RESENDS = 3
@@ -171,14 +172,19 @@ def logout(request):
 
 
 def home(request):
-     if not request.user.is_authenticated:
-        return redirect("login")
-
+    
      return render(request, "home.html")
 
-def forgot_password(request):
-    return render(request,'forgot_password.html')
-
-
+@login_required(login_url='login')
 def profile(request):
-    return render(request,'profile.html')
+    email=request.session.get('user_email')
+    member_since=Users.objects.get(email=email)
+   
+    return render(request,'profile.html',{"details":member_since})
+
+
+def addresses(request):
+    return render(request,'addresses.html')
+
+def new_address(request):
+    return render(request,'new_address.html')
