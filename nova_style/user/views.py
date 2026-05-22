@@ -187,4 +187,4 @@ def addresses(request):
     return render(request,'addresses.html')
 
 def new_address(request):
-    return render(request,'new_address.html')
+    return render(request,'new_address.html ')
