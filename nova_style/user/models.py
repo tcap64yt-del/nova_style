@@ -58,3 +58,22 @@ class EmailOTP(models.Model):
     
     class Meta:
         db_table ="email_otp"
+
+
+class Addresses(models.Model):
+    user=models.ForeignKey(Users,on_delete=models.CASCADE,related_name="addresses")
+    name=models.CharField(max_length=255)
+    addresses=models.TextField()
+    phone=models.CharField(max_length=10)
+    district=models.CharField(max_length=255)
+    state=models.CharField(max_length=255)
+    country=models.CharField(max_length=255)
+    postal_code=models.CharField(max_length=6)
+    is_default=models.BooleanField(default=False)
+    created_at=models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "addresses"
+
+    def __str__(self):
+        return self.email
