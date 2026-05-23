@@ -197,7 +197,6 @@ a {
     margin-top: 14px;
 }
 
-/* Core Button Styles */
 button {
     font-family: var(--font-primary);
     font-size: 0.92rem;
@@ -241,6 +240,21 @@ button {
     background-color: var(--color-btn-google-hover);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+.toggle-password{
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    border: none;
+    background: transparent;
+
+    font-size: 13px;
+    font-weight: 500;
+    color: #777;
+
+    cursor: pointer;
 }
 
 .btn-google:active {

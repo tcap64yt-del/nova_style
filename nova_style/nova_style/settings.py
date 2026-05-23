@@ -36,11 +36,10 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = "t.cap64yt@gmail.com"
-EMAIL_HOST_PASSWORD = "tlmudkbsfhjjysav"
+EMAIL_HOST_USER = "novastyleecommerce@gmail.com"
+EMAIL_HOST_PASSWORD = "znjekfrfwotnoqka"
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',

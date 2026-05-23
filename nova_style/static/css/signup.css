@@ -222,7 +222,6 @@ input[type="password"] {
     height: 18px;
 }
 
-/* Login Link */
 .login-link {
     text-align: center;
     margin-top: 32px;
@@ -240,7 +239,6 @@ input[type="password"] {
     text-decoration: underline;
 }
 
-/* Right Panel specific */
 .bg-img {
     width: 100%;
     height: 125%;
@@ -275,7 +273,6 @@ input[type="password"] {
     font-weight: 300;
 }
 
-/* Footer */
 .site-footer {
     display: flex;
     flex-direction: column;
@@ -404,28 +401,31 @@ input[type="password"] {
 input.ng-invalid {
     border-color: #d93025;
 }
-.password-wrapper{
+.password-wrapper {
     position: relative;
     width: 100%;
 }
 
-.password-wrapper input{
+.password-wrapper input {
     width: 100%;
-    padding-right: 70px;
+    padding-right: 70px; /* space for the button */
 }
 
-.toggle-password{
+.toggle-password {
     position: absolute;
-    right: 16px;
     top: 50%;
+    right: 14px;
     transform: translateY(-50%);
-
     border: none;
     background: transparent;
-
+    padding: 0;
+    margin: 0;
+    width: auto;
+    height: auto;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+    color: #666;
     font-size: 13px;
     font-weight: 500;
-    color: #777;
-
-    cursor: pointer;
 }

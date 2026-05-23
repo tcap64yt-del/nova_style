@@ -178,9 +178,14 @@ def home(request):
 @login_required(login_url='login')
 def profile(request):
     email=request.session.get('user_email')
-    member_since=Users.objects.get(email=email)
+    details=Users.objects.get(email=email)
+
+    if request.method=="POST":
+        if request.FILES.get("avatar_url"):
+            details.avatar_url=request.FILES["avatar_url"]
+            details.save()
    
-    return render(request,'profile.html',{"details":member_since})
+    return render(request,'profile.html',{"details":details})
 
 
 def addresses(request):
@@ -188,3 +193,4 @@ def addresses(request):
 
 def new_address(request):
     return render(request,'new_address.html ')
+

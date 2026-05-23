@@ -26,7 +26,7 @@ class Users(AbstractBaseUser):
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     status = models.BooleanField(default=False)
-    avatar_url = models.ImageField(upload_to='profile/')
+    avatar_url = models.ImageField(upload_to='profile/',default='default.png')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -77,3 +77,5 @@ class Addresses(models.Model):
 
     def __str__(self):
         return self.email
+    
+
