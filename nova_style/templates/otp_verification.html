@@ -56,11 +56,11 @@
                 </form>
 
                 <p id="timer-text" class="timer-text">
-                     <span id="timer">60</span>s
+                    <span id="timer">60</span>s
                 </p>
 
                 <div class="card-footer-actions">
-                    <form method="post" action="{% url 'resend_otp' %}" style="display:inline;">
+                    <form method="post" action="{% url 'resend_otp' %}" id="resendForm" style="display:inline;">
                         {% csrf_token %}
                         <button type="submit" class="resend-btn" id="resend-btn" disabled>RESEND CODE</button>
                     </form>
@@ -82,96 +82,107 @@
         </footer>
     </div>
 
-  <script>
-    const inputs = document.querySelectorAll('.code-input');
-    const otpHidden = document.getElementById('otp-hidden');
-    const otpForm = document.getElementById('otpForm');
+    <script>
+        const inputs = document.querySelectorAll('.code-input');
+        const otpHidden = document.getElementById('otp-hidden');
+        const otpForm = document.getElementById('otpForm');
 
-    inputs.forEach((input, index) => {
-        input.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 1);
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '').slice(0, 1);
 
-            if (e.target.value.length === 1 && index < inputs.length - 1) {
-                inputs[index + 1].focus();
-            }
-        });
-
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
-                inputs[index - 1].focus();
-            }
-        });
-
-        input.addEventListener('paste', (e) => {
-            e.preventDefault();
-            const pasted = (e.clipboardData || window.clipboardData)
-                .getData('text')
-                .replace(/\D/g, '')
-                .slice(0, 6);
-
-            pasted.split('').forEach((char, i) => {
-                if (inputs[i]) inputs[i].value = char;
+                if (e.target.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
             });
 
-            if (inputs[pasted.length - 1]) inputs[pasted.length - 1].focus();
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData)
+                    .getData('text')
+                    .replace(/\D/g, '')
+                    .slice(0, 6);
+
+                pasted.split('').forEach((char, i) => {
+                    if (inputs[i]) inputs[i].value = char;
+                });
+
+                if (inputs[pasted.length - 1]) {
+                    inputs[pasted.length - 1].focus();
+                }
+            });
         });
-    });
 
-    otpForm.addEventListener('submit', (e) => {
-        const otp = Array.from(inputs).map(input => input.value).join('');
-        otpHidden.value = otp;
+        otpForm.addEventListener('submit', (e) => {
+            const otp = Array.from(inputs).map(input => input.value).join('');
+            otpHidden.value = otp;
 
-        if (otp.length !== 6) {
-            e.preventDefault();
-            alert('Enter the 6-digit OTP.');
-        }
-    });
+            if (otp.length !== 6) {
+                e.preventDefault();
+                alert('Enter the 6-digit OTP.');
+            }
+        });
 
-    const resendBtn = document.getElementById('resend-btn');
-    const timerText = document.getElementById('timer-text');
+        const resendForm = document.getElementById('resendForm');
+        const resendBtn = document.getElementById('resend-btn');
+        const timerText = document.getElementById('timer-text');
+        const timerSpan = document.getElementById('timer');
 
-    const DURATION = 60; // seconds
-    const STORAGE_KEY = 'otp_expiry_timestamp';
+        const DURATION = 120; // seconds
+        const STORAGE_KEY = 'otp_expiry_timestamp';
 
-    let intervalId = null;
+        let intervalId = null;
 
-    function getExpiryTimestamp() {
-        let expiry = localStorage.getItem(STORAGE_KEY);
-
-        if (!expiry) {
-            expiry = Date.now() + DURATION * 1000;
-            localStorage.setItem(STORAGE_KEY, expiry);
-        }
-
-        return Number(expiry);
-    }
-
-    function startTimer() {
-        clearInterval(intervalId);
-
-        const expiryTimestamp = getExpiryTimestamp();
-        resendBtn.disabled = true;
-
-        function updateTimer() {
-            const secondsLeft = Math.ceil((expiryTimestamp - Date.now()) / 1000);
-
-           if (secondsLeft > 0) {
-    timerText.innerHTML = `Resend available in <span id="timer">${secondsLeft}</span>s`;
-} else {
-    timerText.textContent = 'You can now resend the OTP.';
-    resendBtn.disabled = false;
-    clearInterval(intervalId);
-    // do not remove STORAGE_KEY here
-}
+        function setNewExpiry() {
+            const expiry = Date.now() + DURATION * 1000;
+            localStorage.setItem(STORAGE_KEY, String(expiry));
+            return expiry;
         }
 
-        updateTimer();
-        intervalId = setInterval(updateTimer, 1000);
-    }
+        function getExpiryTimestamp() {
+            const expiry = localStorage.getItem(STORAGE_KEY);
 
-    startTimer();
+            if (!expiry || isNaN(Number(expiry))) {
+                return setNewExpiry();
+            }
 
+            return Number(expiry);
+        }
 
-</script>
+        function startTimer() {
+            clearInterval(intervalId);
+
+            const expiryTimestamp = getExpiryTimestamp();
+            resendBtn.disabled = true;
+
+            function updateTimer() {
+                const secondsLeft = Math.ceil((expiryTimestamp - Date.now()) / 1000);
+
+                if (secondsLeft > 0) {
+                    timerText.innerHTML = `Resend available in <span id="timer">${secondsLeft}</span>s`;
+                } else {
+                    timerText.textContent = 'You can now resend the OTP.';
+                    resendBtn.disabled = false;
+                    clearInterval(intervalId);
+                }
+            }
+
+            updateTimer();
+            intervalId = setInterval(updateTimer, 1000);
+        }
+
+        resendForm.addEventListener('submit', () => {
+            setNewExpiry();
+            localStorage.setItem(STORAGE_KEY, String(Date.now() + DURATION * 1000));
+        });
+
+        startTimer();
+    </script>
 </body>
 </html>
