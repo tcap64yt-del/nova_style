@@ -7,12 +7,15 @@ urlpatterns = [
    path("",views.home,name="home"),
    path("signup/",views.signup,name="signup"),
    path("login/",views.login,name="login"),
+   path("profile/change-password/", views.change_password, name="user_change_password"),
    path("profile/",views.profile,name="profile"),
    path("logout/", views.logout, name="logout"),
    path("profile/addresses/", views.addresses, name="addresses"),
-   path("profile/addresses/new-address", views.new_address, name="new-address"),
+   path("profile/addresses/new-address", views.new_address, name="new_address"),
    path("signup/otp/",views.verify_otp,name="otp_verify"),
    path("signup/otp/resend",views.resend_otp,name="resend_otp"),
+   path("profile/email-change/otp/", views.verify_email_otp, name="verify_email_otp"),
+    path("profile/email-change/resend/", views.verify_email_otp, name="resend_email_change_otp"),
    path(
         "forgot-password/",
         auth_views.PasswordResetView.as_view(
