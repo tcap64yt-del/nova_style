@@ -30,7 +30,11 @@
           </svg>
         </a>
         <div class="user-avatar-header">
-          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&h=80&q=80" alt="User Profile" class="header-avatar-img">
+         {% if details.avatar_url %}
+  <img src="{{ details.avatar_url.url }}" alt="User Avatar" class="header-avatar-img">
+{% else %}
+  <img src="{% static 'images/default.png' %}" alt="User Avatar" class="header-avatar-img">
+{% endif %}
         </div>
       </div>
     </div>
@@ -98,47 +102,48 @@
         </div>
 
         <section class="address-form-card">
-          <form class="address-form" onsubmit="event.preventDefault();">
+          <form method="post" class="address-form">
+            {% csrf_token %}
             <div class="form-row full-width">
               <div class="form-group">
                 <label for="name">Name</label>
-                <input type="text" id="name" placeholder="Enter your name">
+                <input name='name' type="text" id="name" placeholder="Enter your name">
               </div>
             </div>
 
             <div class="form-row three-col">
               <div class="form-group">
                 <label for="phone">Phone</label>
-                <input type="tel" id="phone" placeholder="Enter phone number">
+                <input name="phone" type="tel" id="phone" placeholder="Enter phone number">
               </div>
 
               <div class="form-group">
                 <label for="state">State</label>
-                <input type="text" id="state" placeholder="Enter state">
+                <input name="state" type="text" id="state" placeholder="Enter state">
               </div>
 
               <div class="form-group">
                 <label for="district">District</label>
-                <input type="text" id="district" placeholder="Enter district">
+                <input name="district" type="text" id="district" placeholder="Enter district">
               </div>
             </div>
 
             <div class="form-row two-col">
               <div class="form-group">
                 <label for="country">Country</label>
-                <input type="text" id="country" placeholder="Enter country">
+                <input name="country" type="text" id="country" placeholder="Enter country">
               </div>
 
               <div class="form-group">
                 <label for="postal-code">Postal Code</label>
-                <input type="text" id="postal-code" placeholder="Enter postal code">
+                <input name="postal_code" type="text" id="postal-code" placeholder="Enter postal code">
               </div>
             </div>
 
             <div class="form-row full-width">
               <div class="form-group">
                 <label for="address">Address</label>
-                <textarea id="address" placeholder="Flat, House no., Building, Company, Apartment"></textarea>
+                <textarea name="address" id="address" placeholder="Flat, House no., Building, Company, Apartment"></textarea>
               </div>
             </div>
 
