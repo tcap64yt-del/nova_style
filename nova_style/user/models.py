@@ -26,7 +26,7 @@ class Users(AbstractBaseUser):
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     status = models.BooleanField(default=False)
-    avatar_url = models.ImageField(upload_to='profile/',default='static/default.png',null=True,blank=True)
+    avatar_url = models.ImageField(upload_to='profile/',null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -63,7 +63,7 @@ class EmailOTP(models.Model):
 class Addresses(models.Model):
     user=models.ForeignKey(Users,on_delete=models.CASCADE,related_name="addresses")
     name=models.CharField(max_length=255)
-    addresses=models.TextField()
+    address=models.TextField()
     phone=models.CharField(max_length=10)
     district=models.CharField(max_length=255)
     state=models.CharField(max_length=255)
