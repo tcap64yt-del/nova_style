@@ -15,7 +15,12 @@ urlpatterns = [
    path("signup/otp/",views.verify_otp,name="otp_verify"),
    path("signup/otp/resend",views.resend_otp,name="resend_otp"),
    path("profile/email-change/otp/", views.verify_email_otp, name="verify_email_otp"),
-    path("profile/email-change/resend/", views.verify_email_otp, name="resend_email_change_otp"),
+   path("profile/email-change/resend/", views.verify_email_otp, name="resend_email_change_otp"),
+
+   path("profile/addresses/", views.verify_email_otp, name="resend_email_change_otp"), #delete address
+   
+   
+   
    path(
         "forgot-password/",
         auth_views.PasswordResetView.as_view(
