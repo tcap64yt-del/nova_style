@@ -14,7 +14,6 @@
 </head>
 <body>
 
-  <!-- Navigation Header -->
   <header class="main-header">
     <div class="header-container">
       <div class="logo">
@@ -39,17 +38,19 @@
           </svg>
         </a>
         <div class="user-avatar-header">
-          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&h=80&q=80" alt="User Profile" class="header-avatar-img">
+           {% if details.avatar_url %}
+  <img src="{{ details.avatar_url.url }}" alt="User Avatar" class="header-avatar-img">
+{% else %}
+  <img src="{% static 'images/default.png' %}" alt="User Avatar" class="header-avatar-img">
+{% endif %}
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Main Dashboard Layout -->
   <div class="dashboard-wrapper">
     <div class="dashboard-container">
       
-      <!-- Sidebar Navigation -->
       <aside class="sidebar">
         <h2 class="sidebar-title">Dashboard</h2>
         <nav class="sidebar-nav">
@@ -59,7 +60,7 @@
             </svg>
             Profile
           </a>
-          <a href="#" class="sidebar-link">
+          <a href="{% url "addresses" %}" class="sidebar-link">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="sidebar-icon">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25s-7.5-4.108-7.5-11.25a7.5 7.5 0 1 1 15 0Z" />
@@ -101,50 +102,84 @@
           <p class="main-subtitle">Update your personal details and manage your account security.</p>
         </div>
 
-        <!-- Profile Details Block -->
         <section class="profile-card">
           <div class="profile-meta-row">
             
-            <div class="profile-avatar-container">
-              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&h=256&q=80" alt="Sourav Avatar" class="profile-avatar-img">
-              <button class="avatar-edit-btn" aria-label="Edit Profile Picture">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="pencil-icon">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                </svg>
-              </button>
-            </div>
+           <div class="profile-avatar-wrap">
+  {% if details.avatar_url %}
+    <img src="{{ details.avatar_url.url }}" alt="User Avatar" class="profile-avatar">
+  {% else %}
+    <img src="{% static 'images/default.png' %}" alt="User Avatar" class="profile-avatar">
+  {% endif %}
+
+  <button type="button" class="avatar-edit-btn" id="openProfileModal" aria-label="Edit profile">
+    ✎
+  </button>
+</div>
+
+<div class="profile-modal" id="profileModal">
+  <div class="profile-modal-overlay" id="closeProfileModal"></div>
+
+  <div class="profile-modal-box">
+    <div class="profile-modal-header">
+      <h3>Edit Profile</h3>
+      <button type="button" class="modal-close-btn" id="closeModalBtn">×</button>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="profile-modal-form">
+      {% csrf_token %}
+
+      <div class="profile-modal-preview">
+        {% if details.avatar_url %}
+          <img src="{{ details.avatar_url }}" alt="Preview" id="avatarPreview">
+        {% else %}
+          <img src="{% static 'images/default.png' %}" alt="Preview" id="avatarPreview">
+        {% endif %}
+      </div>
+
+      <label class="upload-label">Select image</label>
+      <input type="file" name="avatar_url" id="avatarInput" accept="image/*" class="file-input">
+
+      <div class="modal-actions">
+        <button type="button" class="back-btn" id="backBtn">Back</button>
+        <button type="submit" class="save-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
 
             <div class="profile-info">
               <h2 class="profile-name">SOURAV</h2>
-              <p class="profile-membership">Member since Oct 2023</p>
+              <p class="profile-membership">{{ details.created_at  }}</p>
             </div>
 
             <div class="profile-actions">
+              <a href="{% url "user_change_password" %}" class="sidebar-link">
               <button class="change-password-link">CHANGE PASSWORD</button>
+              </a>
             </div>
             
           </div>
 
-          <!-- Form Area -->
-          <form class="profile-form" onsubmit="event.preventDefault();">
-            <div class="form-grid">
-              
-              <div class="form-group">
-                <label for="user-name" class="form-label">Name</label>
-                <input type="text" id="user-name" class="form-input" value="sourav">
-              </div>
+         <form method="post" class="profile-form" >
+  {% csrf_token %}
 
-              <div class="form-group">
-                <label for="user-email" class="form-label">Email Address</label>
-                <input type="email" id="user-email" class="form-input" value="abc.@gamil.com">
-              </div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label class="form-label">Name</label>
+      <input type="text" id="user-name" name="name" class="form-input" value="{{ details.name }}">
+    </div>
 
-            </div>
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input type="email" id="user-email" name="email" class="form-input" value="{{ details.email }}">
+    </div>
+  </div>
 
-            <div class="form-actions">
-              <button type="submit" class="btn-save">Save</button>
-            </div>
-          </form>
+  <div class="form-actions">
+    <button type="submit" class="btn-save">Save</button>
+  </div>
+</form>
 
         </section>
       </main>
@@ -164,6 +199,37 @@
       &copy; 2024 NOVA STYLE. ALL RIGHTS RESERVED.
     </div>
   </footer>
+<script>
+  const modal = document.getElementById("profileModal");
+  const openBtn = document.getElementById("openProfileModal");
+  const closeBtn = document.getElementById("closeModalBtn");
+  const closeOverlay = document.getElementById("closeProfileModal");
+  const backBtn = document.getElementById("backBtn");
+  const avatarInput = document.getElementById("avatarInput");
+  const avatarPreview = document.getElementById("avatarPreview");
 
+  function openModal() {
+    modal.classList.add("show");
+  }
+
+  function closeModal() {
+    modal.classList.remove("show");
+  }
+
+  openBtn.addEventListener("click", openModal);
+  closeBtn.addEventListener("click", closeModal);
+  closeOverlay.addEventListener("click", closeModal);
+  backBtn.addEventListener("click", closeModal);
+
+  avatarInput.addEventListener("change", function () {
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        avatarPreview.src = e.target.result;
+      };
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+</script>
 </body>
 </html>
