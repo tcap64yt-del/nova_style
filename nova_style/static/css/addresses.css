@@ -540,10 +540,11 @@ button, a {
   display: flex;
   align-items: center;
   cursor: pointer;
+  border-color: red;
 }
 
 .default-checkbox input {
-  display: none;
+  display: block;
 }
 
 .default-dot {
