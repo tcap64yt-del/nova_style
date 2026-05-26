@@ -55,8 +55,11 @@
                 </button>
                 <div class="user-profile" id="user-profile-menu">
                        <a href='{% url "profile" %}'>
-                    <img  src="{% static 'images/profile.jpg' %}" alt="User Profile Avatar" class="profile-pic">
-                       </a>
+                        {% if details.avatar_url %}
+                        <img src="{{ details.avatar_url.url }}" alt="User Avatar" class="header-avatar-img">
+                        {% else %}
+                        <img src="{% static 'images/default.png' %}" alt="User Avatar" class="header-avatar-img">
+                        {% endif %}                       </a>
                 </div>
             </div>
         </div>
