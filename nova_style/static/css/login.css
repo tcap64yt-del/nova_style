@@ -1,16 +1,8 @@
-/* ==========================================================================
-   Nova Style Login Stylesheet
-   - Minimalist, premium fashion brand aesthetic
-   - Pixel-perfect layout structure
-   - Responsive, fluid typography & micro-interactions
-   ========================================================================== */
 
-/* Design Tokens & Variables */
 :root {
     --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --font-heading: 'Outfit', 'Inter', sans-serif;
     
-    /* Elegant Grayscale Palette */
     --color-bg-left: #ffffff;
     --color-bg-right: #f6f6f8; /* Soft cool light grey */
     --color-text-primary: #1c1c1e;
@@ -18,7 +10,6 @@
     --color-text-disabled: #8e8e93;
     --color-text-light: #a1a1a6;
     
-    /* Interactive Colors */
     --color-border-input: #d1d1d6;
     --color-border-input-focus: #1c1c1e;
     --color-btn-submit: #535256; /* Dark slate grey matching Figma */
@@ -31,7 +22,6 @@
     --transition-fast: all 0.2s ease;
 }
 
-/* Reset & Base Rules */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -54,10 +44,6 @@ a {
     text-decoration: none;
     transition: var(--transition-fast);
 }
-
-/* ==========================================================================
-   Layout Structure
-   ========================================================================== */
 
 .login-container {
     display: grid;
@@ -96,11 +82,7 @@ a {
     overflow: hidden;
 }
 
-/* ==========================================================================
-   Form Content & Styling
-   ========================================================================== */
 
-/* Logo & Subtitle */
 .branding-header {
     margin-top: auto; /* Push down to sit balanced in vertical flex flow */
     margin-bottom: 54px;
@@ -179,7 +161,6 @@ a {
     font-weight: 300;
 }
 
-/* Custom placeholder dot styling for password field */
 .input-group input[type="password"]::placeholder {
     font-size: 0.8rem;
     letter-spacing: 0.1em;
@@ -189,13 +170,17 @@ a {
     border-bottom-color: var(--color-border-input-focus);
 }
 
-/* Actions & Buttons */
 .form-actions {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    margin-top: 14px;
+    align-items: stretch;
 }
+
+.form-actions p {
+    margin-left: 50%;
+}
+
+
 
 button {
     font-family: var(--font-primary);
@@ -344,14 +329,8 @@ button {
     }
 }
 
-/* ==========================================================================
-   Media Queries & Responsiveness
-   ========================================================================== */
-
-/* Tablet & Desktop Layout */
 @media screen and (min-width: 901px) {
     .login-container {
-        /* Elegant split proportion to closely match Figma ratio */
         grid-template-columns: 1.15fr 0.85fr;
     }
     
@@ -382,7 +361,6 @@ button {
     }
 }
 
-/* Extra small height screen adjustments to prevent scrolling cutoffs */
 @media screen and (max-height: 680px) and (min-width: 901px) {
     .form-content-wrapper {
         min-height: auto;
@@ -396,3 +374,6 @@ button {
         padding-top: 20px;
     }
 }
+
+
+
