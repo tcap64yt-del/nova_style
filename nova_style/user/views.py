@@ -7,7 +7,7 @@ from django.contrib.auth import logout as auth_logout
 from django.shortcuts import redirect,render
 from django.core.mail import send_mail
 from django.conf import settings
-from .forms import SignupForm,LoginForm,OTPForm
+from .forms import SignupForm,LoginForm,OTPForm,ProfileForm
 from .models import EmailOTP,Users
 from django.contrib.auth.decorators import login_required
 
@@ -73,14 +73,17 @@ def verify_otp(request):
         form = OTPForm(request.POST)
         if form.is_valid():
             entered_otp = form.cleaned_data["otp"]
-
+            if len(entered_otp) !=6:
+                messages.error(request,"Enter 6 digit number")
+                return redirect("otp_verify")
+            
             if otp_record.is_expired():
                 messages.error(request, "OTP expired.")
-                return redirect("signup")
+                return redirect("otp_verify")
 
             if otp_record.attempts >= MAX_ATTEMPTS:
-                messages.error(request, "Too many attempts.")
-                return redirect("signup")
+                messages.error(request, "ttoo many attempts.")
+                return redirect("otp_verify")
 
             if entered_otp == otp_record.otp_code:
                 user = Users.objects.create_user(
@@ -92,7 +95,7 @@ def verify_otp(request):
                 otp_record.is_verified=True
                 otp_record.save(update_fields=['is_verified'])
                 otp_record.delete()
-                request.session.pop("pending_signup", None)
+                request.session.pop("signup_data", None)
 
                 messages.success(request, "Account created. Now you can login.")
                 return redirect("login")
@@ -100,6 +103,7 @@ def verify_otp(request):
             otp_record.attempts += 1
             otp_record.save(update_fields=["attempts"])
             messages.error(request, "Invalid OTP.")
+            return redirect("otp_verify")
     else:
         form = OTPForm()
 
@@ -154,12 +158,15 @@ def login(request):
 
             if user is None:
                 messages.error(request, "Invalid credentials.")
-                return render(request, "login.html", {"form": form})
+                return redirect("login")
             else:
                 auth_login(request, user)
                 request.session.set_expiry(3600)
                 request.session["user_email"] = user.email
                 return redirect("home")
+        else:
+            messages.error(request,"please fill all fields.")
+            return redirect("login")
     else:
         form = LoginForm()
 
@@ -172,25 +179,146 @@ def logout(request):
 
 
 def home(request):
-    
-     return render(request, "home.html")
+    details = None
+
+    if request.user.is_authenticated:
+        email = request.user.email
+
+        details = Users.objects.filter(email=email).first()
+
+    return render(request, "home.html",{"details":details})
 
 @login_required(login_url='login')
 def profile(request):
     email=request.session.get('user_email')
     details=Users.objects.get(email=email)
 
-    if request.method=="POST":
-        if request.FILES.get("avatar_url"):
-            details.avatar_url=request.FILES["avatar_url"]
+
+    if request.method == "POST":
+        avatar = request.FILES.get("avatar_url")
+        if avatar:
+            details.avatar_url = avatar
+            details.save()   
+        
+
+        form=ProfileForm(request.POST)
+
+        if form.is_valid():
+            new_name = form.cleaned_data["name"].strip()
+            new_email = form.cleaned_data["email"].strip().lower()
+
+            name_changed=new_name!= details.name
+            email_changed =new_email !=details.email
+
+            if name_changed:
+                details.name=new_name
+            
+            if not email_changed:
+                details.save()
+                messages.success(request,'updated successfully')
+                return redirect('profile')
+            
+            if Users.objects.filter(email=new_email).exists():
+                messages.error(request, "This email is already in use.")
+                return redirect("profile")
+            
             details.save()
-   
-    return render(request,'profile.html',{"details":details})
+
+            EmailOTP.objects.filter(email=new_email,is_verified=False).delete()
+
+            otp=generate_otp()
+            EmailOTP.objects.update_or_create(
+                email=email,
+                defaults={
+                    "otp_code": otp,
+                    "expires_at": timezone.now() + timedelta(seconds=OTP_SECONDS),
+                    "attempts": 0,
+                    "resend_count": 0,
+                    "is_verified": False,
+                },
+            )
+            send_mail(
+                subject="Your email verification OTP",
+                message=f"Your OTP is {otp}. It expires in 1 minute.",
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[new_email],
+            )
+            request.session["pending_email_change_user_id"] = details.id
+            request.session["pending_email_change_email"] = new_email
+            request.session["pending_email_change_name"] = new_name           
+            messages.success(request, "OTP sent to your email.")
+            return redirect("verify_email_otp")
+    else:
+        form=ProfileForm(initial={"name": details.name, "email": details.email})
+        
+    return render(request,'profile.html',{"details":details,"form":form})
+
 
 
 def addresses(request):
-    return render(request,'addresses.html')
+    email=request.session.get('user_email')
+    details=Users.objects.get(email=email)
+
+    return render(request,'addresses.html',{"details":details})
 
 def new_address(request):
     return render(request,'new_address.html ')
+
+
+def change_password(request):
+
+    return render(request,'change_password.html')
+
+@login_required(login_url='login')
+def verify_email_otp(request): 
+    pending_user_id = request.session.get("pending_email_change_user_id")
+    pending_email = request.session.get("pending_email_change_email")    
+    otp_record=(EmailOTP.objects.filter(email=pending_email,is_verified=False).order_by('-created_at').first())
+
+
+    if request.method == "POST":
+        form = OTPForm(request.POST)
+        if form.is_valid():
+            entered_otp = form.cleaned_data["otp"]
+            
+            if not otp_record:
+                messages.error(request, "OTP not found. Please resend it.")
+                return redirect("verify_email_otp")
+
+            if otp_record.is_expired():
+                messages.error(request, "OTP expired. Please resend it.")
+                return redirect("verify_email_otp")
+
+            if otp_record.attempts >= 5:
+                messages.error(request, "Too many attempts. Please resend OTP.")
+                return redirect("verify_email_otp")
+
+            otp_record.attempts += 1
+            otp_record.save(update_fields=["attempts"])
+
+            if entered_otp != otp_record.otp_code:
+                otp_record.attempts += 1
+                otp_record.save(update_fields=["attempts"])
+                messages.error(request, "Invalid OTP.")
+                return redirect("verify_email_otp")
+
+            user = request.user
+            user.email = pending_email
+            user.save()
+
+            otp_record.is_verified = True
+            otp_record.save(update_fields=["is_verified"])
+            otp_record.delete()
+
+            request.session.pop("pending_email_change_user_id", None)
+            request.session.pop("pending_email_change_email", None)
+            request.session.pop("pending_email_change_name", None)
+
+            request.session["user_email"] = user.email
+
+            messages.success(request, "Email updated successfully.")
+            return redirect("profile")
+      
+    
+    return render(request,'email_otp_verification.html', {"pending_email": pending_email})
 
