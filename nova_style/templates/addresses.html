@@ -114,7 +114,7 @@
               Add New Address
             </a>
           </div>
-
+        {% for detail in  addresses %}
         <div class="address-list">
           <div class="address-card">
             <div class="address-card-left">
@@ -125,8 +125,8 @@
                 </svg>
               </div>
               <div>
-                <h3 class="address-name">Sourav</h3>
-                <p class="address-text">Kannur, Kerala, India</p>
+                <h3 class="address-name">{{ detail.name }}</h3>
+                <p class="address-text">{{ detail.district }},{{ detail.state }},{{ detail.country }}</p>
               </div>
             </div>
             <div class="address-card-right">
@@ -152,6 +152,7 @@
             </div>
           </div>
         </div>
+        {% endfor %}
       </section>
     </div>
   </div>
