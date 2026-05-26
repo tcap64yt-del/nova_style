@@ -35,7 +35,11 @@
           </svg>
         </a>
         <div class="user-avatar-header">
-          <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&h=80&q=80" alt="User Profile" class="header-avatar-img">
+           {% if details.avatar_url %}
+  <img src="{{ details.avatar_url.url }}" alt="User Avatar" class="header-avatar-img">
+{% else %}
+  <img src="{% static 'images/default.png' %}" alt="User Avatar" class="header-avatar-img">
+{% endif %}
         </div>
       </div>
     </div>
@@ -94,7 +98,7 @@
         </div>
 
         <div class="address-toolbar">
-            <a class="add-address-btn" href="{% url 'new-address' %}">
+            <a class="add-address-btn" href="{% url 'new_address' %}">
               <svg xmlns="http://www.w3.org/2000/svg"
                   width="16"
                   height="16"
@@ -142,10 +146,8 @@
               </div>
               <div class="default-badge default-on">
                 <span>Default</span>
-
-                <label class="default-checkbox">
                   <input type="checkbox" checked />
-                </label>
+              
               </div>
             </div>
           </div>
