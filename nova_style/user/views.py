@@ -8,7 +8,7 @@ from django.shortcuts import redirect,render
 from django.core.mail import send_mail
 from django.conf import settings
 from .forms import SignupForm,LoginForm,OTPForm,ProfileForm
-from .models import EmailOTP,Users
+from .models import EmailOTP,Users,Addresses
 from django.contrib.auth.decorators import login_required
 
 MAX_ATTEMPTS = 5
@@ -198,7 +198,10 @@ def profile(request):
         avatar = request.FILES.get("avatar_url")
         if avatar:
             details.avatar_url = avatar
-            details.save()   
+
+            details.save()  
+            messages.success(request,"updated profile") 
+            return redirect('profile')
         
 
         form=ProfileForm(request.POST)
@@ -210,25 +213,26 @@ def profile(request):
             name_changed=new_name!= details.name
             email_changed =new_email !=details.email
 
-            if name_changed:
-                details.name=new_name
-            
-            if not email_changed:
-                details.save()
-                messages.success(request,'updated successfully')
+            if not name_changed and not email_changed:
+                messages.error(request, "No changes made.")
                 return redirect('profile')
-            
-            if Users.objects.filter(email=new_email).exists():
-                messages.error(request, "This email is already in use.")
-                return redirect("profile")
-            
-            details.save()
 
+            if name_changed and not email_changed:
+                details.name = new_name
+                details.save()
+                messages.success(request, "Name updated successfully.")
+                return redirect("profile")
+            if email_changed:
+                if Users.objects.filter(email=new_email).exclude(id=details.id).exists():
+                        messages.error(request, "This email is already taken.")
+                        return redirect("profile")
+            
+            
             EmailOTP.objects.filter(email=new_email,is_verified=False).delete()
 
             otp=generate_otp()
             EmailOTP.objects.update_or_create(
-                email=email,
+                email=new_email,
                 defaults={
                     "otp_code": otp,
                     "expires_at": timezone.now() + timedelta(seconds=OTP_SECONDS),
@@ -258,16 +262,44 @@ def profile(request):
 def addresses(request):
     email=request.session.get('user_email')
     details=Users.objects.get(email=email)
+    addresses=Addresses.objects.filter(user_id=details.id)
 
-    return render(request,'addresses.html',{"details":details})
+    return render(request,'addresses.html',{"details":details,"addresses":addresses})
 
+@login_required(login_url='login')
 def new_address(request):
-    return render(request,'new_address.html ')
+    email=request.session.get('user_email')
+    details=Users.objects.get(email=email)
+    user=Users.objects.get(email=email)
+    user_id=user.id
+
+    if request.method =="POST":
+        name=request.POST.get('name')
+        phone=request.POST.get('phone')
+        state=request.POST.get('state')
+        district=request.POST.get('district')
+        country=request.POST.get('country')
+        postal_code=request.POST.get('postal_code')
+        address=request.POST.get('address')
+        
+        new_address=Addresses.objects.create(
+            name=name,
+            phone=phone,
+            state=state,
+            district=district,
+            country=country,
+            postal_code=postal_code,
+            address=address,
+            user_id=user_id,
+            is_default=False
+        )
+        new_address.save()
+        messages.success(request, "New address added")
+        return redirect('addresses')
+    return render(request,'new_address.html ',{'details': details})
 
 
-def change_password(request):
 
-    return render(request,'change_password.html')
 
 @login_required(login_url='login')
 def verify_email_otp(request): 
@@ -302,7 +334,7 @@ def verify_email_otp(request):
                 messages.error(request, "Invalid OTP.")
                 return redirect("verify_email_otp")
 
-            user = request.user
+            user = Users.objects.get(id=pending_user_id)
             user.email = pending_email
             user.save()
 
@@ -322,3 +354,16 @@ def verify_email_otp(request):
     
     return render(request,'email_otp_verification.html', {"pending_email": pending_email})
 
+
+def change_password(request):
+    email=request.session.get('user_email')
+    details=Users.objects.get(email=email)
+
+    if request.method=='POST':
+        current_password=request.POST.get('current_password')
+        new_password=request.POST.get('new_password')
+        confirm_password=request.POST.get('confirm_password')
+
+        
+
+    return render(request,'change_password.html',{"details":details})
