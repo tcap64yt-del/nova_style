@@ -10,16 +10,17 @@ urlpatterns = [
    path("profile/change-password/", views.change_password, name="user_change_password"),
    path("profile/",views.profile,name="profile"),
    path("logout/", views.logout, name="logout"),
-   path("profile/addresses/", views.addresses, name="addresses"),
+
+   path("profile/addresses/", views.address_list, name="addresses"),
+   path("profile/addresses/<int:pk>/", views.delete_address, name="delete_address"),
+   path("profile/addresses/set-default/<int:pk>/",views.set_default_address,name="set_default_address"),
    path("profile/addresses/new-address", views.new_address, name="new_address"),
+   path("profile/addresses/edit-address/<int:pk>", views.edit_address, name="edit_address"),
+   
    path("signup/otp/",views.verify_otp,name="otp_verify"),
    path("signup/otp/resend",views.resend_otp,name="resend_otp"),
    path("profile/email-change/otp/", views.verify_email_otp, name="verify_email_otp"),
-   path("profile/email-change/resend/", views.verify_email_otp, name="resend_email_change_otp"),
-
-   path("profile/addresses/", views.verify_email_otp, name="resend_email_change_otp"), #delete address
-   
-   
+   path("profile/email-change/resend/", views.verify_email_otp, name="resend_email_change_otp"),   
    
    path(
         "forgot-password/",
