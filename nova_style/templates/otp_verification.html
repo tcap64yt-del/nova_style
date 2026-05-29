@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/otp_verification.css' %}">
+    <link rel="stylesheet" href="{% static 'css/otp_verification.css' %}?v=2">
 </head>
 <body>
     <div class="page-container">
@@ -82,107 +82,43 @@
         </footer>
     </div>
 
-    <script>
-        const inputs = document.querySelectorAll('.code-input');
-        const otpHidden = document.getElementById('otp-hidden');
-        const otpForm = document.getElementById('otpForm');
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+    const resendBtn = document.getElementById("resend-btn");
+    const timerText = document.getElementById("timer-text");
+    const TIMER_KEY = "otp_resend_expiry";
+    const DURATION = 120 * 1000; // 60 seconds
 
-        inputs.forEach((input, index) => {
-            input.addEventListener('input', (e) => {
-                e.target.value = e.target.value.replace(/\D/g, '').slice(0, 1);
+    let expiry = localStorage.getItem(TIMER_KEY);
 
-                if (e.target.value.length === 1 && index < inputs.length - 1) {
-                    inputs[index + 1].focus();
-                }
-            });
+    if (!expiry) {
+        expiry = Date.now() + DURATION;
+        localStorage.setItem(TIMER_KEY, expiry);
+    } else {
+        expiry = parseInt(expiry, 10);
+    }
 
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
-                    inputs[index - 1].focus();
-                }
-            });
+    function updateTimer() {
+        const secondsLeft = Math.max(0, Math.ceil((expiry - Date.now()) / 1000));
 
-            input.addEventListener('paste', (e) => {
-                e.preventDefault();
-                const pasted = (e.clipboardData || window.clipboardData)
-                    .getData('text')
-                    .replace(/\D/g, '')
-                    .slice(0, 6);
-
-                pasted.split('').forEach((char, i) => {
-                    if (inputs[i]) inputs[i].value = char;
-                });
-
-                if (inputs[pasted.length - 1]) {
-                    inputs[pasted.length - 1].focus();
-                }
-            });
-        });
-
-        otpForm.addEventListener('submit', (e) => {
-            const otp = Array.from(inputs).map(input => input.value).join('');
-            otpHidden.value = otp;
-
-            if (otp.length !== 6) {
-                e.preventDefault();
-                alert('Enter the 6-digit OTP.');
-            }
-        });
-
-        const resendForm = document.getElementById('resendForm');
-        const resendBtn = document.getElementById('resend-btn');
-        const timerText = document.getElementById('timer-text');
-        const timerSpan = document.getElementById('timer');
-
-        const DURATION = 120; // seconds
-        const STORAGE_KEY = 'otp_expiry_timestamp';
-
-        let intervalId = null;
-
-        function setNewExpiry() {
-            const expiry = Date.now() + DURATION * 1000;
-            localStorage.setItem(STORAGE_KEY, String(expiry));
-            return expiry;
-        }
-
-        function getExpiryTimestamp() {
-            const expiry = localStorage.getItem(STORAGE_KEY);
-
-            if (!expiry || isNaN(Number(expiry))) {
-                return setNewExpiry();
-            }
-
-            return Number(expiry);
-        }
-
-        function startTimer() {
-            clearInterval(intervalId);
-
-            const expiryTimestamp = getExpiryTimestamp();
+        if (secondsLeft > 0) {
+            timerText.innerHTML = `You can resend the OTP in <span id="timer">${secondsLeft}</span>s`;
             resendBtn.disabled = true;
-
-            function updateTimer() {
-                const secondsLeft = Math.ceil((expiryTimestamp - Date.now()) / 1000);
-
-                if (secondsLeft > 0) {
-                    timerText.innerHTML = `Resend available in <span id="timer">${secondsLeft}</span>s`;
-                } else {
-                    timerText.textContent = 'You can now resend the OTP.';
-                    resendBtn.disabled = false;
-                    clearInterval(intervalId);
-                }
-            }
-
-            updateTimer();
-            intervalId = setInterval(updateTimer, 1000);
+        } else {
+            timerText.textContent = "You can now resend the OTP.";
+            resendBtn.disabled = false;
+            localStorage.removeItem(TIMER_KEY);
+            clearInterval(interval);
         }
+    }
 
-        resendForm.addEventListener('submit', () => {
-            setNewExpiry();
-            localStorage.setItem(STORAGE_KEY, String(Date.now() + DURATION * 1000));
-        });
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
 
-        startTimer();
-    </script>
+    resendBtn.addEventListener("click", () => {
+        localStorage.setItem(TIMER_KEY, Date.now() + DURATION);
+    });
+});
+</script>
 </body>
 </html>
