@@ -4,12 +4,13 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth import logout as auth_logout
-from django.shortcuts import redirect,render
+from django.shortcuts import redirect,render,get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
 from .forms import SignupForm,LoginForm,OTPForm,ProfileForm
 from .models import EmailOTP,Users,Addresses
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 MAX_ATTEMPTS = 5
 MAX_RESENDS = 3
@@ -146,6 +147,13 @@ def resend_otp(request):
 
 def login(request):
     if request.user.is_authenticated:
+
+        # blocked user
+        if request.user.status == False:
+            auth_logout(request)
+            messages.error(request, "Your account is blocked.")
+            return redirect("login")
+
         return redirect("home")
 
     if request.method == "POST":
@@ -153,6 +161,11 @@ def login(request):
         if form.is_valid():
             email = form.cleaned_data["email"].lower()
             password = form.cleaned_data["password"]
+
+            user_obj=Users.objects.filter(email=email).first()
+            if user_obj and user_obj.status==False:
+                messages.error(request, "You are blocked by admin")
+                return redirect('login')   
 
             user = authenticate(request, email=email, password=password)
 
@@ -162,7 +175,7 @@ def login(request):
             else:
                 auth_login(request, user)
                 request.session.set_expiry(3600)
-                request.session["user_email"] = user.email
+                request.session["user_id"]=user.id
                 return redirect("home")
         else:
             messages.error(request,"please fill all fields.")
@@ -182,6 +195,11 @@ def home(request):
     details = None
 
     if request.user.is_authenticated:
+        if request.user.status == False:
+            auth_logout(request)
+            messages.error(request, "Your account is blocked.")
+            return redirect("login")
+        
         email = request.user.email
 
         details = Users.objects.filter(email=email).first()
@@ -190,8 +208,9 @@ def home(request):
 
 @login_required(login_url='login')
 def profile(request):
-    email=request.session.get('user_email')
-    details=Users.objects.get(email=email)
+    user_id=request.user.id
+    details=Users.objects.get(id=user_id)
+
 
 
     if request.method == "POST":
@@ -209,9 +228,11 @@ def profile(request):
         if form.is_valid():
             new_name = form.cleaned_data["name"].strip()
             new_email = form.cleaned_data["email"].strip().lower()
+            current_name = (details.name or "").strip()
+            current_email = (details.email or "").strip().lower()
 
-            name_changed=new_name!= details.name
-            email_changed =new_email !=details.email
+            name_changed=new_name!= current_name
+            email_changed =new_email !=current_email
 
             if not name_changed and not email_changed:
                 messages.error(request, "No changes made.")
@@ -219,9 +240,10 @@ def profile(request):
 
             if name_changed and not email_changed:
                 details.name = new_name
-                details.save()
+                details.save(update_fields=["name"])
                 messages.success(request, "Name updated successfully.")
                 return redirect("profile")
+            
             if email_changed:
                 if Users.objects.filter(email=new_email).exclude(id=details.id).exists():
                         messages.error(request, "This email is already taken.")
@@ -256,49 +278,6 @@ def profile(request):
         form=ProfileForm(initial={"name": details.name, "email": details.email})
         
     return render(request,'profile.html',{"details":details,"form":form})
-
-
-
-def addresses(request):
-    email=request.session.get('user_email')
-    details=Users.objects.get(email=email)
-    addresses=Addresses.objects.filter(user_id=details.id)
-
-    return render(request,'addresses.html',{"details":details,"addresses":addresses})
-
-@login_required(login_url='login')
-def new_address(request):
-    email=request.session.get('user_email')
-    details=Users.objects.get(email=email)
-    user=Users.objects.get(email=email)
-    user_id=user.id
-
-    if request.method =="POST":
-        name=request.POST.get('name')
-        phone=request.POST.get('phone')
-        state=request.POST.get('state')
-        district=request.POST.get('district')
-        country=request.POST.get('country')
-        postal_code=request.POST.get('postal_code')
-        address=request.POST.get('address')
-        
-        new_address=Addresses.objects.create(
-            name=name,
-            phone=phone,
-            state=state,
-            district=district,
-            country=country,
-            postal_code=postal_code,
-            address=address,
-            user_id=user_id,
-            is_default=False
-        )
-        new_address.save()
-        messages.success(request, "New address added")
-        return redirect('addresses')
-    return render(request,'new_address.html ',{'details': details})
-
-
 
 
 @login_required(login_url='login')
@@ -346,7 +325,7 @@ def verify_email_otp(request):
             request.session.pop("pending_email_change_email", None)
             request.session.pop("pending_email_change_name", None)
 
-            request.session["user_email"] = user.email
+            request.session["user_id"] = user.id
 
             messages.success(request, "Email updated successfully.")
             return redirect("profile")
@@ -354,16 +333,127 @@ def verify_email_otp(request):
     
     return render(request,'email_otp_verification.html', {"pending_email": pending_email})
 
-
+@login_required (login_url="login")
 def change_password(request):
-    email=request.session.get('user_email')
-    details=Users.objects.get(email=email)
+    user_id=request.session.get('user_id')
+    details=Users.objects.get(id=user_id)
 
     if request.method=='POST':
         current_password=request.POST.get('current_password')
         new_password=request.POST.get('new_password')
         confirm_password=request.POST.get('confirm_password')
 
+        if not details.check_password(current_password):
+            messages.error(request, "Current password is incorrect")
+            return redirect("change_password")
+        if new_password!=confirm_password:
+            messages.error(request,"passwords dont match")
+            return redirect('user_change_password')
         
+        if len(new_password) < 8:
+            messages.error(request, "Password must be at least 8 characters")
+            return redirect("change_password")
+        
+        details.set_password(new_password)
+        details.save()
+        messages.success(request,"password updated")
+        return redirect('profile')
 
     return render(request,'change_password.html',{"details":details})
+
+
+@login_required(login_url='login')
+def address_list(request):
+    user_id=request.session.get('user_id')
+    details=Users.objects.get(id=user_id)
+    all_address=Addresses.objects.filter(user_id=details.id).order_by('-created_at')
+    paginator=Paginator(all_address,5)
+    page_number=request.GET.get('page')
+    page_obj=paginator.get_page(page_number)
+
+    return render(request,'addresses.html',{'page_obj':page_obj,'details':details})
+
+
+@login_required(login_url='login')
+def new_address(request):
+    user_id=request.session.get('user_id')
+    details=Users.objects.get(id=user_id)
+
+    if request.method =="POST":
+        name=request.POST.get('name')
+        phone=request.POST.get('phone')
+        state=request.POST.get('state')
+        district=request.POST.get('district')
+        country=request.POST.get('country')
+        postal_code=request.POST.get('postal_code')
+        address=request.POST.get('address')
+        is_default=request.POST.get("is_default")=="on"
+        
+        try:
+            Addresses.objects.create(
+                user=request.user,
+                name=name,
+                address=address,
+                phone=phone,
+                district=district,
+                state=state,
+                country=country,
+                postal_code=postal_code,
+                is_default=is_default
+            )
+            return redirect("addresses")
+        except ValueError as e:
+            return render(request, "new_address.html", {"details":details,"error": str(e),"form_data": request.POST})
+    return render(request,'new_address.html ',{'details': details})
+
+
+@login_required(login_url='login')
+def edit_address(request,pk):
+    user_id=request.session.get('user_id')
+    details=Users.objects.get(id=user_id)
+
+    addresses=Addresses.objects.filter(id=pk)
+    address=Addresses.objects.get(id=pk)
+    if request.method == "POST":
+        address.name = request.POST.get("name")
+        address.phone = request.POST.get("phone")
+        address.state = request.POST.get("state")
+        address.district = request.POST.get("district")
+        address.country = request.POST.get("country")
+        address.postal_code = request.POST.get("postal_code")
+        address.address = request.POST.get("address")
+        address.is_default = request.POST.get("is_default") == "on"
+
+        try:
+            address.save()
+            return redirect("addresses")
+        except ValueError as e:
+            return render(request, "edit_address.html", {
+                "address": address,
+                "details": details,
+                "error": str(e),
+                "form_data": request.POST
+            })
+
+    return render(request,'edit_address.html',{"addresses":addresses,"details":details})
+
+
+@login_required(login_url='login')
+def set_default_address(request,pk):
+    user_id=request.session.get('user_id')
+    details=Users.objects.get(id=user_id)
+
+    address = get_object_or_404(Addresses, id=pk, user=request.user)
+    if request.method =='POST':
+        Addresses.objects.filter(user=request.user).update(is_default=False)
+        address.is_default=True
+        address.save()
+
+    return redirect('addresses')
+
+@login_required(login_url="login")
+def delete_address(request,pk):
+    address = get_object_or_404(Addresses, id=pk, user=request.user)
+    if request.method == "POST":
+        address.delete()
+    return redirect('addresses') 
