@@ -514,3 +514,11 @@ a {
     justify-content: center;
   }
 }
+.error-message{
+    background-color:#ffe5e5;
+    color:#d8000c;
+    padding:12px;
+    margin-bottom:20px;
+    border-radius:6px;
+    font-size:14px;
+}
