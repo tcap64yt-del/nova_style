@@ -215,10 +215,16 @@ button {
 }
 
 .btn-google {
-    background-color: var(--color-btn-google);
-    color: var(--color-text-primary);
-    gap: 12px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    appearance: none;
+    border: none;
+    background: #f5f5f5;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    text-decoration: none;
 }
 
 .btn-google:hover {
