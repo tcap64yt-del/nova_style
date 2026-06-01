@@ -97,3 +97,5 @@ class ProfileForm(forms.Form):
             raise forms.ValidationError("Only Gmail addresses are allowed.")
         return email
     
+
+
