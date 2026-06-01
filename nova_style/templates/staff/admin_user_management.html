@@ -16,7 +16,6 @@
 <body>
   <div class="admin-layout">
     
-    <!-- Mobile Header Toggler -->
     <header class="mobile-header">
       <div class="mobile-logo-group">
         <span class="mobile-logo-title">NOVA STYLE</span>
@@ -27,7 +26,6 @@
       </button>
     </header>
 
-    <!-- Sidebar Section -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
         <h1 class="brand-title">NOVA STYLE</h1>
@@ -115,24 +113,35 @@
       </nav>
     </aside>
 
-    <!-- Main Content Panel -->
     <main class="main-content">
       
-      <!-- Top Search Area -->
       <section class="top-bar">
-        <form class="search-form" onsubmit="event.preventDefault();">
-          <div class="search-input-wrapper">
+<form class="search-form" method="GET">       
+     <div class="search-input-wrapper">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="text" placeholder="Search For Users" class="search-input" aria-label="Search users">
-          </div>
-          <button type="submit" class="search-button">Search</button>
-        </form>
+<input
+  type="text"
+  id="searchInput"
+  name="search"
+  value="{{ search }}"
+  placeholder="Search For Users"
+  class="search-input"
+  aria-label="Search users"></div>
+<div class="search-actions">
+    <button type="submit" class="search-button" id="searchButton">
+        Search
+    </button>
+
+    <button type="button" class="search-button" id="clearButton" >
+        Clear
+    </button>
+</div>
+  </form>
       </section>
 
-      <!-- Dashboard Title & Total Stats Card -->
       <section class="dashboard-header">
         <h2 class="page-title">User Management</h2>
         
@@ -152,7 +161,6 @@
         </div>
       </section>
 
-      <!-- Users Table Card -->
       <section class="table-container-card">
         <div class="table-wrapper">
           <table class="users-table">
@@ -162,15 +170,25 @@
                 <th class="col-email">EMAIL ADDRESS</th>
                 <th class="col-date">REGISTRATION DATE</th>
                 <th class="col-actions">
-                  <div class="actions-header-content">
-                    <span>ACTIONS</span>
-                    <button class="sort-dropdown" aria-label="Sort options">
-                      <span>SORT BY: ALL</span>
-                      <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </button>
+              <div class="actions-header-content">
+                <span>ACTIONS</span>
+                <div class="sort-container">
+                  <button class="sort-dropdown" type="button" aria-label="Sort options" aria-expanded="false">
+                    <span id="selected-sort">SORT BY: {{ sort|default:"all"|upper }}</span>
+                    <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2.5"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+
+                  <div class="sort-menu">
+                    <a href="?sort=all" data-label="ALL">ALL</a>
+                    <a href="?sort=newest" data-label="NEWEST">NEWEST</a>
+                    <a href="?sort=oldest" data-label="OLDEST">OLDEST</a>
                   </div>
+                </div>
+              </div>
                 </th>
               </tr>
             </thead>
@@ -195,13 +213,29 @@
                   </div>
                 </td>
                 <td class="col-actions">
-                  <button class="btn-action btn-block">
-                    <svg class="block-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
-                    </svg>
-                    <span>Block</span>
-                  </button>
+      
+      
+
+            <form method="post"
+      action="{% if user.status %}
+                  {% url 'block_user' user.id %}
+              {% else %}
+                  {% url 'unblock_user' user.id %}
+              {% endif %}"
+      class="user-action-form">
+
+    {% csrf_token %}
+
+    <button type="button" class="btn-action user-status-btn">
+        {% if user.status %}
+            Block
+        {% else %}
+            Unblock
+        {% endif %}
+    </button>
+
+</form>
+             
                 </td>
               </tr>
 {% endfor %}
@@ -211,50 +245,181 @@
         </div>
 
         <footer class="pagination-footer">
-          <div class="pagination-nav">
-            <button class="page-arrow" aria-label="Previous page">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-            </button>
-            <div class="page-numbers">
-              <button class="page-number active">1</button>
-              <button class="page-number">2</button>
-              <button class="page-number">3</button>
-              <span class="page-ellipsis">...</span>
-              <button class="page-number">249</button>
-            </div>
-            <button class="page-arrow" aria-label="Next page">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-          </div>
+         
         </footer>
       </section>
 
     </main>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const menuToggle = document.getElementById('menuToggle');
-      const sidebar = document.getElementById('sidebar');
+<div id="blockModal" class="confirm-modal">
+    <div class="confirm-modal__overlay"></div>
+    <div class="confirm-modal__card">
+        <h3 id="modalTitle"></h3>
+        <p id="modalText"></p>
+        <div class="confirm-modal__actions">
+            <button type="button"
+                    class="confirm-btn confirm-btn--secondary cancel-modal">
+                Cancel
+            </button>
+            <button type="button"
+                    class="confirm-btn confirm-btn--danger"
+                    id="confirmAction">
+                OK
+            </button>
+        </div>
+    </div>
+</div>
 
-      menuToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        sidebar.classList.toggle('mobile-open');
-      });
 
-      // Close sidebar when clicking outside on mobile
-      document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 1024 && sidebar.classList.contains('mobile-open')) {
-          if (!sidebar.contains(e.target) && e.target !== menuToggle) {
-            sidebar.classList.remove('mobile-open');
-          }
-        }
-      });
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  const sortContainer = document.querySelector('.sort-container');
+  const sortButton = document.querySelector('.sort-dropdown');
+  const selectedSort = document.getElementById('selected-sort');
+
+  if (sortContainer && sortButton) {
+
+    sortButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      const isOpen = sortContainer.classList.toggle('active');
+
+      sortButton.setAttribute(
+        'aria-expanded',
+        isOpen ? 'true' : 'false'
+      );
     });
-  </script>
+
+    document.addEventListener('click', () => {
+      sortContainer.classList.remove('active');
+      sortButton.setAttribute('aria-expanded', 'false');
+    });
+
+  }
+
+  document.querySelectorAll('.sort-menu a').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (selectedSort) {
+        selectedSort.textContent =
+          `SORT BY: ${item.dataset.label}`;
+      }
+    });
+  });
+
+  const searchInput = document.getElementById('searchInput');
+  const clearButton = document.getElementById('clearButton');
+  const searchForm = document.querySelector('.search-form');
+
+  if (searchInput && clearButton && searchForm) {
+
+    function toggleClearButton() {
+      const hasText = searchInput.value.trim() !== '';
+      clearButton.classList.toggle('show', hasText);
+    }
+
+    searchInput.addEventListener('input', toggleClearButton);
+
+    toggleClearButton();
+
+    clearButton.addEventListener('click', (e) => {
+
+      e.preventDefault();
+
+      searchInput.value = '';
+
+      clearButton.classList.remove('show');
+
+      const url = new URL(window.location.href);
+
+      url.searchParams.delete('search');
+
+      window.location.href = url.toString();
+    });
+
+  }
+  const modal = document.getElementById('blockModal');
+  const overlay = document.querySelector('.confirm-modal__overlay');
+  const cancelBtn = document.querySelector('.cancel-modal');
+
+  const confirmBtn = document.getElementById('confirmAction');
+
+  const modalTitle = document.getElementById('modalTitle');
+  const modalText = document.getElementById('modalText');
+
+  let activeForm = null;
+
+  document.querySelectorAll('.user-status-btn').forEach((button) => {
+
+    button.addEventListener('click', () => {
+
+      activeForm = button.closest('form');
+
+      const actionText = button.textContent.trim();
+
+      if (actionText === 'Block') {
+
+        modalTitle.textContent = 'Block User';
+
+        modalText.textContent =
+          'Are you sure you want to block this user?';
+
+      } else {
+
+        modalTitle.textContent = 'Unblock User';
+
+        modalText.textContent =
+          'Are you sure you want to unblock this user?';
+
+      }
+
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+
+    });
+
+  });
+
+  function closeModal() {
+
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+
+    activeForm = null;
+  }
+
+  if (overlay) {
+    overlay.addEventListener('click', closeModal);
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closeModal);
+  }
+
+  if (confirmBtn) {
+
+    confirmBtn.addEventListener('click', () => {
+
+      if (activeForm) {
+      activeForm.requestSubmit();
+      }
+
+    });
+
+  }
+
+  document.addEventListener('keydown', (e) => {
+
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+
+  });
+
+});
+</script>
+
+
 </body>
 </html>
