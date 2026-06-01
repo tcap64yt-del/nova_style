@@ -2,7 +2,7 @@ import random
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib import messages
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login,update_session_auth_hash
 from django.contrib.auth import logout as auth_logout
 from django.shortcuts import redirect,render,get_object_or_404
 from django.core.mail import send_mail
@@ -14,7 +14,7 @@ from django.core.paginator import Paginator
 
 MAX_ATTEMPTS = 5
 MAX_RESENDS = 3
-OTP_SECONDS = 60
+OTP_SECONDS = 120
 
 def generate_otp():
     return f"{random.randint(100000, 999999)}"
@@ -47,7 +47,7 @@ def signup(request):
             )
             send_mail(
                 subject="Your OTP Code",
-                message=f"Your OTP is {otp}. It expires in 1 minute.",
+                message=f"Your OTP for account verification is {otp}. This code is valid for 2 minutes. Do not share it with anyone.",
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[email],
             )
@@ -69,6 +69,8 @@ def verify_otp(request):
     if not otp_record:
         messages.error(request, "OTP not found. please resend OTP.")
         return redirect("otp_verify")
+    remaining_seconds = max(0, int((otp_record.expires_at - timezone.now()).total_seconds()))
+    otp_expiry_ms = int(otp_record.expires_at.timestamp() * 1000)
 
     if request.method == "POST":
         form = OTPForm(request.POST)
@@ -108,7 +110,7 @@ def verify_otp(request):
     else:
         form = OTPForm()
 
-    return render(request, "otp_verification.html", {"form": form})
+    return render(request, "otp_verification.html", {"form": form,"remaining_seconds": remaining_seconds,"otp_expiry_ms": otp_expiry_ms,})
 
 
 def resend_otp(request):
@@ -148,7 +150,6 @@ def resend_otp(request):
 def login(request):
     if request.user.is_authenticated:
 
-        # blocked user
         if request.user.status == False:
             auth_logout(request)
             messages.error(request, "Your account is blocked.")
@@ -164,7 +165,7 @@ def login(request):
 
             user_obj=Users.objects.filter(email=email).first()
             if user_obj and user_obj.status==False:
-                messages.error(request, "You are blocked by admin")
+                messages.error(request, "Your account is blocked.")
                 return redirect('login')   
 
             user = authenticate(request, email=email, password=password)
@@ -175,7 +176,6 @@ def login(request):
             else:
                 auth_login(request, user)
                 request.session.set_expiry(3600)
-                request.session["user_id"]=user.id
                 return redirect("home")
         else:
             messages.error(request,"please fill all fields.")
@@ -208,11 +208,8 @@ def home(request):
 
 @login_required(login_url='login')
 def profile(request):
-    user_id=request.user.id
-    details=Users.objects.get(id=user_id)
-
-
-
+    details = request.user
+    
     if request.method == "POST":
         avatar = request.FILES.get("avatar_url")
         if avatar:
@@ -335,8 +332,7 @@ def verify_email_otp(request):
 
 @login_required (login_url="login")
 def change_password(request):
-    user_id=request.session.get('user_id')
-    details=Users.objects.get(id=user_id)
+    details = request.user
 
     if request.method=='POST':
         current_password=request.POST.get('current_password')
@@ -356,6 +352,7 @@ def change_password(request):
         
         details.set_password(new_password)
         details.save()
+        update_session_auth_hash(request,details)
         messages.success(request,"password updated")
         return redirect('profile')
 
@@ -364,8 +361,7 @@ def change_password(request):
 
 @login_required(login_url='login')
 def address_list(request):
-    user_id=request.session.get('user_id')
-    details=Users.objects.get(id=user_id)
+    details=request.user
     all_address=Addresses.objects.filter(user_id=details.id).order_by('-created_at')
     paginator=Paginator(all_address,5)
     page_number=request.GET.get('page')
@@ -376,8 +372,7 @@ def address_list(request):
 
 @login_required(login_url='login')
 def new_address(request):
-    user_id=request.session.get('user_id')
-    details=Users.objects.get(id=user_id)
+    details=request.user
 
     if request.method =="POST":
         name=request.POST.get('name')
@@ -409,8 +404,7 @@ def new_address(request):
 
 @login_required(login_url='login')
 def edit_address(request,pk):
-    user_id=request.session.get('user_id')
-    details=Users.objects.get(id=user_id)
+    details = request.user
 
     addresses=Addresses.objects.filter(id=pk)
     address=Addresses.objects.get(id=pk)
@@ -440,8 +434,8 @@ def edit_address(request,pk):
 
 @login_required(login_url='login')
 def set_default_address(request,pk):
-    user_id=request.session.get('user_id')
-    details=Users.objects.get(id=user_id)
+    user=request.user
+    details=Users.objects.get(id=user.id)
 
     address = get_object_or_404(Addresses, id=pk, user=request.user)
     if request.method =='POST':
