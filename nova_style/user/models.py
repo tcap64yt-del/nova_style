@@ -92,7 +92,6 @@ class Addresses(models.Model):
     
     def save(self, *args, **kwargs):
 
-        # Required field validation
         required_fields = [
             self.name,
             self.address,
@@ -107,16 +106,10 @@ class Addresses(models.Model):
             if not field or str(field).strip() == "":
                 raise ValueError("All fields are required")
 
-        # First address becomes default
         if not Addresses.objects.filter(user=self.user).exists():
             self.is_default = True
 
         super().save(*args, **kwargs)
 
-        # Only one default address
         if self.is_default:
-            Addresses.objects.filter(
-                user=self.user
-            ).exclude(
-                id=self.id
-            ).update(is_default=False)
+            Addresses.objects.filter(user=self.user).exclude(id=self.id).update(is_default=False)
