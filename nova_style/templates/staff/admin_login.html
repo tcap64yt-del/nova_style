@@ -21,7 +21,15 @@
         <h1 class="brand-title">NOVA STYLE</h1>
         <h2 class="welcome-text">Welcome Back</h2>
       </header>
-      
+      {% if messages %}
+                        {% for message in messages %}
+                            {% if forloop.last %}
+                                <div class="error {{ message.tags }}" style="color: red;">
+                                    {{ message }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
       <form class="signin-form" method="post" >
         {% csrf_token %}
         <div class="form-group">

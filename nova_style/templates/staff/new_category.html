@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Category Creator</title>
+  <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"/>
+  <link rel="stylesheet" href="{% static 'css/staff/new_category.css' %}?v=4">
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+<form class="card-form" method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+        <div class="card-section top-section">
+          <div class="form-group">
+            <label for="category-name">CATEGORY NAME</label>
+            <input
+              type="text"
+              id="category-name"
+              name="name"
+              placeholder="e.g. Man"
+              value="{{ form.name.value|default_if_none:'' }}"
+            >
+            {% for error in form.name.errors %}
+              <p style="color:red; margin:6px 0 0; font-size:14px;">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <div class="form-group">
+            <label for="offer">OFFER</label>
+            <div class="input-with-suffix">
+              <input
+                type="number"
+                id="offer"
+                name="offer"
+                min="0"
+                max="100"
+                value="{{ form.offer.value|default_if_none:'' }}"
+              >
+              <span class="suffix">%</span>
+            </div>
+            {% for error in form.offer.errors %}
+              <p style="color:red; margin:6px 0 0; font-size:13px;">{{ error }}</p>
+            {% endfor %}
+          </div>
+        </div>
+
+
+        <div class="card-section upload-section">
+
+  <div class="upload-box" id="upload-box">
+
+    <input
+      type="file"
+      id="file-input"
+      name="image_url"
+      accept="image/*"
+      class="file-input"
+    >
+
+    <!-- Default Upload Content -->
+    <div class="upload-content" id="upload-content">
+      <div class="upload-icon-wrapper">
+        <svg class="upload-icon"
+             xmlns="http://www.w3.org/2000/svg"
+             fill="none"
+             viewBox="0 0 24 24"
+             stroke="currentColor">
+          <path stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+        </svg>
+      </div>
+
+      <span class="upload-text">
+        Upload Category Image
+      </span>
+    </div>
+
+    <!-- Preview -->
+    <div class="image-preview-container" id="preview-container">
+      <img id="preview-image" alt="Preview">
+
+      <button
+        type="button"
+        id="change-image"
+        class="change-image-btn">
+        Change Image
+      </button>
+    </div>
+
+  </div>
+
+  {% for error in form.image_url.errors %}
+    <p style="color:red; margin:6px 0 0; font-size:13px;">
+      {{ error }}
+    </p>
+  {% endfor %}
+
+</div>
+        
+
+        <div class="card-section actions-section">
+          <a href="{% url 'category_management' %}"
+             class="btn btn-cancel"
+             style="text-decoration: none;">
+            CANCEL
+          </a>
+
+          <button type="submit" class="btn btn-save">
+            <svg class="save-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5 3a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V7.414A2 2 0 0020.414 6L18 3.586A2 2 0 0016.586 3H5zm4 2h6v3H9V5zm7 14H8v-6h8v6z"/>
+            </svg>
+            Save Category
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+ <div class="crop-modal" id="crop-modal">
+
+  <div class="crop-card">
+
+    <div class="crop-header">
+      <h3>Adjust Image</h3>
+    </div>
+
+    <div class="crop-body">
+      <img id="crop-image">
+    </div>
+
+    <div class="crop-actions">
+      <button
+        type="button"
+        class="btn btn-cancel"
+        id="cancel-crop">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-save"
+        id="crop-btn">
+        Apply
+      </button>
+    </div>
+
+  </div>
+
+</div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
+  <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const uploadBox = document.getElementById("upload-box");
+    const fileInput = document.getElementById("file-input");
+
+    const previewContainer =
+        document.getElementById("preview-container");
+
+    const previewImage =
+        document.getElementById("preview-image");
+
+    const changeImageBtn =
+        document.getElementById("change-image");
+
+    const cropModal =
+        document.getElementById("crop-modal");
+
+    const cropImage =
+        document.getElementById("crop-image");
+
+    const cropBtn =
+        document.getElementById("crop-btn");
+
+    const cancelBtn =
+        document.getElementById("cancel-crop");
+
+    let cropper = null;
+
+    /* --------------------------
+       OPEN FILE PICKER
+    -------------------------- */
+
+    uploadBox.addEventListener("click", function (e) {
+
+        if (e.target.id === "change-image") {
+            return;
+        }
+
+        fileInput.click();
+    });
+
+    changeImageBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        fileInput.click();
+    });
+
+    /* --------------------------
+       FILE SELECT
+    -------------------------- */
+
+    fileInput.addEventListener("change", function (e) {
+
+        const file = e.target.files[0];
+
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+
+            cropImage.src = event.target.result;
+
+            cropModal.style.display = "flex";
+
+            if (cropper) {
+                cropper.destroy();
+            }
+
+            cropper = new Cropper(cropImage, {
+                aspectRatio: 1,
+                viewMode: 1,
+                autoCropArea: 1,
+                responsive: true,
+                movable: true,
+                zoomable: true,
+                scalable: true,
+                rotatable: false
+            });
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    /* --------------------------
+       APPLY CROP
+    -------------------------- */
+
+    cropBtn.addEventListener("click", function () {
+
+        if (!cropper) return;
+
+        const canvas = cropper.getCroppedCanvas({
+            width: 800,
+            height: 800,
+            imageSmoothingQuality: "high"
+        });
+
+        const previewUrl =
+            canvas.toDataURL("image/jpeg", 0.9);
+
+        previewImage.src = previewUrl;
+
+        previewContainer.style.display = "block";
+
+        uploadBox.classList.add("has-image");
+
+        canvas.toBlob(function(blob) {
+
+            const croppedFile = new File(
+                [blob],
+                "category.jpg",
+                {
+                    type: "image/jpeg"
+                }
+            );
+
+            const dataTransfer =
+                new DataTransfer();
+
+            dataTransfer.items.add(croppedFile);
+
+            fileInput.files =
+                dataTransfer.files;
+
+        }, "image/jpeg", 0.9);
+
+        cropModal.style.display = "none";
+
+        cropper.destroy();
+        cropper = null;
+    });
+
+    /* --------------------------
+       CANCEL CROP
+    -------------------------- */
+
+    cancelBtn.addEventListener("click", function () {
+
+        cropModal.style.display = "none";
+
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+    });
+
+    /* --------------------------
+       DRAG & DROP
+    -------------------------- */
+
+    uploadBox.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        uploadBox.classList.add("dragover");
+    });
+
+    uploadBox.addEventListener("dragleave", function () {
+        uploadBox.classList.remove("dragover");
+    });
+
+    uploadBox.addEventListener("drop", function (e) {
+
+        e.preventDefault();
+
+        uploadBox.classList.remove("dragover");
+
+        const files = e.dataTransfer.files;
+
+        if (!files.length) return;
+
+        fileInput.files = files;
+
+        fileInput.dispatchEvent(
+            new Event("change")
+        );
+    });
+
+});
+</script>
+</body>
+</html>

@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static "css/home.css" %}?v=2">
+    <link rel="stylesheet" href="{% static "css/home.css" %}?v=3">
 </head>
 <body>
     <header class="site-header">
@@ -30,10 +30,11 @@
             
             <nav class="main-nav" aria-label="Main Navigation">
                 <ul class="nav-links">
-                    <li><a href="#" class="nav-link" id="nav-women">Women</a></li>
-                    <li><a href="#" class="nav-link" id="nav-men">Men</a></li>
-                    <li><a href="#" class="nav-link" id="nav-kids">Kids</a></li>
+                    {% for category in categories %}
+                    <li><a href="#" class="nav-link" id="nav-women">{{ category.name }}</a></li>
+                    {% endfor %}
                 </ul>
+                
             </nav>
             
             <div class="header-actions">
@@ -74,73 +75,50 @@
                     <div class="hero-overlay-content">
                         <span class="hero-subtitle">AUTUMN / WINTER 2024</span>
                         <h1 class="hero-title">New<br>Season</h1>
-                        <a href="#" class="btn btn-primary" id="btn-shop-now">Shop Now</a>
+                        <a href="{% url "product_list" %}" class="btn btn-primary" id="btn-shop-now">Shop Now</a>
                     </div>
                 </div>
-                <!-- Right Column -->
                 <div class="hero-col hero-col-right" style="background-image:url('{% static "images/right.png" %}');">
                 </div>
             </div>
         </section>
 
-        <section class="categories-section" id="categories">
-            <div class="section-container">
-                <header class="section-header">
-                    <h2 class="section-title">Categories</h2>
-                    <p class="section-subtitle">
-                        Discover our latest editorial drops, meticulously crafted for the modern silhouette. From raw textures to refined tailoring.
-                    </p>
-                </header>
+      <section class="categories-section" id="categories">
+    <div class="section-container">
+        <header class="section-header">
+            <h2 class="section-title">Categories</h2>
+            <p class="section-subtitle">
+                Discover our latest editorial drops, meticulously crafted for the modern silhouette. From raw textures to refined tailoring.
+            </p>
+        </header>
 
-                <div class="categories-grid">
-                    <div class="category-card" id="card-kids">
-                        <div class="card-image-wrapper">
-                            <img src="{% static 'images/kid.png' %}" alt="Kids Sustainable Essentials collection" class="card-img">
-                        </div>
-                        <div class="card-meta">
-                            <div class="meta-left">
-                                <h3 class="card-title">Kids</h3>
-                                <p class="card-desc">Sustainable Essentials</p>
-                            </div>
-                            <div class="meta-right">
-                                <span class="badge"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="category-card" id="card-women">
-                        <div class="card-image-wrapper">
-                            <img src="{% static 'images/woman.png' %}" alt="Women The Winter Suit collection" class="card-img">
-                        </div>
-                        <div class="card-meta">
-                            <div class="meta-left">
-                                <h3 class="card-title">Women</h3>
-                                <p class="card-desc">The Winter Suit</p>
-                            </div>
-                            <div class="meta-right">
-                                <span class="badge"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Men Card -->
-                    <div class="category-card" id="card-men">
-                        <div class="card-image-wrapper">
-                            <img src="{% static 'images/man.png' %}" alt="Men Modern Sartorial collection" class="card-img">
-                        </div>
-                        <div class="card-meta">
-                            <div class="meta-left">
-                                <h3 class="card-title">Men</h3>
-                                <p class="card-desc">Modern Sartorial</p>
-                            </div>
-                            <div class="meta-right">
-                                <span class="badge"></span>
-                            </div>
-                        </div>
-                    </div>
+        <div class="categories-grid">
+            {% for category in categories %}
+            <a href="#" class="category-card">
+                <div class="card-image-wrapper">
+                    <img src="{{ category.image_url.url }}" alt="{{ category.name }}" class="card-img">
                 </div>
-            </div>
-        </section>
+
+                <div class="card-meta">
+                    <div class="meta-left">
+                        <h3 class="card-title">{{ category.name }}</h3>
+                        <p class="card-desc">Sustainable Essentials</p>
+                    </div>
+
+                   <div class="meta-left">
+
+    {% if category.offer %}
+        <span class="badge">
+            {{ category.offer|floatformat:0 }}% OFF
+        </span>
+    {% endif %}
+</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
 
         <section class="transparency-section" id="transparency">
             <div class="section-container transparency-grid">

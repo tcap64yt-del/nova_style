@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sculpted Wool Overcoat - Nova Style</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/product/product_details.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-container">
+            <div class="logo-wrapper">
+                <a href="#" class="logo" id="header-logo">NOVA STYLE</a>
+                <div class="auth-menu" tabindex="0"></div>
+            </div>
+            
+            <nav class="main-nav" aria-label="Main Navigation">
+                <ul class="nav-links">
+                    <li><a href="#" class="nav-link active" id="nav-women">Women</a></li>
+                    <li><a href="#" class="nav-link" id="nav-men">Men</a></li>
+                    <li><a href="#" class="nav-link" id="nav-kids">Kids</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-actions">
+                <button class="action-btn" id="action-search" aria-label="Search Catalog">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+                <button class="action-btn" id="action-wishlist" aria-label="Favorites Wishlist">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </button>
+                <button class="action-btn" id="action-cart" aria-label="Shopping Bag">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <path d="M16 10a4 4 0 0 1-8 0"></path>
+                    </svg>
+                </button>
+                <div class="user-profile" id="user-profile-menu">
+                    <a href="#">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop" alt="User Avatar" class="header-avatar-img">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="product-pdp-container">
+        <!-- Product Main details row -->
+        <section class="product-main-section">
+            <!-- Left Side: Thumbnails + Staged Images -->
+            <div class="gallery-wrapper">
+                <!-- Vertical Thumbnails -->
+                <div class="gallery-thumbnails">
+                    <button class="thumb-btn active" data-target="img-main-1">
+                        <img src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=200&auto=format&fit=crop" alt="Texture thumbnail">
+                    </button>
+                    
+                </div>
+                
+                <!-- Main Vertical Images list -->
+                <div class="gallery-images">
+                    <img id="img-main-1" src="https://images.unsplash.com/photo-1618220179428-22790b461013?q=80&w=800&auto=format&fit=crop" alt="Sculpted Wool Overcoat main visual" class="gallery-img">
+                </div>
+            </div>
+
+            <!-- Right Side: Details and Selection Panel -->
+            <div class="details-sidebar">
+                <div class="details-sticky-content">
+                    <h1 class="product-title">Sculpted Wool Overcoat</h1>
+                    <div class="product-price">₹1,240.00</div>
+
+                    <!-- Size Selector -->
+                    <div class="option-group">
+                        <span class="option-label">SELECT SIZE</span>
+                        <div class="size-options">
+                            <button class="size-option-btn" data-size="XS">XS</button>
+                            <button class="size-option-btn active" data-size="S">S</button>
+                            <button class="size-option-btn" data-size="M">M</button>
+                            <button class="size-option-btn" data-size="L">L</button>
+                        </div>
+                    </div>
+
+                    <!-- Color Selector + Discount Badge -->
+                    <div class="option-group">
+                        <div class="color-header">
+                            <span class="option-label">COLOR</span>
+                            <span class="discount-label">-30% OFF</span>
+                        </div>
+                        <div class="color-options-row">
+                            <div class="color-options">
+                                <button class="color-option-btn active" data-color="charcoal" style="background-color: #2b2b2b;" aria-label="Charcoal Color"></button>
+                                <button class="color-option-btn" data-color="grey" style="background-color: #a3a3a3;" aria-label="Grey Color"></button>
+                                <button class="color-option-btn" data-color="beige" style="background-color: #e5dfd9;" aria-label="Beige Color"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Availability Status -->
+                    <div class="status-label out-of-stock">Out Of Stock</div>
+
+                    <!-- Actions -->
+                    <div class="action-buttons-group">
+                        <button class="btn btn-primary-charcoal" id="add-to-cart-btn">Add to cart</button>
+                        <button class="btn btn-secondary-black" id="buy-now-btn">Buy Now</button>
+                        <button class="btn btn-outline-wishlist" id="wishlist-toggle-btn">
+                            <i data-lucide="heart" class="heart-icon"></i>
+                            <span>Save to Wishlist</span>
+                        </button>
+                    </div>
+
+                    <!-- Accordion Section -->
+                    <div class="pdp-accordion">
+                        <div class="accordion-item">
+                            <button class="accordion-header" aria-expanded="false">
+                                <span>DESCRIPTION</span>
+                                <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                            </button>
+                            <div class="accordion-content">
+                                <p>Crafted from a premium wool blend, this overcoat features a structured silhouette, relaxed fit, and exquisite drape. Perfect for layering over winter knits, it features broad lapels, deep pockets, and a clean minimalist closure.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Products Section -->
+        <section class="related-products-section">
+            <div class="section-header">
+                <h2 class="section-title">Related Products</h2>
+                <div class="slider-controls">
+                    <button class="control-btn" id="prev-btn" aria-label="Previous Products">
+                        <i data-lucide="arrow-left"></i>
+                    </button>
+                    <button class="control-btn" id="next-btn" aria-label="Next Products">
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="related-grid">
+                <!-- Card 1 -->
+                <article class="related-card">
+                    <div class="card-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=400&auto=format&fit=crop" alt="Tailored Trousers" class="card-img">
+                        <button class="card-wishlist-btn" aria-label="Add to wishlist">
+                            <i data-lucide="heart"></i>
+                        </button>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-title">Tailored Trousers</h3>
+                        <div class="card-price">₹480.00</div>
+                    </div>
+                </article>
+
+                <!-- Card 2 -->
+                <article class="related-card">
+                    <div class="card-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=400&auto=format&fit=crop" alt="White Tshirt" class="card-img">
+                        <button class="card-wishlist-btn" aria-label="Add to wishlist">
+                            <i data-lucide="heart"></i>
+                        </button>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-title">White Tshirt</h3>
+                        <div class="card-price">₹620.00</div>
+                    </div>
+                </article>
+
+                <!-- Card 3 -->
+                <article class="related-card">
+                    <div class="card-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1574164904299-3a102b110380?q=80&w=400&auto=format&fit=crop" alt="Cashmere Mock-Neck" class="card-img">
+                        <button class="card-wishlist-btn" aria-label="Add to wishlist">
+                            <i data-lucide="heart"></i>
+                        </button>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-title">Cashmere Mock-Neck</h3>
+                        <div class="card-price">₹350.00</div>
+                    </div>
+                </article>
+
+                <!-- Card 4 -->
+                <article class="related-card">
+                    <div class="card-image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?q=80&w=400&auto=format&fit=crop" alt="Green shirt" class="card-img">
+                        <button class="card-wishlist-btn" aria-label="Add to wishlist">
+                            <i data-lucide="heart"></i>
+                        </button>
+                    </div>
+                    <div class="card-info">
+                        <h3 class="card-title">Green shirt</h3>
+                        <div class="card-price">₹890.00</div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Divider Line -->
+        <hr class="section-divider">
+
+        <!-- Reviews and Community Feedback -->
+        <section class="reviews-section">
+            <!-- Left Grid: Summary stats -->
+            <div class="reviews-summary-col">
+                <span class="community-feedback-tag">COMMUNITY FEEDBACK</span>
+                <h2 class="reviews-main-title">Reviews</h2>
+                
+                <div class="rating-large-row">
+                    <div class="rating-number">4.8</div>
+                    <div class="rating-stars-group">
+                        <div class="stars-row">
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-half"></i>
+                        </div>
+                        <span class="reviews-count-label">Based on 128 reviews</span>
+                    </div>
+                </div>
+
+                <!-- Rating Bars -->
+                <div class="rating-bars-list">
+                    <div class="rating-bar-item">
+                        <span class="bar-label">5 star</span>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: 85%;"></div>
+                        </div>
+                        <span class="bar-percentage">85%</span>
+                    </div>
+                    <div class="rating-bar-item">
+                        <span class="bar-label">4 star</span>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: 10%;"></div>
+                        </div>
+                        <span class="bar-percentage">10%</span>
+                    </div>
+                    <div class="rating-bar-item">
+                        <span class="bar-label">3 star</span>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: 3%;"></div>
+                        </div>
+                        <span class="bar-percentage">3%</span>
+                    </div>
+                    <div class="rating-bar-item">
+                        <span class="bar-label">2 star</span>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: 1%;"></div>
+                        </div>
+                        <span class="bar-percentage">1%</span>
+                    </div>
+                    <div class="rating-bar-item">
+                        <span class="bar-label">1 star</span>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: 1%;"></div>
+                        </div>
+                        <span class="bar-percentage">1%</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-outline-review" id="write-review-btn">Write a Review</button>
+            </div>
+
+            <!-- Right Grid: Review Cards -->
+            <div class="reviews-list-col">
+                <!-- Review Card 1 -->
+                <article class="review-card">
+                    <div class="review-header">
+                        <div class="review-stars">
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-filled"></i>
+                        </div>
+                        <div class="review-author-meta">
+                            <span class="author-name">Elena R.</span>
+                            <span class="review-date">OCT 12, 2024</span>
+                        </div>
+                    </div>
+                    <h4 class="review-title">Exceptional quality and cut</h4>
+                    <p class="review-body">The drape of this wool is unlike anything I've owned. It has a significant weight but moves beautifully. The shoulders are structured without being stiff. Truly an heirloom piece that justifies the investment.</p>
+                    <div class="review-attachment">
+                        <img src="https://images.unsplash.com/photo-1551854838-212c50b4c184?q=80&w=200&auto=format&fit=crop" alt="Review attachment">
+                    </div>
+                </article>
+
+                <!-- Review Card 2 -->
+                <article class="review-card">
+                    <div class="review-header">
+                        <div class="review-stars">
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-filled"></i>
+                            <i data-lucide="star" class="star-empty"></i>
+                        </div>
+                        <div class="review-author-meta">
+                            <span class="author-name">Julian M.</span>
+                            <span class="review-date">SEP 28, 2024</span>
+                        </div>
+                    </div>
+                    <h4 class="review-title">The perfect minimalist overcoat</h4>
+                    <p class="review-body">Fit is slightly oversized as described. I usually wear a medium but opted for small for a slightly more tailored look and it fits perfectly. The anthracite color is deep and rich.</p>
+                </article>
+
+                <div class="load-more-wrapper">
+                    <a href="#" class="load-more-link" id="load-more-reviews">Load More Reviews</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="#" class="footer-link">PRIVACY</a>
+            <a href="#" class="footer-link">TERMS</a>
+            <a href="#" class="footer-link">SHIPPING</a>
+            <a href="#" class="footer-link">CONTACT</a>
+        </div>
+        <p class="copyright">© 2024 NOVA STYLE. ALL RIGHTS RESERVED.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
