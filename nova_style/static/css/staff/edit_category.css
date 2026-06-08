@@ -1,0 +1,549 @@
+/* ==========================================================================
+   Design Tokens & Custom Properties
+   ========================================================================== */
+:root {
+  /* Brand and Palette Colors */
+  --color-bg-page: #f5f6f8;
+  --color-bg-card: #ffffff;
+  
+  /* Input & Upload Colors */
+  --color-bg-input: #f3f4f6;
+  --color-bg-input-hover: #eaecee;
+  --color-bg-upload: #f8fafc;
+  --color-bg-upload-hover: #f1f5f9;
+  --color-border-upload: #cbd5e1;
+  --color-border-upload-hover: #94a3b8;
+  
+  /* Text Colors */
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #4b5563;
+  --color-text-placeholder: #9ca3af;
+  --color-divider: #f1f5f9;
+  
+  /* Button Colors & Shadows */
+  --color-btn-cancel-bg: #4e4e4e;
+  --color-btn-cancel-hover: #3d3d3d;
+  --color-btn-cancel-shadow: rgba(78, 78, 78, 0.2);
+  
+  --color-btn-save-bg: #1d6ce3;
+  --color-btn-save-hover: #1557b7;
+  --color-btn-save-shadow: rgba(29, 108, 227, 0.25);
+  
+  --color-btn-delete-bg: #ff0000;
+  --color-btn-delete-hover: #cc0000;
+  --color-btn-delete-shadow: rgba(255, 0, 0, 0.3);
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  
+  /* Dimensions & Spacing */
+  --card-max-width: 520px;
+  --border-radius-card: 24px;
+  --border-radius-input: 12px;
+  --border-radius-btn: 12px;
+  --transition-speed: 0.25s;
+  --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   CSS Reset & Base Styles
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--color-bg-page);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Layout Containers
+   ========================================================================== */
+.page-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+/* Card Container */
+.card {
+  background-color: var(--color-bg-card);
+  width: 100%;
+  max-width: var(--card-max-width);
+  border-radius: var(--border-radius-card);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.04), 
+    0 20px 50px -15px rgba(0, 0, 0, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.02);
+  padding: 32px 24px;
+  transition: transform var(--transition-speed) var(--transition-easing),
+              box-shadow var(--transition-speed) var(--transition-easing);
+}
+
+@media (min-width: 640px) {
+  .card {
+    padding: 48px 40px;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   Form Fields & Controls
+   ========================================================================== */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+}
+
+.input-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 640px) {
+  .input-label {
+    font-size: 12px;
+  }
+}
+
+.input-field {
+  width: 100%;
+  height: 52px;
+  background-color: var(--color-bg-input);
+  color: var(--color-text-primary);
+  border: 2px solid transparent;
+  border-radius: var(--border-radius-input);
+  padding: 0 16px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  outline: none;
+  transition: background-color var(--transition-speed) var(--transition-easing),
+              border-color var(--transition-speed) var(--transition-easing),
+              box-shadow var(--transition-speed) var(--transition-easing);
+}
+
+.input-field::placeholder {
+  color: var(--color-text-placeholder);
+  opacity: 1;
+}
+
+.input-field:hover {
+  background-color: var(--color-bg-input-hover);
+}
+
+.input-field:focus {
+  background-color: var(--color-bg-card);
+  border-color: var(--color-btn-save-bg);
+  box-shadow: 0 0 0 4px rgba(29, 108, 227, 0.15);
+}
+
+/* Special Offer Input Box with % Suffix */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.offer-input {
+  padding-right: 48px;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 18px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+/* Faint Divider lines */
+.divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--color-divider);
+  margin: 28px 0;
+}
+
+/* ==========================================================================
+   Dashed Upload Zone
+   ========================================================================== */
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--color-border-upload);
+  border-radius: 16px;
+  background-color: var(--color-bg-upload);
+  padding: 40px 24px;
+  cursor: pointer;
+  outline: none;
+  transition: background-color var(--transition-speed) var(--transition-easing),
+              border-color var(--transition-speed) var(--transition-easing),
+              transform var(--transition-speed) var(--transition-easing);
+}
+
+.upload-zone:hover {
+  background-color: var(--color-bg-upload-hover);
+  border-color: var(--color-border-upload-hover);
+}
+
+.upload-zone:focus-visible {
+  border-color: var(--color-btn-save-bg);
+  box-shadow: 0 0 0 4px rgba(29, 108, 227, 0.15);
+}
+
+/* White Circle Badge inside Upload Zone */
+.upload-badge {
+  width: 56px;
+  height: 56px;
+  background-color: var(--color-bg-card);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+  transition: transform var(--transition-speed) var(--transition-easing),
+              box-shadow var(--transition-speed) var(--transition-easing);
+}
+
+.upload-zone:hover .upload-badge {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.cloud-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--color-btn-save-bg);
+}
+
+.upload-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-align: center;
+  user-select: none;
+}
+
+.file-selected .upload-text {
+  color: var(--color-btn-save-bg);
+}
+
+/* ==========================================================================
+   Action Buttons
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  border: none;
+  border-radius: var(--border-radius-btn);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background-color var(--transition-speed) var(--transition-easing),
+              transform var(--transition-speed) var(--transition-easing),
+              box-shadow var(--transition-speed) var(--transition-easing);
+  outline: none;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+/* Upper Buttons Row (Cancel / Save) */
+.btn-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+@media (min-width: 480px) {
+  .btn-row {
+    grid-template-columns: 1fr 1.2fr;
+    gap: 16px;
+  }
+}
+
+.btn-cancel {
+  background-color: var(--color-btn-cancel-bg);
+  color: #ffffff;
+  box-shadow: 0 4px 12px var(--color-btn-cancel-shadow);
+}
+
+.btn-cancel:hover {
+  background-color: var(--color-btn-cancel-hover);
+  box-shadow: 0 6px 16px var(--color-btn-cancel-shadow);
+}
+
+.btn-cancel:focus-visible {
+  box-shadow: 0 0 0 4px rgba(78, 78, 78, 0.4);
+}
+
+.btn-save {
+  background-color: var(--color-btn-save-bg);
+  color: #ffffff;
+  box-shadow: 0 4px 12px var(--color-btn-save-shadow);
+  gap: 8px;
+}
+
+.btn-save:hover {
+  background-color: var(--color-btn-save-hover);
+  box-shadow: 0 6px 16px var(--color-btn-save-shadow);
+}
+
+.btn-save:focus-visible {
+  box-shadow: 0 0 0 4px rgba(29, 108, 227, 0.4);
+}
+
+.save-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Danger Button Row (Delete) */
+.btn-danger-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.btn-delete {
+  background-color: var(--color-btn-delete-bg);
+  color: #ffffff;
+  width: 100%;
+  max-width: 180px;
+  box-shadow: 0 4px 12px var(--color-btn-delete-shadow);
+}
+
+.btn-delete:hover {
+  background-color: var(--color-btn-delete-hover);
+  box-shadow: 0 6px 16px var(--color-btn-delete-shadow);
+}
+
+.btn-delete:focus-visible {
+  box-shadow: 0 0 0 4px rgba(255, 0, 0, 0.4);
+}
+
+
+.delete-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.delete-modal-content {
+    background: #ffffff;
+    width: 420px;
+    max-width: 90%;
+    padding: 28px;
+    border-radius: 20px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+}
+
+.delete-modal-content h3 {
+    margin: 0 0 10px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2d3d;
+}
+
+#deleteModalText {
+    margin: 0;
+    font-size: 16px;
+    color: #334155;
+    line-height: 1.5;
+}
+
+.delete-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.delete-modal-actions .btn {
+    min-width: 110px;
+}
+
+
+
+
+
+.preview-image{
+    width:100%;
+    max-height:260px;
+    object-fit:cover;
+    border-radius:14px;
+    display:none;
+}
+
+.upload-zone.has-image{
+    padding:12px;
+}
+
+.upload-zone.has-image .upload-content{
+    display:none;
+}
+
+
+/* ==========================================
+   MODERN CROPPER MODAL
+========================================== */
+
+.crop-modal{
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: rgba(15,23,42,.65);
+    backdrop-filter: blur(6px);
+    z-index: 99999;
+}
+
+.crop-card{
+    width: 100%;
+    max-width: 550px;
+    background: #ffffff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow:
+        0 20px 40px rgba(0,0,0,.15),
+        0 8px 16px rgba(0,0,0,.08);
+}
+
+.crop-header{
+    padding: 18px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.crop-header h3{
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.crop-body{
+    padding: 20px;
+    background: #f8fafc;
+}
+
+.cropper-wrapper{
+    width: 100%;
+    height: 420px;
+    overflow: hidden;
+    border-radius: 16px;
+    background: #e5e7eb;
+}
+
+.crop-body img{
+    display: block;
+    max-width: 100%;
+}
+
+.crop-actions{
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 18px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #ffffff;
+}
+
+.crop-actions .btn{
+    min-width: 120px;
+    height: 46px;
+}
+
+/* Cropper UI polish */
+
+.cropper-container{
+    width: 100% !important;
+}
+
+.cropper-wrap-box,
+.cropper-canvas,
+.cropper-drag-box{
+    border-radius: 12px;
+}
+
+/* Mobile */
+
+@media (max-width:768px){
+
+    .crop-modal{
+        padding: 12px;
+        align-items: flex-end;
+    }
+
+    .crop-card{
+        max-width: 100%;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .crop-header{
+        padding: 16px;
+    }
+
+    .crop-header h3{
+        font-size: 20px;
+    }
+
+    .crop-body{
+        padding: 16px;
+    }
+
+    .cropper-wrapper{
+        height: 300px;
+    }
+
+    .crop-actions{
+        flex-direction: column;
+        padding: 16px;
+    }
+
+    .crop-actions .btn{
+        width: 100%;
+        min-width: unset;
+    }
+}
