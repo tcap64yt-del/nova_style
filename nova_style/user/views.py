@@ -11,6 +11,7 @@ from .forms import SignupForm,LoginForm,OTPForm,ProfileForm
 from .models import EmailOTP,Users,Addresses
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from product.models import Category
 
 MAX_ATTEMPTS = 5
 MAX_RESENDS = 3
@@ -149,7 +150,6 @@ def resend_otp(request):
 
 def login(request):
     if request.user.is_authenticated:
-
         if request.user.status == False:
             auth_logout(request)
             messages.error(request, "Your account is blocked.")
@@ -193,7 +193,7 @@ def logout(request):
 
 def home(request):
     details = None
-
+    categories=Category.objects.filter(is_active=True)
     if request.user.is_authenticated:
         if request.user.status == False:
             auth_logout(request)
@@ -204,12 +204,12 @@ def home(request):
 
         details = Users.objects.filter(email=email).first()
 
-    return render(request, "home.html",{"details":details})
+    return render(request, "home.html",{"details":details,"categories":categories})
 
 @login_required(login_url='login')
 def profile(request):
     details = request.user
-    
+    categories=Category.objects.all()
     if request.method == "POST":
         avatar = request.FILES.get("avatar_url")
         if avatar:
@@ -274,7 +274,7 @@ def profile(request):
     else:
         form=ProfileForm(initial={"name": details.name, "email": details.email})
         
-    return render(request,'profile.html',{"details":details,"form":form})
+    return render(request,'profile.html',{"details":details,"form":form,"categories":categories})
 
 
 @login_required(login_url='login')
