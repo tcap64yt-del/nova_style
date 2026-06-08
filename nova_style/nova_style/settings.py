@@ -44,9 +44,7 @@ EMAIL_HOST_PASSWORD = "znjekfrfwotnoqka"
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_USERNAME_REQUIRED = False
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_PROVIDERS = {
@@ -64,7 +62,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'user',
+    'staff',
+    'product',
 
+    
     'django.contrib.sites',
     "allauth",
     "allauth.account",
