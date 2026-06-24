@@ -53,6 +53,11 @@ SOCIALACCOUNT_PROVIDERS = {
         "AUTH_PARAMS": {"access_type": "online"},
     }
 }
+# 30 minutes
+SESSION_COOKIE_AGE = 1800
+
+# Logout when browser closes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -64,6 +69,7 @@ INSTALLED_APPS = [
     'user',
     'staff',
     'product',
+    "cart",
 
     
     'django.contrib.sites',

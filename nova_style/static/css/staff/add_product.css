@@ -814,3 +814,38 @@ body {
     gap: 16px;
     align-items: end;
 }
+
+.btn-remove-variant{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+
+    padding:8px 12px;
+
+    border:1px solid #FECACA;
+    background:#FEF2F2;
+    color:#DC2626;
+
+    border-radius:8px;
+
+    font-size:12px;
+    font-weight:600;
+    font-family:var(--font-primary);
+
+    cursor:pointer;
+    transition:all .2s ease;
+}
+
+.btn-remove-variant:hover{
+    background:#FEE2E2;
+    border-color:#FCA5A5;
+    transform:translateY(-1px);
+}
+
+.btn-remove-variant:active{
+    transform:translateY(0);
+}
+
+.btn-remove-variant svg{
+    flex-shrink:0;
+}

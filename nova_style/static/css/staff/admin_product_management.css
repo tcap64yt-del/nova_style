@@ -386,6 +386,11 @@ button {
   background-color: #e2e8f0;
 }
 
+.table-top-actions{
+    display:flex;
+    justify-content:flex-end;
+    margin-bottom:20px;
+}
 /* --- Products Table Card Layout --- */
 .table-container-card {
   background-color: var(--color-card-bg);
@@ -878,5 +883,133 @@ button {
     height: 100%;
     object-fit: cover;
     border-radius: 12px;
+    display: block;
+}
+
+.sort-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sort-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    letter-spacing: 0.08em;
+}
+
+.sort-dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background .2s ease;
+}
+
+.sort-dropdown:hover {
+    background: #f8fafc;
+}
+
+.sort-current {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-text-dark);
+}
+
+.sort-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 140px;
+    background: #fff;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(15,23,42,.08);
+    overflow: hidden;
+    display: none;
+    z-index: 999;
+}
+
+.sort-dropdown.active .sort-menu {
+    display: block;
+}
+
+.sort-menu a {
+    display: block;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+.sort-menu a:hover {
+    background: #f8fafc;
+}
+
+
+.pagination-ui {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+}
+
+.pagination-page,
+.pagination-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  color: #111827;
+  background: transparent;
+  border: 0;
+}
+
+.pagination-arrow {
+  width: 20px;
+  height: 20px;
+  font-size: 22px;
+  color: #334155;
+}
+
+.pagination-page {
+  min-width: 48px;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: 14px;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pagination-page:hover,
+.pagination-arrow:hover {
+  color: #1d52d9;
+}
+
+.pagination-page.active {
+  background: #1d52d9;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(29, 82, 217, 0.25);
+}
+
+.pagination-ellipsis {
+  color: #111827;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.confirm-modal {
+    display: none;
+}
+
+.confirm-modal.is-open {
     display: block;
 }

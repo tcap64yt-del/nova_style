@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/staff/add_product.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'css/staff/add_product.css' %}?v=8">
   <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 
@@ -20,6 +20,8 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
     <main class="main-content">
 <form id="product-form" method="POST" enctype="multipart/form-data">
       {% csrf_token %}   
+      <input type="hidden" name="deleted_image_ids" id="deleted_image_ids">
+<input type="hidden" name="deleted_variant_ids" id="deleted_variant_ids">
       <h1 class="page-title">Edit Product</h1>
 
       <div class="layout-grid">
@@ -33,13 +35,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
     type="text"
     name="product_name"
     class="form-input"
-    value="{{ product_name|default:'' }}"
+    value="{{ products.name}}"
 >     
-{% if errors.product_name %}
-    <small class="field-error">
-        {{ errors.product_name }}
-    </small>
-{% endif %}      
+    
       </div>
             
             <div class="form-group">
@@ -47,12 +45,8 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 <textarea
     name="description"
     class="form-textarea"
->{{ description|default:'' }}</textarea>
-        {% if errors.description %}
-    <small class="field-error">
-        {{ errors.description }}
-    </small>
-{% endif %}
+>{{ products.description }}</textarea>
+   
         </div>
           </section>
 
@@ -65,13 +59,24 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
                 Add Variant
               </button>
             </div>
-
+           
             <!-- Variant Item Grid -->
-            <div class="variant-grid" id="variant-items-container">
+            <div  id="variant-items-container">
+                {% for  variant in variants  %}
+                            <div class="variant-grid" >
+
               <div class="variant-item-row">
-                <button type="button" class="btn-remove-variant">
+                 <input
+    type="hidden"
+    class="variant-id"
+    name="variant_id[]"
+    value="{{ variant.id }}">
+               <div class="variant-divider"></div>
+
+<button type="button" class="btn-remove-variant">
     Remove Variant
 </button>
+
                 <!-- Price, Size, Stock row -->
                 <div class="form-row-three-col">
                   <div class="form-group">
@@ -81,37 +86,29 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 <input type="number"
        name="price[]"
        class="form-input price-input"
-       placeholder="0.00"
        step="0.01"
        min="0"
+       value="{{ variant.price }}"
        >
 
                           </div>
-                            {% if errors.price %}
-    <small class="field-error">
-        {{ errors.price }}
-    </small>
-{% endif %}
+                      
                   </div>
                   
                   <div class="form-group">
                     <label class="field-label">SIZE</label>
                     <div class="custom-select-wrapper">
               <select name="size[]" class="form-select size-select">
-                  <option value="S">S</option>
-                  <option value="M">M</option>
-                  <option value="L">L</option>
-                  <option value="XL">XL</option>
+                  <option value="S" {% if variant.size == "S" %}selected{% endif %}>S</option>
+    <option value="M" {% if variant.size == "M" %}selected{% endif %}>M</option>
+    <option value="L" {% if variant.size == "L" %}selected{% endif %}>L</option>
+    <option value="XL" {% if variant.size == "XL" %}selected{% endif %}>XL</option>
               </select>
                       <span class="select-chevron">
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg>
                       </span>
                     </div>
-                       {% if errors.size %}
-    <small class="field-error">
-        {{ errors.size }}
-    </small>
-{% endif %}
+                    
                   </div>
                   
                   
@@ -121,12 +118,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
                 name="stock[]"
                 class="form-input stock-input"
                 min="0"
+                value={{variant.stock}}
                 >  
-                {% if errors.stock %}
-    <small class="field-error">
-        {{ errors.stock }}
-    </small>
-{% endif %}
+             
                               </div>
                               
                 </div>
@@ -142,17 +136,13 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
         type="color"
         name="color[]"
         class="color-square"
-        value="#000000">
+        value="{{variant.color}}">
 </div>
 
                         </div>
                         
                 </div>
- {% if errors.color %}
-    <small class="field-error">
-        {{ errors.color }}
-    </small>
-{% endif %}
+
 <div class="form-row-two-col">
 
 
@@ -162,8 +152,21 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 
         <div class="custom-select-wrapper">
             <select name="status[]" class="form-select">
-                <option value="true" selected>Active</option>
-                <option value="false">Inactive</option>
+                <option value="true"
+        {% if variant.status %}
+            selected
+        {% endif %}
+    >
+        Active
+    </option>
+
+    <option value="false"
+        {% if not variant.status %}
+            selected
+        {% endif %}
+    >
+        Inactive
+    </option>
             </select>
 
             <span class="select-chevron">
@@ -188,7 +191,8 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
        name="offer[]"
        class="form-input percentage-input"
        min="0"
-       max="100">
+       max="100"
+       value="{{ variant.offer }}">
                                <span class="percentage-symbol">%</span>
                       </div>
                     </div>
@@ -198,7 +202,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
                       <div class="date-input-wrapper">
 <input type="date"
        name="start_date[]"
-       class="form-input date-input start-date">                        <span class="calendar-icon">
+       class="form-input date-input start-date" value="{{ variant.start_date }}"> 
+      
+       <span class="calendar-icon">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         </span>
                       </div>
@@ -209,7 +215,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
                       <div class="date-input-wrapper">
 <input type="date"
        name="end_date[]"
-       class="form-input date-input end-date">                        <span class="calendar-icon">
+       class="form-input date-input end-date" value="{{ variant.end_date }}">                  
+      
+       <span class="calendar-icon">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         </span>
                       </div>
@@ -223,10 +231,10 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
                   <h3 class="section-subtitle">Media Gallery</h3>
                   <p class="section-description">The First Image Will Be The Main Image</p>
                   
-                  <div class="media-gallery-grid" id="media-gallery-container">
-                    <div class="media-upload-box" id="media-upload-trigger">
-<input type="file"
-       name="images_0[]"
+                  <div class="media-gallery-grid" >
+<div class="media-upload-box media-upload-trigger">
+    <input type="file"
+       name="images_{{forloop.counter0}}[]"
        accept="image/*"
        multiple
        class="hidden-file-input media-file-input" style="display:none;">
@@ -239,17 +247,27 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
                         <span class="upload-text">Upload images</span>
                       </div>
                     </div>
+                     {% for image in variant.images.all %}
+    <div class="media-item-box">
+        <img
+            src="{{ image.image.url }}"
+            class="preview-image"
+            alt="Product image">
+            <button
+            type="button"
+            class="btn-delete-image"
+            data-image-id="{{ image.id }}">
+            ✕</button>
+    </div>
+    {% endfor %}
                   </div>
                 </div>
 
               </div>
             </div>
-            {% if errors.images %}
-    <small class="field-error">
-        {{ errors.images }}
-    </small>
-{% endif %}
+        {% endfor %}
           </section>
+      
 
         </div>
 
@@ -273,18 +291,18 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 
                 {% for category in categories %}
                 {% if  category.is_active %}
-                    <option value="{{ category.id }}">
-                        {{ category.name }}
-                    </option>
+                    <option value="{{ category.id }}"
+            {% if category.id == products.category.id %}
+                selected
+            {% endif %}
+        >
+            {{ category.name }}
+        </option>
                 {% endif %}
                 {% endfor %}
 
             </select>
-            {% if errors.category %}
-    <small class="field-error">
-        {{ errors.category }}
-    </small>
-{% endif %}
+         
             <span class="select-chevron">
                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none"
                      stroke="currentColor" stroke-width="2"
@@ -303,19 +321,27 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
               <label class="field-label-category">SHOW ON LIST</label>
               <div class="custom-select-wrapper">
 <select class="form-select list-visibility-select" id="list-visibility-select" name="show_on_list">
-                          <option value="yes" selected>Yes</option>
-                  <option value="no">No</option>
+                          <option value="yes"
+        {% if products.is_active %}
+            selected
+        {% endif %} >
+        Yes
+    </option>
+
+    <option value="no"
+        {% if not products.is_active %}
+            selected
+        {% endif %}
+    >
+        No
+    </option>
                 </select>
                 <span class="select-chevron">
                   <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg>
                 </span>
               </div>
             </div>
-                {% if errors.show_on_list %}
-     <small class="field-error">
-        {{ errors.show_on_list }}
-    </small>
-    {% endif %}
+              
           </section>
 
         </div>
@@ -326,7 +352,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
     <!-- Bottom Actions Sticky Bar -->
     <footer class="bottom-actions-bar">
       <div class="footer-buttons-wrapper">
+        <a href="{% url "product_management" %}">
         <button type="button" class="btn btn-secondary btn-back" id="btn-back">BACK</button>
+        </a>
 <button type="submit" form="product-form" class="btn btn-dark btn-save" id="btn-save">
                   <svg class="save-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -375,403 +403,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-
-    let cropper = null;
-    let currentGallery = null;
-    let currentInput = null;
-
-    let selectedFiles = [];
-    let currentFileIndex = 0;
-
-    // -------------------------
-    // Hide first remove button
-    // -------------------------
-    const firstRemoveBtn =
-        document.querySelector(".variant-item-row .btn-remove-variant");
-
-    if (firstRemoveBtn) {
-        firstRemoveBtn.style.display = "none";
-    }
-
-    // -------------------------
-    // Open upload box
-    // -------------------------
-    document.addEventListener("click", function(e){
-
-        const uploadBox =
-            e.target.closest(".media-upload-box");
-
-        if(!uploadBox) return;
-
-        const input =
-            uploadBox.querySelector(".media-file-input");
-
-        if(input){
-            input.click();
-        }
-
-    });
-
-    // -------------------------
-    // Open cropper
-    // -------------------------
-    function openCropper(file){
-
-        const reader = new FileReader();
-
-        reader.onload = function(event){
-
-            const modal =
-                document.getElementById("cropModal");
-
-            const image =
-                document.getElementById("cropImage");
-
-            image.src = event.target.result;
-
-            modal.style.display = "flex";
-
-            if(cropper){
-                cropper.destroy();
-            }
-
-            cropper = new Cropper(image,{
-                aspectRatio: 1,
-                viewMode: 2,
-                dragMode: "move",
-                autoCropArea: 1,
-                responsive: true,
-                cropBoxMovable: true,
-                cropBoxResizable: true,
-                movable: true,
-                zoomable: true
-            });
-
-        };
-
-        reader.readAsDataURL(file);
-    }
-
-    // -------------------------
-    // File selected
-    // -------------------------
-    document.addEventListener("change", function(e){
-
-        const input = e.target;
-
-        if(
-            input.type !== "file" ||
-            !input.closest(".media-gallery-section")
-        ){
-            return;
-        }
-
-        if(!input.files.length) return;
-
-        currentInput = input;
-
-        currentGallery = input
-            .closest(".media-gallery-section")
-            .querySelector(".media-gallery-grid");
-
-        selectedFiles = Array.from(input.files);
-
-        currentFileIndex = 0;
-
-        openCropper(selectedFiles[currentFileIndex]);
-
-    });
-
-    // -------------------------
-    // Save cropped image
-    // -------------------------
-    document
-        .getElementById("cropBtn")
-        .addEventListener("click", function(){
-
-        if(!cropper) return;
-
-        const canvas = cropper.getCroppedCanvas({
-            width: 800,
-            height: 800
-        });
-
-        canvas.toBlob(function(blob){
-
-            const croppedFile = new File(
-                [blob],
-                `cropped_${Date.now()}.jpg`,
-                {
-                    type: "image/jpeg"
-                }
-            );
-
-            const imageBox =
-                document.createElement("div");
-
-            imageBox.className = "media-item-box";
-
-            imageBox.innerHTML = `
-                <img
-                    src="${URL.createObjectURL(croppedFile)}"
-                    class="preview-image"
-                >
-
-                <button
-                    type="button"
-                    class="btn-delete-image">
-                    ✕
-                </button>
-            `;
-
-            imageBox.croppedFile = croppedFile;
-
-            currentGallery.appendChild(imageBox);
-
-            currentFileIndex++;
-
-            if(currentFileIndex < selectedFiles.length){
-
-                cropper.destroy();
-
-                openCropper(
-                    selectedFiles[currentFileIndex]
-                );
-
-            }else{
-
-                const dataTransfer =
-                    new DataTransfer();
-
-                currentGallery
-                    .querySelectorAll(".media-item-box")
-                    .forEach(box => {
-
-                    if(box.croppedFile){
-                        dataTransfer.items.add(
-                            box.croppedFile
-                        );
-                    }
-
-                });
-
-                currentInput.files =
-                    dataTransfer.files;
-
-                closeCropModal();
-            }
-
-        }, "image/jpeg", 0.95);
-
-    });
-
-    // -------------------------
-    // Close crop modal
-    // -------------------------
-    function closeCropModal(){
-
-        document
-            .getElementById("cropModal")
-            .style.display = "none";
-
-        selectedFiles = [];
-        currentFileIndex = 0;
-
-        if(cropper){
-            cropper.destroy();
-            cropper = null;
-        }
-
-    }
-
-    document
-        .getElementById("cancelCropBtn")
-        .addEventListener("click", function(){
-
-        if(currentInput){
-            currentInput.value = "";
-        }
-
-        closeCropModal();
-
-    });
-
-    document
-        .getElementById("cancelCropBtn2")
-        .addEventListener("click", function(){
-
-        if(currentInput){
-            currentInput.value = "";
-        }
-
-        closeCropModal();
-
-    });
-
-    // -------------------------
-    // Delete image
-    // -------------------------
-    document.addEventListener("click", function(e){
-
-        const btn =
-            e.target.closest(".btn-delete-image");
-
-        if(!btn) return;
-
-        const imageBox =
-            btn.closest(".media-item-box");
-
-        const gallery =
-            imageBox.closest(".media-gallery-grid");
-
-        imageBox.remove();
-
-        const fileInput =
-            gallery.querySelector(".media-file-input");
-
-        const dataTransfer =
-            new DataTransfer();
-
-        gallery
-            .querySelectorAll(".media-item-box")
-            .forEach(box => {
-
-            if(box.croppedFile){
-                dataTransfer.items.add(
-                    box.croppedFile
-                );
-            }
-
-        });
-
-        fileInput.files =
-            dataTransfer.files;
-
-    });
-
-    // -------------------------
-    // Add Variant
-    // -------------------------
-    document
-        .getElementById("btn-add-variant")
-        .addEventListener("click", function(){
-
-        const container =
-            document.getElementById(
-                "variant-items-container"
-            );
-
-        const firstVariant =
-            container.querySelector(
-                ".variant-item-row"
-            );
-
-        const newVariant =
-            firstVariant.cloneNode(true);
-
-        const variantIndex =
-            container.querySelectorAll(
-                ".variant-item-row"
-            ).length;
-
-        newVariant
-            .querySelectorAll("input")
-            .forEach(input => {
-
-            if(input.type === "file"){
-
-                input.value = "";
-
-                input.name =
-                    `images_${variantIndex}[]`;
-
-            }else if(
-                input.type === "text" ||
-                input.type === "number" ||
-                input.type === "date"
-            ){
-
-                input.value = "";
-
-            }
-
-        });
-
-        newVariant
-            .querySelectorAll("select")
-            .forEach(select => {
-
-            select.selectedIndex = 0;
-
-        });
-
-        const gallery =
-            newVariant.querySelector(
-                ".media-gallery-grid"
-            );
-
-        gallery
-            .querySelectorAll(".media-item-box")
-            .forEach(item => item.remove());
-
-        const removeBtn =
-            newVariant.querySelector(
-                ".btn-remove-variant"
-            );
-
-        removeBtn.style.display = "block";
-
-        container.appendChild(newVariant);
-
-    });
-
-    // -------------------------
-    // Remove Variant
-    // -------------------------
-    document.addEventListener("click", function(e){
-
-        const btn =
-            e.target.closest(
-                ".btn-remove-variant"
-            );
-
-        if(!btn) return;
-
-        const container =
-            document.getElementById(
-                "variant-items-container"
-            );
-
-        if(
-            container.querySelectorAll(
-                ".variant-item-row"
-            ).length === 1
-        ){
-            return;
-        }
-
-        btn
-            .closest(".variant-item-row")
-            .remove();
-
-    });
-
-    // -------------------------
-    // Sort images
-    // -------------------------
-    document
-        .querySelectorAll(".media-gallery-grid")
-        .forEach(gallery => {
-
-        new Sortable(gallery,{
-            animation:150
-        });
-
-    });
-
-});
-</script>
+<script src="{% static 'js/edit_product.js' %}?v=5"></script>
 
 </html>

@@ -56,58 +56,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 5. DOUBLE PRICE SLIDER CONTROLS
-    function updatePriceSlider(e) {
-        let minVal = parseInt(priceMinInput.value);
-        let maxVal = parseInt(priceMaxInput.value);
-        const minGap = 200; // Minimum gap between handles
+function updatePriceSlider(e) {
+    let minVal = parseInt(priceMinInput.value);
+    let maxVal = parseInt(priceMaxInput.value);
 
-        if (maxVal - minVal < minGap) {
-            if (e && e.target.id === 'priceMin') {
-                priceMinInput.value = maxVal - minGap;
-                minVal = maxVal - minGap;
-            } else {
-                priceMaxInput.value = minVal + minGap;
-                maxVal = minVal + minGap;
-            }
+    const minGap = 200;
+
+    if (maxVal - minVal < minGap) {
+        if (e && e.target.id === 'priceMin') {
+            priceMinInput.value = maxVal - minGap;
+            minVal = maxVal - minGap;
+        } else {
+            priceMaxInput.value = minVal + minGap;
+            maxVal = minVal + minGap;
         }
-
-        currentMinPrice = minVal;
-        currentMaxPrice = maxVal;
-
-        // Visual track fill
-        const minPercent = ((minVal - priceMinInput.min) / (priceMinInput.max - priceMinInput.min)) * 100;
-        const maxPercent = ((maxVal - priceMaxInput.min) / (priceMaxInput.max - priceMaxInput.min)) * 100;
-        
-        sliderTrack.style.background = `linear-gradient(to right, var(--color-border) ${minPercent}%, var(--color-text-primary) ${minPercent}%, var(--color-text-primary) ${maxPercent}%, var(--color-border) ${maxPercent}%)`;
-        
-        priceMinVal.textContent = `₹${minVal}`;
-        priceMaxVal.textContent = `₹${maxVal}`;
     }
 
-    priceMinInput.addEventListener('input', updatePriceSlider);
-    priceMaxInput.addEventListener('input', updatePriceSlider);
-    
-    // Initialize slider position
-    updatePriceSlider();
+    const minPercent =
+        ((minVal - priceMinInput.min) /
+        (priceMinInput.max - priceMinInput.min)) * 100;
 
-    // 6. SIZE FILTER SELECTION
-    sizeButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            sizeButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedSize = btn.dataset.size;
-        });
-    });
+    const maxPercent =
+        ((maxVal - priceMaxInput.min) /
+        (priceMaxInput.max - priceMaxInput.min)) * 100;
 
-    // 7. CATEGORY FILTER SELECTION
-    categoryLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            categoryLinks.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-            activeCategory = link.textContent.trim();
-        });
-    });
+    sliderTrack.style.background =
+        `linear-gradient(to right,
+        var(--color-border) ${minPercent}%,
+        var(--color-text-primary) ${minPercent}%,
+        var(--color-text-primary) ${maxPercent}%,
+        var(--color-border) ${maxPercent}%)`;
+
+    priceMinVal.textContent = `₹${minVal}`;
+    priceMaxVal.textContent = `₹${maxVal}`;
+}
+
+priceMinInput.addEventListener('input', updatePriceSlider);
+priceMaxInput.addEventListener('input', updatePriceSlider);
+
+updatePriceSlider();
+
 
     // 8. MOBILE LAYOUT: SIDEPANEL NAVIGATION & FILTERS
     const menuToggle = document.getElementById('menuToggle');
@@ -153,70 +141,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeFilterDrawer);
     overlay.addEventListener('click', closeFilterDrawer);
 
-    // 9. CORE FILTER ENGINE (Fade anims + Display calculations)
-    function applyFiltering() {
-        productGrid.style.opacity = '0.3';
-        productGrid.style.transition = 'opacity 0.2s ease';
-        
-        setTimeout(() => {
-            let visibleCount = 0;
-            
-            productCards.forEach(card => {
-                const category = card.dataset.category.toLowerCase();
-                const price = parseFloat(card.dataset.price);
-                const size = card.dataset.size;
-                
-                // Match criteria
-                const categoryMatch = activeCategory.toLowerCase() === 'woman' ? category === 'woman' || category === 'dresses' || category === 'skirts' || category === 'knitwear' || category === 'outerwear' || category === 'trousers'
-                                    : activeCategory.toLowerCase() === 'man' ? category === 'man' || category === 'coats' || category === 'outerwear'
-                                    : true; // KIDS / others
-                                    
-                const priceMatch = price >= currentMinPrice && price <= currentMaxPrice;
-                const sizeMatch = selectedSize ? size === selectedSize : true;
-                
-                if (categoryMatch && priceMatch && sizeMatch) {
-                    card.style.display = 'flex';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-            
-            // Re-order if sorted
-            applySorting();
-            
-            // Fade-in grid
-            productGrid.style.opacity = '1';
-            
-            // Close mobile panel if open
-            closeFilterDrawer();
-        }, 250);
-    }
+    sizeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
 
-    applyFiltersBtn.addEventListener('click', applyFiltering);
-
-    // 10. FILTERS CLEAR ENGINE
-    clearFiltersBtn.addEventListener('click', () => {
-        // Reset category state
-        categoryLinks.forEach(l => l.classList.remove('active'));
-        const defaultCategory = Array.from(categoryLinks).find(l => l.textContent.trim() === 'WOMAN');
-        if (defaultCategory) defaultCategory.classList.add('active');
-        activeCategory = 'WOMAN';
-
-        // Reset sizes state
         sizeButtons.forEach(b => b.classList.remove('active'));
-        const defaultSizeBtn = Array.from(sizeButtons).find(b => b.dataset.size === 'S');
-        if (defaultSizeBtn) defaultSizeBtn.classList.add('active');
-        selectedSize = 'S';
 
-        // Reset prices state
-        priceMinInput.value = 500;
-        priceMaxInput.value = 3000;
-        updatePriceSlider();
+        btn.classList.add('active');
 
-        // Perform visual refiltering
-        applyFiltering();
+        const radio = btn.querySelector('input[type="radio"]');
+        if (radio) {
+            radio.checked = true;
+        }
     });
+});
+
+
 
     // 11. SORT DROPDOWN AND LOGIC
     const sortDropdownBtn = document.getElementById('sortDropdownBtn');
@@ -235,17 +174,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     sortOptions.forEach(option => {
-        option.addEventListener('click', () => {
-            sortOptions.forEach(opt => opt.classList.remove('active'));
-            option.classList.add('active');
-            
-            const sortType = option.dataset.sort;
-            activeSort = sortType;
-            activeSortLabel.textContent = option.textContent.trim();
-            
-            applySorting();
-        });
+    option.addEventListener('click', () => {
+        document.getElementById('sortField').value =
+            option.dataset.sort;
+
+        document.getElementById('filterForm').submit();
     });
+});
+
+document.getElementById('filterForm').addEventListener('submit', () => {
+    closeFilterDrawer();
+});
 
     function applySorting() {
         const visibleCards = productCards.filter(card => card.style.display !== 'none');
@@ -273,3 +212,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
+const searchBtn = document.getElementById('action-search');
+const searchOverlay = document.getElementById('searchOverlay');
+const searchInput = document.getElementById('searchInput');
+const clearSearch = document.getElementById('clearSearch');
+
+searchBtn.addEventListener('click', () => {
+    searchOverlay.classList.toggle('active');
+
+    if(searchOverlay.classList.contains('active')){
+        searchInput.focus();
+    }
+});
+
+clearSearch.addEventListener('click', () => {
+    searchInput.value = '';
+    searchInput.focus();
+});
+

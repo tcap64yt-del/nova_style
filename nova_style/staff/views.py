@@ -45,7 +45,7 @@ def user_management(request):
     elif sort == 'oldest':
         users = users.order_by('created_at')
 
-    paginator=Paginator(users,5)
+    paginator=Paginator(users,3)
     page_number=request.GET.get('page')
     page_obj=paginator.get_page(page_number)
 
@@ -140,14 +140,34 @@ def category_status(request,category_id):
 
 @login_required(login_url="admin_login")
 def product_management(request):
+        
+        search=request.GET.get("search","").strip()
+        sort=request.GET.get("sort","all")
         products=Products.objects.annotate(count=Count('variants')).prefetch_related("variants")
-        return render(request,"staff/admin_product_management.html",{"products":products})
+
+
+        if search:
+            products=products.filter(Q(name__icontains=search) | Q(category__name__icontains=search))
+
+        if sort=="active":
+            products=products.filter(is_active=True).order_by("-created_at")
+        elif sort =="inactive":
+            products=products.filter(is_active=False).order_by("-created_at")
+        else:
+            products=products.order_by("-created_at")
+
+        paginator=Paginator(products,5)
+        page_number=request.GET.get("page")
+        page_obj=paginator.get_page(page_number)
+
+        
+        return render(request,"staff/admin_product_management.html",{"products":page_obj,"page_obj":page_obj,"search":search,"sort":sort})
 
 @login_required(login_url='admin_login')
 def add_product(request):
     categories=Category.objects.all()
+    errors={}
     if request.method=="POST":
-        errors={}
         product_name=request.POST.get("product_name","").strip()
         description = request.POST.get("description", "").strip()
         category = request.POST.get("category")
@@ -160,6 +180,114 @@ def add_product(request):
         end_date = request.POST.getlist("end_date[]")
         stocks = request.POST.getlist("stock[]")
         statuses = request.POST.getlist("status[]")
+        
+        variants=[]
+        variant_count=max(len(prices),len(sizes),len(colors),len(stocks),len(statuses))
+
+        for i in range(variant_count):
+            variants.append({"index":i,"price":prices[i] if i < len(prices) else "", "size": sizes[i] if i < len(sizes) else "","color": colors[i] if i < len(colors) else "","stock": stocks[i] if i < len(stocks) else "","offer": offer[i] if i < len(offer) else "","status": statuses[i] if i < len(statuses) else "true","errors":{}})
+
+        
+
+        if not product_name:
+            errors["product_name"] = "product name is required."
+
+        elif len(product_name) < 3:
+            errors["product_name"] = "product name must contain atleast 3 characters."
+
+        elif not re.match(r'^[A-Za-z0-9 ]+$', product_name):
+            errors["product_name"] = "only letters and numbers are allowed."
+        if not description:
+            errors["description"] = "description is required."
+
+        elif len(description) < 15:
+            errors["description"] = "description must contain at least 15 letters."
+
+        if not category:
+            errors["category"] = "please select a category."
+
+        if show_on_list not in ["yes", "no"]:
+            errors["show_on_list"] = "please select Yes or No."
+
+        if not variants:
+            errors["variant"]="atleast one variant is required"
+        
+        for i ,variant in enumerate(variants):
+            if not str(variant['price']).strip():
+                variant["errors"]["price"]="price is required"
+
+            if not str(variant["stock"]).strip():
+                variant["errors"]["stock"] = "Stock is required"
+
+            if not str(variant["size"]).strip():
+                variant["errors"]["size"] = "Size is required"
+
+            if not str(variant["color"]).strip():
+                variant["errors"]["color"] = "Color is required"
+            offer_value=variant["offer"]
+            if offer_value and float(offer_value)>0:
+                if not start_date[i]:
+                    variant["errors"]["start_date"]=("start date required  ")
+                if not end_date[i]:
+                    variant["errors"]["end_date"]=("end date required  ")
+
+            variant_images = request.FILES.getlist(f"images_{i}[]")
+
+            if len(variant_images)<3:
+                variant["errors"]["images"]=("upload atleast 3 image")
+
+        variant_has_errors=any(variant["errors"] for variant in variants)
+
+        if errors or variant_has_errors:
+            return render(request,"staff/add_product.html",{"categories":categories,"errors":errors,"variants":variants,"product_name":product_name,"description":description,"selected_category":category})
+
+
+        category_obj=get_object_or_404(Category,id=category)
+
+        product=Products.objects.create(name=product_name,description=description,category_id=category_obj.id,is_active=(show_on_list=="yes"))
+        for i in range(len(prices)):
+
+            variant=ProductVariant.objects.create(product=product,size=sizes[i],color=colors[i],price=prices[i], offer=offer[i] if offer[i] else None,start_date=start_date[i] if start_date[i] else None,end_date=end_date[i] if end_date[i] else None,stock=stocks[i],is_active=(statuses[i] == "true"))
+            variant_images=request.FILES.getlist(f"images_{i}[]")
+
+            for i,image in enumerate(variant_images):
+                ProductImage.objects.create(variant=variant,image=image,is_primary=(i==0))
+        messages.success(request, "Product added successfully.")
+        return redirect("add_product")
+    return render(request,"staff/add_product.html",{"categories":categories,"errors":{},"variants":[{"index":0,"errors":{}  }]})
+
+
+
+
+@login_required(login_url="admin_login")
+def edit_product(request,product_id):
+    products=get_object_or_404(Products.objects.prefetch_related('variants__images'),id=product_id)
+    categories=Category.objects.all()
+    errors={}
+
+    if request.method=="POST":
+        product_name=request.POST.get("product_name","").strip()
+        description = request.POST.get("description", "").strip()
+        category = request.POST.get("category")
+        show_on_list = request.POST.get("show_on_list")
+        prices = request.POST.getlist("price[]")
+        sizes = request.POST.getlist("size[]")
+        colors = request.POST.getlist("color[]")
+        offer = request.POST.getlist("offer[]")
+        start_date = request.POST.getlist("start_date[]")
+        end_date = request.POST.getlist("end_date[]")
+        stocks = request.POST.getlist("stock[]")
+        statuses = request.POST.getlist("status[]")
+        variant_ids = request.POST.getlist('variant_id[]')
+        
+        variants=[]
+        variant_count=max(len(prices),len(sizes),len(colors),len(stocks),len(statuses))
+        for i in range(variant_count):
+            variant_images=[]
+            if i<len(variant_ids) and variant_ids[i]:
+                db_variant=ProductVariant.objects.get(id=variant_ids[i])
+                variant_images=db_variant.images.all()
+            variants.append({"id": variant_ids[i] if i < len(variant_ids) else "","index":i,"price":prices[i] if i < len(prices) else "", "size": sizes[i] if i < len(sizes) else "","color": colors[i] if i < len(colors) else "","stock": stocks[i] if i < len(stocks) else "","offer": offer[i] if i < len(offer) else "","start_date": start_date[i] if i < len(start_date) else "","end_date": end_date[i] if i < len(end_date) else "","status": statuses[i] if i < len(statuses) else "true","images": variant_images,"errors":{}})
         if not product_name:
             errors["product_name"] = "product name is required."
 
@@ -181,60 +309,131 @@ def add_product(request):
         if show_on_list not in ["yes", "no"]:
             errors["show_on_list"] = "please select Yes or No."
 
-        if not prices:
-            errors["variant"] = "At least one variant is required."
-        elif not (len(prices) == len(sizes) == len(colors) ==len(stocks) == len(offer) == len(start_date) == len(end_date)):
-            errors["variant"]="invaild variant data."
+        if not variants:
+            errors["variant"]="atleast one variant is required"
 
-        else:
-            for i in range(len(prices)):
-                variant_images = request.FILES.getlist(f"images_{i}[]")
-                if len(variant_images)<3:
-                    errors["images"]=f"upload atleast 3 images for variant{i+1}"
-                price=prices[i].strip()
-                stock=stocks[i].strip()
-                size=sizes[i]
-                color=colors[i].strip()
-                if not price:
-                    errors["price"] = f"Price is required for Variant {i+1}"
-                    
+        for i ,variant in enumerate(variants):
 
-                elif float(price) <= 0:
-                    errors["price"] = f"Price must be greater than 0 for Variant {i+1}"
-                    
+            if not str(variant['price']).strip():
+                variant["errors"]["price"]="price is required"
 
-                if not stock:
-                    errors["stock"] = f"Stock is required for Variant {i+1}"
+            if not str(variant["stock"]).strip():
+                variant["errors"]["stock"] = "Stock is required"
 
-                elif not stock.isdigit():
-                    errors["stock"] = f"stock must be a number for Variant {i+1}"
+            if not str(variant["size"]).strip():
+                variant["errors"]["size"] = "Size is required"
 
-                elif int(stock) < 0:
-                    errors["stock"] = f"Stock cannot be negative for Variant {i+1}"
-                if not size:
-                    errors["size"] = f"Size is required for Variant {i+1}"
-                    
+            if not str(variant["color"]).strip():
+                variant["errors"]["color"] = "Color is required"
+            offer_value=variant["offer"]
+            if offer_value and float(offer_value)>0:
+                if not start_date[i]:
+                    variant["errors"]["start_date"]=("start date required  ")
+                if not end_date[i]:
+                    variant["errors"]["end_date"]=("end date required  ")
 
-                if not color:
-                    errors["color"] = f"Color is required for Variant {i+1}"
-     
-            if errors:
-                return render(request,"staff/add_product.html",{"categories":categories,"errors":errors})
-            category_obj=get_object_or_404(Category,id=category)
+            variant_images = request.FILES.getlist(f"images_{i}[]")
+            existing_count=0
 
-            product=Products.objects.create(name=product_name,description=description,category_id=category_obj.id,is_active=(show_on_list=="yes"))
-            for i in range(len(prices)):
+            if  i < len(variant_ids) and variant_ids[i]:
+                existing_variant=ProductVariant.objects.get(id=variant_ids[i])
+                existing_count=existing_variant.images.count()
+            total_images=existing_count+len(variant_images)
+            if total_images<3:
+                variant["errors"]["images"]=("upload atleast 3 image")
 
-                variant=ProductVariant.objects.create(product=product,size=sizes[i],color=colors[i],price=prices[i], offer=offer[i] if offer[i] else 0,start_date=start_date[i] if start_date[i] else None,end_date=end_date[i] if end_date[i] else None,stock=stocks[i],is_active=(statuses[i] == "true"))
-                variant_images=request.FILES.getlist(f"images_{i}[]")
+        seen=set()
+        for i,variant in enumerate(variants):
+            key=(variant["size"],variant["color"])
+            if key in seen:
+                variant["errors"]["duplicate"]=("color and size already exists.")
+            seen.add(key)
 
-                for index,image in enumerate(variant_images):
-                    ProductImage.objects.create(variant=variant,image=image,is_primary=(index==0))
-            messages.success(request, "Product added successfully.")
-            return redirect("add_product")
+        variant_has_errors=any(variant["errors"] for variant in variants)
+        if errors or variant_has_errors:
+            products.name=product_name
+            products.description = description
+            return render(request,"staff/edit_product.html",{"categories":categories,"errors":errors,"products":products,"variants":variants})
+        category_obj=get_object_or_404(Category,id=category)
             
-    return render(request,"staff/add_product.html",{"categories":categories})
+        products.name=product_name
+        products.description=description
+        products.category=category_obj
+        products.is_active=(show_on_list=="yes")
+        products.save()
+        delete_image_ids = request.POST.get("deleted_image_ids","")
+        delete_variant_ids= request.POST.get("deleted_variant_ids","")
+
+        print(delete_variant_ids)
+
+        if delete_variant_ids:
+            ProductVariant.objects.filter(id__in=delete_variant_ids.split(",")).delete()
+            
+        if delete_image_ids:
+            ProductImage.objects.filter(id__in=delete_image_ids.split(",")).delete()
+        
+
+        for i in range(len(prices)):
+            variant_id=(variant_ids[i] if i <len(variant_ids) else "")
+            if variant_id:
+                    variant=ProductVariant.objects.get(id=variant_id)
+                    duplicate=ProductVariant.objects.filter(product=products,size=sizes[i],color=colors[i]).exclude(id=variant.id)
+
+                    if duplicate.exists():
+                        variants[i]["errors"]["duplicate"]=("Color and size already exist.")
+                        return render("staff/edit_product.html",{"categories":categories,"errors":errors,"products":products,"variants":variants})
+
+
+                    variant.size= sizes[i]
+                    variant.color = colors[i]
+                    variant.price = prices[i]
+                    variant.stock = stocks[i]
+                    variant.offer = offer[i] or 0
+                    variant.start_date = start_date[i] or None
+                    variant.end_date = end_date[i] or None
+                    variant.is_active = (statuses[i] == "true")
+                    variant.save()
+            else:
+                variant=ProductVariant.objects.create(product=products,size=sizes[i],color=colors[i],price=prices[i],stock=stocks[i],offer=offer[i]or 0,start_date=start_date[i]or None,end_date=end_date[i]or None,is_active=(statuses[i]=="true"))
+                
+            upload_images=request.FILES.getlist(f"images_{i}[]")
+
+            existing_images = variant.images.count()
+
+            for img_index, image in enumerate(upload_images):
+                ProductImage.objects.create(variant=variant,image=image,is_primary=(existing_images == 0 and img_index == 0))
+        messages.success(request, "Product edited successfully.")
+        return redirect("edit_product",product_id=products.id)
+    
+
+    variants=[]
+    for v in products.variants.all():
+      variants.append({
+        "id":v.id,
+        "images":[],
+        "price": v.price,
+        "size": v.size,
+        "color": v.color,
+        "stock": v.stock,
+        "offer": v.offer,
+        "start_date": v.start_date,
+        "end_date": v.end_date,
+        "status": True if v.is_active else False,
+        "images": v.images.all(),
+        "errors": {},
+    })
+    return render(request,"staff/edit_product.html",{"products":products,"categories":categories,"variants":variants,"errors":{}})
 
 @login_required(login_url="admin_login")
-def edit_product(request,product_id):
-    return render(request,"staff/edit_product.html")
+def activate_product(request,product_id):
+    product=Products.objects.filter(id=product_id).first()
+    product.is_active=True
+    product.save(update_fields=["is_active"])
+    return redirect("product_management")
+  
+@login_required(login_url="admin_login")
+def deactivate_product(request,product_id):
+    product=Products.objects.filter(id=product_id).first()
+    product.is_active=False
+    product.save(update_fields=["is_active"])
+    return redirect("product_management")    

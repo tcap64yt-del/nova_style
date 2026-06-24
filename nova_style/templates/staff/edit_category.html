@@ -26,7 +26,6 @@
                         name="categoryName"
                         class="input-field"
                         value="{{ category.name }}"
-                        required
                     >
                 </div>
 
@@ -102,47 +101,11 @@
                     </button>
                 </div>
 
-                <div class="btn-danger-row">
-                    <button
-                        type="button"
-                        class="btn btn-delete"
-                        onclick="openDeleteModal(
-                            '{{ category.id }}',
-                            '{{ category.name|escapejs }}',
-                            '{% url "delete_category" category.id %}'
-                        )"
-                    >
-                        DELETE
-                    </button>
-                </div>
+              
             </form>
         </div>
     </main>
 
-    <div id="deleteModal" class="delete-modal">
-        <div class="delete-modal-content">
-            <h3>Delete Category</h3>
-            <p id="deleteModalText"></p>
-
-            <form id="deleteForm" method="post">
-                {% csrf_token %}
-
-                <div class="delete-modal-actions">
-                    <button
-                        type="button"
-                        class="btn btn-cancel"
-                        onclick="closeDeleteModal()"
-                    >
-                        Cancel
-                    </button>
-
-                    <button
-                        type="submit"
-                        class="btn btn-delete"
-                    >
-                        Delete
-                    </button>
-                </div>
             </form>
         </div>
     </div>

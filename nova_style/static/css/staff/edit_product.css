@@ -509,6 +509,10 @@ body {
   padding: 8px 14px;
 }
 
+.btn-remove-variant{
+    display:none;
+}
+
 .btn-primary:hover {
   background-color: var(--btn-primary-hover);
   border-color: var(--btn-primary-hover);
@@ -813,4 +817,16 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     align-items: end;
+}
+
+.variant-card{
+    background:#fff;
+}
+
+.variant-grid{
+    background:#FAFBFC;
+    border:1px solid #DDE3EA;
+    border-radius:16px;
+    padding:24px;
+    margin-bottom:32px;
 }

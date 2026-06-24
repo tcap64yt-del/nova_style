@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nova Style - Product Inventory Admin Console</title>
   <meta name="description" content="Manage products, track variants, categories, and perform administrative operations in the Nova Style Admin Console.">
-  <link rel="stylesheet" href="{% static 'css/staff/admin_product_management.css' %}?v=3">
+  <link rel="stylesheet" href="{% static 'css/staff/admin_product_management.css' %}?v=5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -144,7 +144,7 @@
       
       <!-- Top Search Bar -->
       <section class="top-bar">
-        <form class="search-form" id="searchForm" onsubmit="event.preventDefault();">
+        <form class="search-form" id="searchForm" method="GET">
           <div class="search-input-wrapper">
             <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"></circle>
@@ -154,7 +154,8 @@
               type="text"
               id="searchInput"
               name="search"
-              placeholder="Search products, SKUs, or categories..."
+              value="{{search}}"
+              placeholder="Search products or categories..."
               class="search-input"
               aria-label="Search products, SKUs, or categories">
           </div>
@@ -179,26 +180,37 @@
                   <span>Add Product</span>
               </button>
           </a>
-          <button class="btn-filters" id="filtersBtn">
-            <svg class="action-btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="4" y1="21" x2="4" y2="14"></line>
-              <line x1="4" y1="10" x2="4" y2="3"></line>
-              <line x1="12" y1="21" x2="12" y2="12"></line>
-              <line x1="12" y1="8" x2="12" y2="3"></line>
-              <line x1="20" y1="21" x2="20" y2="16"></line>
-              <line x1="20" y1="12" x2="20" y2="3"></line>
-              <line x1="1" y1="14" x2="7" y2="14"></line>
-              <line x1="9" y1="8" x2="15" y2="8"></line>
-              <line x1="17" y1="16" x2="23" y2="16"></line>
-            </svg>
-            <span>Filters</span>
-          </button>
+
         </div>
       </section>
 
       <!-- Product Table Card -->
       <section class="table-container-card">
+      <div class="table-top-actions">
+    <div class="sort-container">
+        <span class="sort-label">SORT BY:</span>
+
+        <div class="sort-dropdown" id="sortDropdown">
+            <span class="sort-current">
+                {{ sort|default:"All"|upper}}
+            </span>
+
+            <div class="sort-menu">
+                <a href="?sort=all{% if search %}&search={{ search }}{% endif %}">
+                    ALL
+                </a>
+                <a href="?sort=active{% if search %}&search={{ search }}{% endif %}">
+                    ACTIVE
+                </a>
+                <a href="?sort=inactive{% if search %}&search={{ search }}{% endif %}">
+                    INACTIVE
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
         <div class="table-wrapper">
+          
           <table class="products-table">
             <thead>
               <tr>
@@ -207,13 +219,14 @@
                 <th class="col-status">STATUS</th>
                 <th class="col-variants">VARIANTS</th>
                 <th class="col-actions">ACTIONS</th>
+                      
               </tr>
             </thead>
 
             <tbody>
               {% for product in products %}
               
-              <tr data-product-id="PRD-001">
+              <tr data-product-id="{{ product.id }}">
                 <td class="col-product-details">
                   <div class="product-profile">
                    
@@ -229,12 +242,14 @@
                 </td>
 
                 <td class="col-status">
-                  <span class="status-text active">{% if product.is_active %}
-                        active
-                        {% else %}
-                        inactive                    
-                    {% endif %}</span>
-                </td>
+    <span class="status-text {% if product.is_active %}active{% else %}inactive{% endif %}">
+        {% if product.is_active %}
+            Active
+        {% else %}
+            Inactive
+        {% endif %}
+    </span>
+</td>
 
                 <td class="col-variants">
                   <span class="variants-count">{{ product.count }}</span>
@@ -249,8 +264,11 @@
     </svg>
 </a>
                     <label class="switch-control" aria-label="Toggle active status">
-                      <input type="checkbox" checked class="status-toggle-checkbox">
-                      <span class="switch-slider"></span>
+<input
+    type="checkbox"
+    class="status-toggle-checkbox"
+    {% if product.is_active %}checked{% endif %}
+>                      <span class="switch-slider"></span>
                     </label>
                   </div>
                 </td>
@@ -261,15 +279,30 @@
         </div>
 
         <!-- Table Pagination Footer -->
-        <div class="pagination-footer">
-          <div class="pagination pagination-ui">
-            <button class="pagination-arrow is-disabled" id="prevPage" aria-label="Previous Page" disabled>‹</button>
-            <button class="pagination-page active">1</button>
-            <button class="pagination-page">2</button>
-            <button class="pagination-page">3</button>
-            <button class="pagination-arrow" id="nextPage" aria-label="Next Page">›</button>
-          </div>
-        </div>
+           <div class="pagination pagination-ui">
+
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}&search={{ search }}"
+           class="pagination-arrow">‹</a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <span class="pagination-page active">{{ num }}</span>
+        {% else %}
+            <a href="?page={{ num }}&sort={{ sort }}&search={{ search }}"
+               class="pagination-page">
+                {{ num }}
+            </a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&sort={{ sort }}&search={{ search }}"
+           class="pagination-arrow">›</a>
+    {% endif %}
+
+</div>
 
       </section>
     </main>
@@ -313,6 +346,7 @@
   </div>
 
   <!-- JS Reference Script -->
-  <script src="{% static 'js/admin_product_management.js' %}"></script>
+
+  <script src="{% static 'js/admin_product_management.js' %}?v=4"></script>
 </body>
 </html>

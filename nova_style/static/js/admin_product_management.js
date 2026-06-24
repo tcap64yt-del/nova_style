@@ -1,226 +1,259 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // -----------------------------
-  // Mobile sidebar toggle
-  // -----------------------------
-  const menuToggle = document.getElementById('menuToggle');
-  const sidebar = document.getElementById('sidebar');
 
-  if (menuToggle && sidebar) {
-    const closeSidebar = () => {
-      sidebar.classList.remove('mobile-open');
-    };
+    // ==========================================
+    // MOBILE SIDEBAR
+    // ==========================================
 
-    const toggleSidebar = (e) => {
-      e.stopPropagation();
-      sidebar.classList.toggle('mobile-open');
-    };
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
 
-    menuToggle.addEventListener('click', toggleSidebar);
+    if (menuToggle && sidebar) {
 
-    // Close when clicking outside on mobile
-    document.addEventListener('click', (e) => {
-      const isMobile = window.innerWidth < 1025;
-      const clickedInsideSidebar = sidebar.contains(e.target);
-      const clickedToggle = menuToggle.contains(e.target);
+        const closeSidebar = () => {
+            sidebar.classList.remove('mobile-open');
+        };
 
-      if (isMobile && sidebar.classList.contains('mobile-open') && !clickedInsideSidebar && !clickedToggle) {
-        closeSidebar();
-      }
-    });
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('mobile-open');
+        });
 
-    // Close after clicking any sidebar link/button on mobile
-    sidebar.querySelectorAll('a, button').forEach((el) => {
-      el.addEventListener('click', () => {
-        if (window.innerWidth < 1025) {
-          closeSidebar();
-        }
-      });
-    });
+        document.addEventListener('click', (e) => {
 
-    // Close sidebar when resizing to desktop
-    window.addEventListener('resize', () => {
-      if (window.innerWidth >= 1025) {
-        closeSidebar();
-      }
-    });
-  }
+            const isMobile = window.innerWidth < 1025;
 
-  // -----------------------------
-  // Search bar clear button & live filter
-  // -----------------------------
-const searchInput = document.getElementById('searchInput');
-const clearButton = document.getElementById('clearButton');
+            if (
+                isMobile &&
+                sidebar.classList.contains('mobile-open') &&
+                !sidebar.contains(e.target) &&
+                !menuToggle.contains(e.target)
+            ) {
+                closeSidebar();
+            }
+        });
 
-if (searchInput && clearButton) {
-  const toggleClearButton = () => {
-    clearButton.classList.toggle(
-      'show',
-      searchInput.value.trim() !== ''
-    );
-  };
-
-  searchInput.addEventListener('input', toggleClearButton);
-
-  clearButton.addEventListener('click', (e) => {
-    e.preventDefault();
-    searchInput.value = '';
-    clearButton.classList.remove('show');
-    searchInput.focus();
-  });
-
-  toggleClearButton();
-}
-
-  // -----------------------------
-  // Delete Product modal
-  // -----------------------------
-  const deleteModal = document.getElementById('deleteModal');
-  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-  let rowToDelete = null;
-
-  document.querySelectorAll('.btn-delete').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      rowToDelete = btn.closest('tr');
-      const productName = rowToDelete.querySelector('.product-name').textContent;
-      const productColor = rowToDelete.querySelector('.product-color').textContent;
-      
-      const modalText = document.getElementById('deleteModalText');
-      if (modalText) {
-        modalText.textContent = `Are you sure you want to delete "${productName} (${productColor})"? This action cannot be undone.`;
-      }
-      
-      if (deleteModal) {
-        deleteModal.classList.add('is-open');
-        deleteModal.setAttribute('aria-hidden', 'false');
-      }
-    });
-  });
-
-  const closeDeleteModal = () => {
-    if (deleteModal) {
-      deleteModal.classList.remove('is-open');
-      deleteModal.setAttribute('aria-hidden', 'true');
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1025) {
+                closeSidebar();
+            }
+        });
     }
-    rowToDelete = null;
-  };
 
-  if (cancelDeleteBtn) {
-    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-  }
+    // ==========================================
+    // SEARCH
+    // ==========================================
 
-  if (confirmDeleteBtn) {
-    confirmDeleteBtn.addEventListener('click', () => {
-      if (rowToDelete) {
-        // Fade out animation
-        rowToDelete.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-        rowToDelete.style.opacity = '0';
-        rowToDelete.style.transform = 'scale(0.95)';
-        
-        setTimeout(() => {
-          rowToDelete.remove();
-          closeDeleteModal();
-          
-          // Check if table is empty
-          const remainingRows = document.querySelectorAll('.products-table tbody tr');
-          if (remainingRows.length === 0) {
-            const tbody = document.querySelector('.products-table tbody');
-            const colsCount = document.querySelectorAll('.products-table th').length;
-            const emptyMsgRow = document.createElement('tr');
-            emptyMsgRow.innerHTML = `
-              <td colspan="${colsCount}" style="text-align: center; padding: 40px; color: var(--color-text-muted); font-weight: 500;">
-                No products found in the inventory.
-              </td>
-            `;
-            tbody.appendChild(emptyMsgRow);
-          }
-        }, 300);
-      }
+    const searchInput = document.getElementById('searchInput');
+    const clearButton = document.getElementById('clearButton');
+
+    if (searchInput && clearButton) {
+
+        const toggleClearButton = () => {
+
+            if (searchInput.value.trim()) {
+                clearButton.classList.add('show');
+            } else {
+                clearButton.classList.remove('show');
+            }
+        };
+
+        searchInput.addEventListener('input', toggleClearButton);
+
+        clearButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = window.location.pathname;
+        });
+
+        toggleClearButton();
+    }
+
+    // ==========================================
+    // SORT DROPDOWN
+    // ==========================================
+
+    const sortDropdown = document.getElementById('sortDropdown');
+
+    if (sortDropdown) {
+
+        sortDropdown.addEventListener('click', function (e) {
+            e.stopPropagation();
+            this.classList.toggle('active');
+        });
+
+        document.addEventListener('click', () => {
+            sortDropdown.classList.remove('active');
+        });
+    }
+
+    // ==========================================
+    // DELETE MODAL
+    // ==========================================
+
+    const deleteModal = document.getElementById('deleteModal');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+    let rowToDelete = null;
+
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+
+        btn.addEventListener('click', () => {
+
+            rowToDelete = btn.closest('tr');
+
+            if (deleteModal) {
+                deleteModal.classList.add('is-open');
+                deleteModal.setAttribute('aria-hidden', 'false');
+            }
+        });
     });
-  }
 
-  // -----------------------------
-  // Status toggle confirmation modal
-  // -----------------------------
-  const statusModal = document.getElementById('statusModal');
-  const cancelStatusBtn = document.getElementById('cancelStatusBtn');
-  const confirmStatusBtn = document.getElementById('confirmStatusBtn');
-  let activeToggleCheckbox = null;
-  let nextCheckedState = false;
+    function closeDeleteModal() {
 
-  document.querySelectorAll('.status-toggle-checkbox').forEach((checkbox) => {
-    checkbox.addEventListener('click', (e) => {
-      // Prevent default checkbox toggle behavior initially until confirmed
-      e.preventDefault();
-      
-      activeToggleCheckbox = checkbox;
-      nextCheckedState = !checkbox.checked; // Since we called preventDefault, checked is the original state. Next is the opposite.
-      
-      const row = checkbox.closest('tr');
-      const productName = row.querySelector('.product-name').textContent;
-      const statusText = row.querySelector('.status-text');
-      
-      const modalText = document.getElementById('statusModalText');
-      if (modalText) {
-        if (nextCheckedState) {
-          modalText.textContent = `Are you sure you want to activate status for "${productName}"?`;
-        } else {
-          modalText.textContent = `Are you sure you want to deactivate status for "${productName}"?`;
+        if (deleteModal) {
+            deleteModal.classList.remove('is-open');
+            deleteModal.setAttribute('aria-hidden', 'true');
         }
-      }
-      
-      if (statusModal) {
+
+        rowToDelete = null;
+    }
+
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    }
+
+    if (confirmDeleteBtn) {
+
+        confirmDeleteBtn.addEventListener('click', () => {
+
+            if (!rowToDelete) return;
+
+            rowToDelete.remove();
+
+            closeDeleteModal();
+        });
+    }
+
+// ==========================================
+// STATUS MODAL
+// ==========================================
+
+const statusModal = document.getElementById('statusModal');
+const statusTitle = document.getElementById('statusModalTitle');
+const statusText = document.getElementById('statusModalText');
+const cancelStatusBtn = document.getElementById('cancelStatusBtn');
+const confirmStatusBtn = document.getElementById('confirmStatusBtn');
+
+let activeToggle = null;
+let nextState = false;
+
+document.querySelectorAll('.status-toggle-checkbox').forEach(toggle => {
+
+    toggle.addEventListener('click', function (e) {
+
+        e.preventDefault();
+
+        activeToggle = this;
+
+        const row = this.closest('tr');
+        const productName =
+            row.querySelector('.product-name').textContent.trim();
+
+        const statusLabel =
+            row.querySelector('.status-text');
+
+        const currentStatus =
+            statusLabel.textContent.trim();
+
+        // ACTIVE -> ask INACTIVE
+        if (currentStatus === 'Active') {
+
+            nextState = false;
+
+            statusTitle.textContent = 'Deactivate Product';
+
+            statusText.textContent =
+                `Are you sure you want to inactivate "${productName}"?`;
+
+        }
+
+        // INACTIVE -> ask ACTIVE
+        else {
+
+            nextState = true;
+
+            statusTitle.textContent = 'Activate Product';
+
+            statusText.textContent =
+                `Are you sure you want to activate "${productName}"?`;
+        }
+
         statusModal.classList.add('is-open');
         statusModal.setAttribute('aria-hidden', 'false');
-      }
     });
-  });
+});
 
-  const closeStatusModal = () => {
-    if (statusModal) {
-      statusModal.classList.remove('is-open');
-      statusModal.setAttribute('aria-hidden', 'true');
-    }
-    activeToggleCheckbox = null;
-  };
+function closeStatusModal() {
 
-  if (cancelStatusBtn) {
+    statusModal.classList.remove('is-open');
+    statusModal.setAttribute('aria-hidden', 'true');
+
+    activeToggle = null;
+}
+
+if (cancelStatusBtn) {
     cancelStatusBtn.addEventListener('click', closeStatusModal);
-  }
+}
 
-  if (confirmStatusBtn) {
+if (confirmStatusBtn) {
+
     confirmStatusBtn.addEventListener('click', () => {
-      if (activeToggleCheckbox) {
-        // Apply checked state change
-        activeToggleCheckbox.checked = nextCheckedState;
-        
-        // Update visual text in row
-        const row = activeToggleCheckbox.closest('tr');
-        const statusTextElement = row.querySelector('.status-text');
-        
-        if (statusTextElement) {
-          if (nextCheckedState) {
-            statusTextElement.textContent = 'Active';
-            statusTextElement.classList.add('active');
-            statusTextElement.classList.remove('inactive');
-          } else {
-            statusTextElement.textContent = 'Inactive';
-            statusTextElement.classList.add('inactive');
-            statusTextElement.classList.remove('active');
-          }
-        }
-        
-        closeStatusModal();
-      }
-    });
-  }
 
-  // Escape key closes modals
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeDeleteModal();
-      closeStatusModal();
+    if (!activeToggle) return;
+
+    const row = activeToggle.closest('tr');
+    const productId = row.dataset.productId;
+
+    if (nextState) {
+        window.location.href =
+            `/admin/product-management/activate/${productId}/`;
+    } else {
+        window.location.href =
+            `/admin/product-management/deactivate/${productId}/`;
     }
-  });
+});
+}
+    // ==========================================
+    // MODAL OVERLAY CLOSE
+    // ==========================================
 
+    document
+        .querySelectorAll('.confirm-modal__overlay')
+        .forEach(overlay => {
+
+            overlay.addEventListener('click', () => {
+
+                closeDeleteModal();
+
+                if (statusModal) {
+                    closeStatusModal();
+                }
+            });
+        });
+
+    // ==========================================
+    // ESC KEY
+    // ==========================================
+
+    document.addEventListener('keydown', (e) => {
+
+        if (e.key === 'Escape') {
+
+            closeDeleteModal();
+
+            if (statusModal) {
+                closeStatusModal();
+            }
+        }
+    });
 });

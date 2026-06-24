@@ -24,9 +24,7 @@
               placeholder="e.g. Man"
               value="{{ form.name.value|default_if_none:'' }}"
             >
-            {% for error in form.name.errors %}
-              <p style="color:red; margin:6px 0 0; font-size:14px;">{{ error }}</p>
-            {% endfor %}
+           
           </div>
 
           <div class="form-group">
@@ -42,9 +40,7 @@
               >
               <span class="suffix">%</span>
             </div>
-            {% for error in form.offer.errors %}
-              <p style="color:red; margin:6px 0 0; font-size:13px;">{{ error }}</p>
-            {% endfor %}
+         
           </div>
         </div>
 
@@ -156,184 +152,7 @@
 </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 
-  <script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    const uploadBox = document.getElementById("upload-box");
-    const fileInput = document.getElementById("file-input");
-
-    const previewContainer =
-        document.getElementById("preview-container");
-
-    const previewImage =
-        document.getElementById("preview-image");
-
-    const changeImageBtn =
-        document.getElementById("change-image");
-
-    const cropModal =
-        document.getElementById("crop-modal");
-
-    const cropImage =
-        document.getElementById("crop-image");
-
-    const cropBtn =
-        document.getElementById("crop-btn");
-
-    const cancelBtn =
-        document.getElementById("cancel-crop");
-
-    let cropper = null;
-
-    /* --------------------------
-       OPEN FILE PICKER
-    -------------------------- */
-
-    uploadBox.addEventListener("click", function (e) {
-
-        if (e.target.id === "change-image") {
-            return;
-        }
-
-        fileInput.click();
-    });
-
-    changeImageBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        fileInput.click();
-    });
-
-    /* --------------------------
-       FILE SELECT
-    -------------------------- */
-
-    fileInput.addEventListener("change", function (e) {
-
-        const file = e.target.files[0];
-
-        if (!file) return;
-
-        const reader = new FileReader();
-
-        reader.onload = function (event) {
-
-            cropImage.src = event.target.result;
-
-            cropModal.style.display = "flex";
-
-            if (cropper) {
-                cropper.destroy();
-            }
-
-            cropper = new Cropper(cropImage, {
-                aspectRatio: 1,
-                viewMode: 1,
-                autoCropArea: 1,
-                responsive: true,
-                movable: true,
-                zoomable: true,
-                scalable: true,
-                rotatable: false
-            });
-        };
-
-        reader.readAsDataURL(file);
-    });
-
-    /* --------------------------
-       APPLY CROP
-    -------------------------- */
-
-    cropBtn.addEventListener("click", function () {
-
-        if (!cropper) return;
-
-        const canvas = cropper.getCroppedCanvas({
-            width: 800,
-            height: 800,
-            imageSmoothingQuality: "high"
-        });
-
-        const previewUrl =
-            canvas.toDataURL("image/jpeg", 0.9);
-
-        previewImage.src = previewUrl;
-
-        previewContainer.style.display = "block";
-
-        uploadBox.classList.add("has-image");
-
-        canvas.toBlob(function(blob) {
-
-            const croppedFile = new File(
-                [blob],
-                "category.jpg",
-                {
-                    type: "image/jpeg"
-                }
-            );
-
-            const dataTransfer =
-                new DataTransfer();
-
-            dataTransfer.items.add(croppedFile);
-
-            fileInput.files =
-                dataTransfer.files;
-
-        }, "image/jpeg", 0.9);
-
-        cropModal.style.display = "none";
-
-        cropper.destroy();
-        cropper = null;
-    });
-
-    /* --------------------------
-       CANCEL CROP
-    -------------------------- */
-
-    cancelBtn.addEventListener("click", function () {
-
-        cropModal.style.display = "none";
-
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
-        }
-    });
-
-    /* --------------------------
-       DRAG & DROP
-    -------------------------- */
-
-    uploadBox.addEventListener("dragover", function (e) {
-        e.preventDefault();
-        uploadBox.classList.add("dragover");
-    });
-
-    uploadBox.addEventListener("dragleave", function () {
-        uploadBox.classList.remove("dragover");
-    });
-
-    uploadBox.addEventListener("drop", function (e) {
-
-        e.preventDefault();
-
-        uploadBox.classList.remove("dragover");
-
-        const files = e.dataTransfer.files;
-
-        if (!files.length) return;
-
-        fileInput.files = files;
-
-        fileInput.dispatchEvent(
-            new Event("change")
-        );
-    });
-
-});
+  <script src="{% static 'js/new_category.js' %}">
 </script>
 </body>
 </html>
