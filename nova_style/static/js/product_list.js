@@ -60,7 +60,7 @@ function updatePriceSlider(e) {
     let minVal = parseInt(priceMinInput.value);
     let maxVal = parseInt(priceMaxInput.value);
 
-    const minGap = 200;
+    const minGap = 20;
 
     if (maxVal - minVal < minGap) {
         if (e && e.target.id === 'priceMin') {
@@ -231,4 +231,5 @@ clearSearch.addEventListener('click', () => {
     searchInput.value = '';
     searchInput.focus();
 });
+
 
