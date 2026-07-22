@@ -39,8 +39,8 @@ class ProductVariant(models.Model):
     color=models.CharField(max_length=100)
     price=models.DecimalField(max_digits=10,decimal_places=2)
     offer=models.DecimalField(max_digits=10,decimal_places=2,blank=True,null=True)
-    start_date = models.DateTimeField(blank=True, null=True)
-    end_date = models.DateTimeField(blank=True, null=True)
+    start_date = models.DateField(blank=True, null=True)
+    end_date = models.DateField(blank=True, null=True)
     stock = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -57,17 +57,36 @@ class ProductVariant(models.Model):
         return self.price
     
     @property
-    def final_price(self):
-        price=Decimal(self.price)
-        category_offer=Decimal(self.product.category.offer or 0)
-        variant_offer=Decimal(self.offer or 0)
-        price=price-(price*category_offer/Decimal("100"))
-        price=price-(price*variant_offer/Decimal("100"))
-        return price.quantize(Decimal("0.01"))
+    def variant_offer_active(self):
+        if not self.offer:
+            return False
+        today=timezone.now().date()
+        if self.start_date and today <self.start_date:
+            return False
+        if self.end_date and today >self.end_date:
+            return False
+
+        return True
+    @property
+    def discounted_price(self):
+        price=self.price
+
+        if self.product.category.offer:
+            price=price-(price*self.product.category.offer/Decimal("100"))
+        if self.variant_offer_active:
+            price=price-(price * self.offer /Decimal("100"))
+        return round(price,2)
     
     @property
-    def discount_percentage(self):
-        return self.offer 
+    def total_offer(self):
+        offer=Decimal("0")
+        if self.product.category.offer:
+            offer+=self.product.category.offer
+        if self.variant_offer_active:
+            offer+=self.offer
+        return offer
+    
+
 
 class ProductImage(models.Model):
     variant=models.ForeignKey(ProductVariant,on_delete=models.CASCADE,related_name="images")
