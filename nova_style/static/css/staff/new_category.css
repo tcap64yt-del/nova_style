@@ -398,3 +398,77 @@ input[type="text"]:focus,
   display: flex;
   gap: 12px;
 }
+.field-error{
+    color:#dc3545;
+    font-size:13px;
+    display:block;
+    margin-top:5px;
+}
+
+
+
+#toast-container{
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.toast{
+    min-width: 320px;
+    max-width: 420px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,.15);
+    animation: toastSlide .35s ease;
+}
+
+.toast.success{
+    background: #16a34a;
+}
+
+.toast.error{
+    background: #dc2626;
+}
+
+.toast.warning{
+    background: #f59e0b;
+}
+
+.toast.info{
+    background: #2563eb;
+}
+
+.toast-close{
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+.toast.hide{
+    opacity: 0;
+    transform: translateX(120%);
+    transition: all .4s ease;
+}
+
+@keyframes toastSlide{
+    from{
+        opacity:0;
+        transform:translateX(100%);
+    }
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
+}
