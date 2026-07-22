@@ -19,3 +19,4 @@ class CartItem(models.Model):
     class Meta:
         db_table="cartitem"
         constraints=[models.UniqueConstraint(fields=["cart","variant"],name="unique_cart_variant")]
+    
