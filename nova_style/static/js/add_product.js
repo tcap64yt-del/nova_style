@@ -10,13 +10,21 @@ document.addEventListener("DOMContentLoaded", () => {
     // -------------------------
     // Hide first remove button
     // -------------------------
-    const firstRemoveBtn =
-        document.querySelector(".variant-item-row .btn-remove-variant");
+   function updateRemoveButtons() {
 
-    if (firstRemoveBtn) {
-        firstRemoveBtn.style.display = "none";
-    }
+    const variants =
+        document.querySelectorAll(".variant-grid");
 
+    document
+        .querySelectorAll(".btn-remove-variant")
+        .forEach(btn => {
+
+            btn.style.display =
+                variants.length > 1
+                    ? "inline-flex"
+                    : "none";
+        });
+}
     // -------------------------
     // Open upload box
     // -------------------------
@@ -286,17 +294,17 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
         const firstVariant =
-            container.querySelector(
-                ".variant-item-row"
-            );
+    container.querySelector(
+        ".variant-grid"
+    );
 
         const newVariant =
             firstVariant.cloneNode(true);
 
         const variantIndex =
-            container.querySelectorAll(
-                ".variant-item-row"
-            ).length;
+    container.querySelectorAll(
+        ".variant-grid"
+    ).length;
 
         newVariant
             .querySelectorAll("input")
@@ -343,9 +351,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 ".btn-remove-variant"
             );
 
-        removeBtn.style.display = "block";
+        removeBtn.style.display = "inline-flex";
 
         container.appendChild(newVariant);
+        updateRemoveButtons();
 
     });
 
@@ -368,15 +377,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if(
             container.querySelectorAll(
-                ".variant-item-row"
+                ".variant-grid"
             ).length === 1
         ){
             return;
         }
 
         btn
-            .closest(".variant-item-row")
-            .remove();
+    .closest(".variant-grid")
+    .remove();
+
+updateRemoveButtons();
 
     });
 
@@ -392,27 +403,31 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
     });
+    updateRemoveButtons();
 
 });
 
-// =====================================
-// FRONTEND VALIDATION
-// =====================================
 
-document.getElementById("product-form").addEventListener("submit", function(e){
+document.getElementById("product-form").addEventListener("submit", async function(e){
+       console.log("Submit clicked");
 
     let isValid = true;
 
-    // remove old frontend errors
     document.querySelectorAll(".js-error").forEach(el => el.remove());
 
-    function showError(element, message){
-        const error = document.createElement("small");
-        error.className = "field-error js-error";
-        error.textContent = message;
+    function showError(element, message) {
+    const error = document.createElement("small");
+    error.className = "field-error js-error";
+    error.textContent = message;
+
+    const formGroup = element.closest(".form-group");
+
+    if (formGroup) {
+        formGroup.appendChild(error);
+    } else {
         element.parentNode.appendChild(error);
     }
-
+}
     // Product Name
     const productName =
         document.querySelector('[name="product_name"]');
@@ -497,9 +512,17 @@ document.getElementById("product-form").addEventListener("submit", function(e){
             showError(price,"Price is required");
             isValid = false;
         }
+        else if(parseFloat(price.value) <= 0){
+            showError(price,"Price must postive number");
+            isValid = false;
+        }
 
         if(!stock.value.trim()){
             showError(stock,"Stock is required");
+            isValid = false;
+        }
+        else if(parseInt(stock.value) < 1){
+            showError(stock,"Stock must be atleast 1");
             isValid = false;
         }
 
@@ -546,13 +569,75 @@ document.getElementById("product-form").addEventListener("submit", function(e){
         }
     });
 
-    if(!isValid){
-        e.preventDefault();
+ if (!isValid) {
+    e.preventDefault();
 
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
+    showToast("Failed", "error");
+
+    const firstError = document.querySelector(".js-error");
+
+    if (firstError) {
+        firstError.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
         });
     }
 
+    return;
+}
+
+e.preventDefault();
+
+console.log(CHECK_PRODUCT_URL);
+
+const response = await fetch(
+    `${CHECK_PRODUCT_URL}?name=${encodeURIComponent(productValue)}`
+);
+
+console.log(response.status);
+
+const data = await response.json();
+
+console.log(data);
+
+if (data.exists) {
+
+    showError(
+        productName,
+        "Product name already exists."
+    );
+
+    showToast("Failed", "error");
+
+    return;
+}
+
+this.submit();
+
 });
+
+
+function showToast(message, type = "error") {
+
+    const container = document.getElementById("toast-container");
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button type="button" class="toast-close">&times;</button>
+    `;
+
+    container.appendChild(toast);
+
+    toast.querySelector(".toast-close").onclick = () => {
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 400);
+    };
+
+    setTimeout(() => {
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
