@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Style - Order Management Admin Console</title>
+  <meta name="description" content="Manage customer orders, view transaction details, track shipment status, and perform administrative operations in the Nova Style Admin Console.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/staff/order_management.css' %}?v=2">
+</head>
+<body>
+  <div class="admin-layout">
+    
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+      <div class="mobile-logo-group">
+        <span class="mobile-logo-title">NOVA STYLE</span>
+        <span class="mobile-logo-subtitle">ADMIN CONSOLE</span>
+      </div>
+      <button class="mobile-menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" x2="20" y1="12" y2="12"/>
+          <line x1="4" x2="20" y1="6" y2="6"/>
+          <line x1="4" x2="20" y1="18" y2="18"/>
+        </svg>
+      </button>
+    </header>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1 class="brand-title">NOVA STYLE</h1>
+        <p class="brand-subtitle">ADMIN CONSOLE</p>
+      </div>
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="#" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="9" rx="1"></rect>
+                <rect x="14" y="3" width="7" height="5" rx="1"></rect>
+                <rect x="14" y="12" width="7" height="9" rx="1"></rect>
+                <rect x="3" y="16" width="7" height="5" rx="1"></rect>
+              </svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url "user_management" %}" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>Users</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url "category_management" %}" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+              </svg>
+              <span>Category</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url "order_management" %}" class="nav-link active">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="21" r="1"></circle>
+                <circle cx="19" cy="21" r="1"></circle>
+                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+              </svg>
+              <span>Order</span>
+            </a>
+          </li>
+          <li>
+            <a href="{% url "product_management" %}" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+              <span>Product</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+                <line x1="8" y1="14" x2="8" y2="14.01"></line>
+                <line x1="12" y1="14" x2="12" y2="14.01"></line>
+                <line x1="16" y1="14" x2="16" y2="14.01"></line>
+                <line x1="8" y1="17" x2="8" y2="17.01"></line>
+                <line x1="12" y1="17" x2="12" y2="17.01"></line>
+                <line x1="16" y1="17" x2="16" y2="17.01"></line>
+              </svg>
+              <span>Coupon</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+              <span>Report</span>
+            </a>
+          </li>
+          <li class="logout-item">
+            <a href="#" class="nav-link logout-link">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 17l5-5-5-5"></path>
+                <path d="M15 12H3"></path>
+                <path d="M21 5v14a2 2 0 0 1-2 2h-4"></path>
+                <path d="M15 5h4a2 2 0 0 1 2 2"></path>
+              </svg>
+              <span>Log out</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+    <!-- Main Content -->
+    <main class="main-content">
+      
+      <!-- Top Bar -->
+      <section class="top-bar">
+<form method="GET" class="search-form">
+            <div class="search-input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+    type="text"
+    id="searchInput"
+    name="search"
+    value="{{ search }}"
+    placeholder="Search Orders"
+    class="search-input">
+          </div>
+          <div class="search-actions">
+            <button type="submit" class="search-button" id="searchButton">Search</button>
+            <button type="button" class="search-button" id="clearButton">Clear</button>
+          </div>
+        </form>
+        <div class="top-bar-right">
+          <a href="{% url "admin_order_returns" %}" class="returns-btn" aria-label="View Returns">
+    <svg class="returns-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+        stroke-linejoin="round">
+        <polyline points="9 14 4 9 9 4"></polyline>
+        <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+    </svg>
+    <span>Returns</span>
+</a>
+          
+          <button class="notification-btn" aria-label="Notifications">
+            <svg class="notification-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+          </button>
+        </div>
+      </section>
+      <!-- Dashboard Header -->
+      <section class="dashboard-header">
+        <div class="header-text">
+          <h2 class="page-title">Order Management</h2>
+          <p class="page-description">Review and fulfill your customer orders with precision.</p>
+        </div>
+        <!-- Dropdown Status Filter -->
+        <div class="status-filter-container">
+          <button class="status-dropdown" type="button" id="statusDropdown" aria-label="Filter by status" aria-expanded="false">
+            <span id="selected-status">All Status</span>
+            <svg class="chevron-down-icon" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div class="status-menu" id="statusMenu">
+            <a href="#" data-status="all" class="status-item active">All Status</a>
+            <a href="#" data-status="shipped" class="status-item">Shipped</a>
+            <a href="#" data-status="placed" class="status-item">Placed</a>
+          </div>
+        </div>
+      </section>
+      <!-- Orders Table Container -->
+      <section class="table-container-card">
+        <div class="table-wrapper">
+          <table class="orders-table" id="ordersTable">
+            <thead>
+              <tr>
+                <th class="col-product">PRODUCT</th>
+                <th class="col-order-id">ORDER ID</th>
+                <th class="col-username">USER NAME</th>
+                <th class="col-date">DATE</th>
+                <th class="col-payment">PAYMENT</th>
+                <th class="col-status">STATUS</th>
+                <th class="col-actions">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in  orders %}
+                                   {% for item in order.items.all %}
+
+                <tr data-status="{{ order.status }}" data-order-id="#ORD-{{ order.id }}" >
+                <td class="col-product">
+                      <a href="{% url 'admin_order_detail' order.id %}" class="row-link">
+
+                  <div class="product-cell">
+                    <div class="product-avatar-wrapper">
+    {% for image in item.variant.images.all %}
+    {% if image.is_primary %}
+        <img src="{{ image.image.url }}" class="product-avatar">
+        {% endif %}
+    {% endfor %}
+                    </div>
+    <span class="product-name">{{ item.variant.product.name }}</span>
+                  </div>
+                </td>
+                <td class="col-order-id">
+                  <span class="order-id-text">#ORD-{{ order.id }}</span>
+                </td>
+                <td class="col-username">
+                  <div class="user-cell">
+                    {% for address in order.addresses.all %}
+                    {% if address.address_type == "shipping" %}
+    <span class="user-first-name">{{ address.name }}</span>
+    {% endif %}
+    
+{% endfor %}
+                
+                  </div>
+                      </a>
+
+                </td>
+                <td class="col-date">
+                  <span class="date-text">{{ order.created_at|date:"d M Y"}}</span>
+                </td>
+                <td class="col-payment">
+                  <div class="payment-badge">COD</div>
+                </td>
+                <td class="col-status">
+                  <span class="status-pill status-shipped">{{ order.status }}</span>
+                </td>
+                <td class="col-actions">
+                  <button type="button" class="btn-action edit-order-btn" aria-label="Edit Order #ORD-88219">
+                    <svg class="edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            {% endfor %}
+            {% endfor %}
+
+            </tbody>
+          </table>
+          
+          <!-- Empty State -->
+          <div class="empty-state" id="emptyState">
+            <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <p class="empty-title">No Orders Found</p>
+            <p class="empty-text">Try adjusting your search query or filters.</p>
+          </div>
+        </div>
+        <!-- Pagination -->
+        <div class="pagination-footer">
+          <div class="pagination pagination-ui">
+           
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <!-- Edit Order Modal -->
+  <div id="editOrderModal" class="confirm-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="confirm-modal__overlay"></div>
+    <div class="confirm-modal__card">
+      <h3 id="modalTitle">Edit Order Status</h3>
+      <p id="modalText" class="modal-subtext">Update the fulfillment progress for this customer order.</p>
+      
+      <form id="editOrderForm" class="edit-order-form" onsubmit="return false;">
+        <div class="form-group">
+          <label class="form-label">Order ID</label>
+          <input type="text" id="modalOrderId" class="form-input" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Customer</label>
+          <input type="text" id="modalCustomerName" class="form-input" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fulfillment Status</label>
+          <div class="select-wrapper">
+            <select id="modalOrderStatus" class="form-select">
+              <option value="PLACED">Placed</option>
+              <option value="SHIPPED">Shipped</option>
+            </select>
+          </div>
+        </div>
+      </form>
+      <div class="confirm-modal__actions">
+        <button type="button" class="confirm-btn confirm-btn--secondary cancel-modal" id="cancelModalBtn">
+          Cancel
+        </button>
+        <button type="button" class="confirm-btn confirm-btn--primary" id="confirmSaveBtn">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Toast Notification -->
+  <div id="toastContainer"></div>
+  <script src="{% static 'js/order_management.js' %}?v=2"></script>
+</body>
+</html>
