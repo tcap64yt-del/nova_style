@@ -71,7 +71,7 @@
           </li>
 
           <li>
-            <a href="#" class="nav-link">
+            <a href="{% url "order_management" %}" class="nav-link">
               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="8" cy="21" r="1"></circle>
                 <circle cx="19" cy="21" r="1"></circle>
@@ -296,6 +296,16 @@
       </div>
     </div>
   </div>
+  {% if messages %}
+<div id="toast-container">
+    {% for message in messages %}
+        <div class="toast {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 
  <script>
   document.addEventListener('DOMContentLoaded', () => {
