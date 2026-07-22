@@ -8,9 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/staff/add_product.css' %}?v=8">
-  <link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+  <link rel="stylesheet" href="{% static 'css/staff/edit_product.css' %}?v=8">
+  <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 </head>
@@ -74,9 +73,15 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
                <div class="variant-divider"></div>
 
 <button type="button" class="btn-remove-variant">
-    Remove Variant
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18"/>
+        <path d="M8 6V4h8v2"/>
+        <path d="M19 6l-1 14H6L5 6"/>
+    </svg>
+    Remove
 </button>
-
                 <!-- Price, Size, Stock row -->
                 <div class="form-row-three-col">
                   <div class="form-group">
@@ -87,7 +92,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
        name="price[]"
        class="form-input price-input"
        step="0.01"
-       min="0"
        value="{{ variant.price }}"
        >
 
@@ -202,7 +206,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
                       <div class="date-input-wrapper">
 <input type="date"
        name="start_date[]"
-       class="form-input date-input start-date" value="{{ variant.start_date }}"> 
+       class="form-input date-input start-date" value="{{ variant.start_date|date:"Y-m-d" }}"> 
       
        <span class="calendar-icon">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -215,7 +219,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
                       <div class="date-input-wrapper">
 <input type="date"
        name="end_date[]"
-       class="form-input date-input end-date" value="{{ variant.end_date }}">                  
+       class="form-input date-input end-date" value="{{ variant.end_date|date:"Y-m-d" }}">                  
       
        <span class="calendar-icon">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -366,8 +370,6 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
     </footer>
   </div>
 
-  <!-- Toast Notification Template -->
-  <div class="toast-container" id="toast-container"></div>
   
 
   <div id="cropModal" class="crop-modal">
@@ -397,12 +399,26 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 
     </div>
 </div>
- 
+
+{% if messages %}
+<div id="toast-container">
+    {% for message in messages %}
+        <div class="toast {{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="toast-close">&times;</button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+const CHECK_PRODUCT_URL = "{% url 'check_product_name' %}";
+const PRODUCT_ID = "{{ products.id }}";
+</script>
+<script src="{% static 'js/edit_product.js' %}?v=7"></script>
 </body>
 
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-<script src="{% static 'js/edit_product.js' %}?v=5"></script>
 
 </html>
