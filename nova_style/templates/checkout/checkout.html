@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | Nova Style</title>
+  <meta name="description" content="Complete your purchase with Nova Style. Secure checkout with Shipping, Payment, and Billing details.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/checkout/checkout.css' %}?v=8">
+</head>
+<body>
+  <div class="page-wrapper">
+    <!-- Header -->
+  <header class="site-header">
+        <div class="header-container">
+            <div class="logo-wrapper">
+                <a href="{% url "home" %}" class="logo" id="header-logo">NOVA STYLE</a>
+                <div class="auth-menu" tabindex="0">
+
+</div>
+            </div>
+            
+         
+
+            
+            <div class="header-actions">
+                
+                        <button class="action-btn" id="action-wishlist" aria-label="Favorites Wishlist">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </button>
+                <a href="{% url 'cart' %}" class="action-btn" aria-label="Shopping Bag">
+    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <path d="M16 10a4 4 0 0 1-8 0"></path>
+    </svg>
+</a>
+                <div class="user-profile" id="user-profile-menu">
+                       <a href='{% url "profile" %}'>
+                        {% if details.avatar_url %}
+                        <img src="{{ details.avatar_url.url }}" alt="User Avatar" class="header-avatar-img">
+                        {% else %}
+                        <img src="{% static 'images/default.png' %}" alt="User Avatar" class="header-avatar-img">
+                        {% endif %}                       </a>
+                </div>
+            </div>
+        </div>
+    
+    </header>
+    <!-- Main Content Container -->
+    <main class="checkout-container">
+      <div class="checkout-layout">
+        
+        <!-- Left: Checkout Forms -->
+        <section class="checkout-forms-column">
+          <div class="checkout-header-block">
+            <h1 class="checkout-title">Checkout</h1>
+          </div>
+
+          <form id="checkoutForm" method="POST" novalidate>
+            
+             {% csrf_token %}
+            <!-- Section 01: Shipping Information -->
+            <div class="checkout-section">
+              <div class="section-header">
+                <div class="section-badge">01</div>
+                <h2 class="section-title">Shipping Information</h2>
+              </div>
+              
+            
+
+<!-- Shipping Address Card -->
+<div class="address-section">
+
+    <div class="address-header">
+
+        <h3>Shipping Address</h3>
+
+        {% if addresses %}
+        <button type="button"
+                class="change-address-btn"
+                id="openAddressModal">
+            Change
+        </button>
+        {% endif %}
+
+    </div>
+
+    {% if default_address %}
+
+    <div class="selected-address-card">
+
+        <div class="selected-address-left">
+
+            <h4 id="selected-name">
+                {{ default_address.name }}
+            </h4>
+
+            <p id="selected-phone">
+                {{ default_address.phone }}
+            </p>
+
+            <p id="selected-address">
+                {{ default_address.address }}
+            </p>
+
+            <p id="selected-location">
+                {{ default_address.district }},
+                {{ default_address.state }},
+                {{ default_address.country }}
+                - {{ default_address.postal_code }}
+            </p>
+
+        </div>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-address">
+
+        <p>No saved address.</p>
+
+        <button
+            type="button"
+            class="new-address-btn"
+            id="openAddAddress">
+
+            + Add Address
+
+        </button>
+
+    </div>
+
+    {% endif %}
+
+</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="shipping-name">NAME</label>
+                  <input type="text" id="shipping-name" name="shippingName" value="{{ default_address.name }}" >
+                      <small class="error-message" id="shipping-name-error"></small>
+
+                </div>
+                <div class="form-group">
+                  <label for="shipping-phone">PHONE</label>
+                  <input type="tel" id="shipping-phone" name="shippingPhone" value="{{ default_address.phone }}" placeholder="">
+                  <small class="error-message" id="shipping-phone-error"></small>
+
+                </div>
+                <div class="form-group col-full">
+                  <label for="shipping-address">ADDRESS</label>
+                  <input type="text" id="shipping-address" name="shippingAddress" value="{{default_address.address }}" >
+                  <small class="error-message" id="shipping-address-error"></small>
+
+                </div>
+                <div class="form-group">
+                  <label for="shipping-state">STATE</label>
+                  <input type="text" id="shipping-state" name="shippingState" value="{{ default_address.state }}" >
+                  <small class="error-message" id="shipping-state-error"></small>
+
+                </div>
+                <div class="form-group">
+                  <label for="shipping-district">DISTRICT</label>
+                  <input type="text" id="shipping-district" name="shippingDistrict" value="{{ default_address.district }}" >
+                  <small class="error-message" id="shipping-district-error"></small>
+
+                </div>
+                <div class="form-group">
+                  <label for="shipping-country">COUNTRY</label>
+                  <input type="text" id="shipping-country" name="shippingCountry" value="{{ default_address.country }}" >
+                  <small class="error-message" id="shipping-country-error"></small>
+
+                </div>
+                <div class="form-group">
+                  <label for="shipping-postal">POSTAL CODE</label>
+                  <input type="text" id="shipping-postal" name="shippingPostal" value="{{ default_address.postal_code }}" >
+                  <small class="error-message" id="shipping-postal-error"></small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 02: Payment Method -->
+            <div class="checkout-section">
+              <div class="section-header">
+                <div class="section-badge">02</div>
+                <h2 class="section-title">Payment Method</h2>
+              </div>
+
+              <div class="payment-methods-list">
+                <!-- Option 1: Credit / Debit Card -->
+                <div class="payment-method-card active" data-method="card">
+                  <div class="payment-card-header">
+                    <div class="payment-card-left">
+                      <div class="payment-radio checked">
+                        <span class="radio-inner-dot"></span>
+                      </div>
+                      <div class="payment-card-info">
+                        <span class="payment-card-title">Credit / Debit Card</span>
+                        <span class="payment-card-subtext">Stripe Secure Payment</span>
+                      </div>
+                    </div>
+                    <div class="payment-card-right">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                        <line x1="1" y1="10" x2="23" y2="10"></line>
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <!-- Nested credit card inputs -->
+                  <div class="payment-card-details">
+                    <div class="card-inputs-grid">
+                      <div class="form-group col-full">
+                        <label for="card-number">CARD NUMBER</label>
+                        <div class="card-number-input-wrapper">
+                          <input type="text" id="card-number" name="cardNumber"  placeholder="0000 0000 0000 0000" >
+                          <svg class="input-card-icon-hint" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="card-expiry">EXPIRY</label>
+                        <input type="text" id="card-expiry" name="cardExpiry"  placeholder="MM/YY" >
+                      </div>
+                      <div class="form-group">
+                        <label for="card-cvc">CVC</label>
+                        <input type="text" id="card-cvc" name="cardCvc" placeholder="***" >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Option 2: Cash on Delivery -->
+                <div class="payment-method-card" data-method="cod">
+                  <div class="payment-card-header">
+                    <div class="payment-card-left">
+                      <div class="payment-radio">
+                        <span class="radio-inner-dot"></span>
+                      </div>
+                      <div class="payment-card-info">
+                        <span class="payment-card-title">Cash on Delivery</span>
+                        <span class="payment-card-subtext">Pay upon receiving your items</span>
+                      </div>
+                    </div>
+                    <div class="payment-card-right">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <path d="M6 12h.01M18 12h.01"></path>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Option 3: Wallet -->
+                <div class="payment-method-card" data-method="wallet">
+                  <div class="payment-card-header">
+                    <div class="payment-card-left">
+                      <div class="payment-radio">
+                        <span class="radio-inner-dot"></span>
+                      </div>
+                      <div class="payment-card-info">
+                        <span class="payment-card-title">Wallet (₹2400)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section 03: Billing Address -->
+            <div class="checkout-section">
+              <div class="section-header billing-section-header">
+                <div class="section-header-left">
+                  <div class="section-badge">03</div>
+                  <h2 class="section-title">Billing Address</h2>
+                </div>
+                
+<input type="checkbox"
+       id="billing_same"
+       name="billing_same"
+       hidden>
+
+<div class="billing-toggle-option" id="billingSameToggle">
+                    <div class="custom-checkbox-circle" id="billingCheckboxCircle">
+                    <span class="checkbox-inner-dot"></span>
+                  </div>
+                  <span class="billing-toggle-text">Billing same as shipping</span>
+                </div>
+              </div>
+
+              <!-- Billing Address fields grid (visible when unchecked) -->
+              <div class="form-grid billing-address-fields" id="billingFieldsContainer">
+                <div class="form-group">
+                  <label for="billing-name">NAME</label>
+                  <input type="text" id="billing-name" name="billingName" value="" >
+                  <small id="billing-name-error" class="error-message"></small>
+
+                </div>
+                <div class="form-group">
+                  <label for="billing-phone">PHONE</label>
+                  <input type="tel" id="billing-phone" name="billingPhone" value="" placeholder="">
+                  <small id="billing-phone-error" class="error-message"></small>
+
+                </div>
+                <div class="form-group col-full">
+                  <label for="billing-address">ADDRESS</label>
+                  <input type="text" id="billing-address" name="billingAddress" value="" >
+                  <small id="billing-address-error" class="error-message"></small>
+
+                </div>
+                <div class="form-group">
+                  <label for="billing-state">STATE</label>
+                  <input type="text" id="billing-state" name="billingState" value="" >
+                  <small id="billing-state-error" class="error-message"></small>
+
+                </div>
+                <div class="form-group">
+                  <label for="billing-district">DISTRICT</label>
+                  <input type="text" id="billing-district" name="billingDistrict" value="" >
+                  <small id="billing-district-error" class="error-message"></small>
+
+                </div>
+                <div class="form-group">
+                  <label for="billing-country">COUNTRY</label>
+                  <input type="text" id="billing-country" name="billingCountry" value="" >
+                  <small id="billing-country-error" class="error-message"></small>
+
+                </div>
+                <div class="form-group">
+                  <label for="billing-postal">POSTAL CODE</label>
+                  <input type="text" id="billing-postal" name="billingPostal" value="" >
+                  <small id="billing-postal-error" class="error-message"></small>
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </section>
+        
+        <section class="checkout-summary-column">
+          <div class="order-summary-card">
+            <h2 class="summary-title">Order Summary</h2>
+            
+            <div class="summary-items-list">
+
+              {% for item in items  %}
+              
+              <div class="summary-item">
+                <div class="item-image-wrapper">
+                  <img src="{{ item.variant.images.first.image.url }}" alt="Structured Wool Blazer" class="summary-item-image">
+                </div>
+                <div class="summary-item-details">
+                  <div class="summary-item-name-group">
+                    <h3 class="summary-item-name">{{ item.variant.product.name }}</h3>
+                    <span class="summary-item-meta">Size: {{ item.variant.size }} | Color: <span class="color-circle"
+          style="background-color: {{ item.variant.color|lower }};"title="{{ item.variant.color }}"></span> | Qty:{{ item.quantity }} </span>
+                  </div>
+<div class="summary-item-price-row">
+    <span class="summary-item-original">
+        ₹{{ item.variant.orginal_price }}
+    </span>
+
+    <span class="summary-item-price">
+        ₹{{ item.variant.discounted_price }}
+    </span>
+
+    {% if item.variant.total_offer %}
+    <span class="summary-item-discount">
+        {{ item.variant.total_offer }}% OFF
+    </span>
+    {% endif %}
+</div>                </div>
+              </div>
+                  {% endfor %}
+         
+             
+              
+              <div class="totals-separator"></div>
+              
+              <div class="totals-line total-price-line">
+                <span class="totals-label total-label-bold">Total</span>
+                  {% if  buy_now %}
+                {% for item in items  %}
+                   <span class="totals-value total-value-bold">₹{{ item.subtotal }}</span>
+                  {% endfor %}
+                   {% else %}
+                     <span class="totals-value total-value-bold">₹{{ subtotal }}</span>
+                {% endif %}
+
+
+
+              </div>
+            </div>
+
+            <!-- Complete Purchase Button -->
+            <button type="submit" form="checkoutForm" class="btn-complete-checkout" id="completePurchaseButton">
+              Complete Purchase
+            </button>
+
+            <!-- Coupon Code Row -->
+            <div class="coupon-code-row" id="couponRow">
+              <span class="coupon-row-text">APPLY COUPON CODE</span>
+              <div class="coupon-check-indicator">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Footer -->
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-links">
+            <a href="#" class="footer-link">PRIVACY</a>
+            <a href="#" class="footer-link">TERMS</a>
+            <a href="#" class="footer-link">SHIPPING</a>
+            <a href="#" class="footer-link">CONTACT</a>
+        </div>
+
+        <p class="copyright">
+            © 2024 NOVA STYLE. ALL RIGHTS RESERVED.
+        </p>
+    </div>
+</footer>
+  </div>
+ 
+<div class="address-modal" id="addressModal">
+
+    <div class="address-modal-box">
+
+        <div class="modal-header">
+
+            <h2>Select Address</h2>
+
+            <button
+                type="button"
+                id="closeAddressModal">
+
+                ✕
+
+            </button>
+
+        </div>
+
+        <div class="saved-address-list">
+
+            {% for address in addresses %}
+
+            <div
+                class="saved-address {% if address.is_default %}active{% endif %}"
+
+                data-name="{{ address.name }}"
+                data-phone="{{ address.phone }}"
+                data-address="{{ address.address }}"
+                data-state="{{ address.state }}"
+                data-district="{{ address.district }}"
+                data-country="{{ address.country }}"
+                data-postal="{{ address.postal_code }}">
+
+                <div class="address-info">
+
+                    <h4>
+
+                        {{ address.name }}
+
+                        {% if address.is_default %}
+                        <span class="default-tag">
+                            Default
+                        </span>
+                        {% endif %}
+
+                    </h4>
+
+                    <p>{{ address.phone }}</p>
+
+                    <p>{{ address.address }}</p>
+
+                    <p>
+
+                        {{ address.district }},
+                        {{ address.state }},
+                        {{ address.country }}
+
+                    </p>
+
+                    <p>
+
+                        {{ address.postal_code }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <p>No address found.</p>
+
+            {% endfor %}
+
+        </div>
+
+        <button
+            type="button"
+            class="add-address-modal-btn"
+            id="openAddAddress2">
+
+            + Add New Address
+
+        </button>
+
+    </div>
+
+</div>
+
+<div class="address-modal" id="addAddressModal">
+
+<div class="address-modal-box">
+
+<div class="modal-header">
+
+<h2>Add Address</h2>
+
+<button
+type="button"
+id="closeAddAddress">
+
+✕
+
+</button>
+
+</div>
+
+<form
+method="POST"
+id="addAddressForm">
+
+{% csrf_token %}
+
+<input
+type="hidden"
+name="action"
+value="add_address">
+
+<div class="form-grid">
+
+<div class="form-group">
+
+<label>Name</label>
+
+<input
+type="text"
+name="name"
+id="address-name">
+
+<small
+id="address-name-error"
+class="error-message"></small>
+
+</div>
+
+<div class="form-group">
+
+<label>Phone</label>
+
+<input
+type="text"
+name="phone"
+id="address-phone">
+
+<small
+id="address-phone-error"
+class="error-message"></small>
+
+</div>
+
+<div class="form-group col-full">
+
+<label>Address</label>
+
+<textarea
+name="address"
+id="address-address"></textarea>
+
+<small
+id="address-address-error"
+class="error-message"></small>
+
+</div>
+
+<div class="form-group">
+
+<label>District</label>
+
+<input
+type="text"
+name="district"
+id="address-district">
+
+<small
+id="address-district-error"
+class="error-message"></small>
+
+</div>
+
+<div class="form-group">
+
+<label>State</label>
+
+<input
+type="text"
+name="state"
+id="address-state">
+
+<small
+id="address-state-error"
+class="error-message"></small>
+
+</div>
+
+<div class="form-group">
+
+<label>Country</label>
+
+<input
+type="text"
+name="country"
+id="address-country">
+
+<small
+id="address-country-error"
+class="error-message"></small>
+
+</div>
+
+<div class="form-group">
+
+<label>Postal Code</label>
+
+<input
+type="text"
+name="postal_code"
+id="address-postal">
+
+<small
+id="address-postal-error"
+class="error-message"></small>
+
+</div>
+
+<div class="col-full">
+
+<label>
+
+<input
+type="checkbox"
+name="is_default">
+
+Make Default Address
+
+</label>
+
+</div>
+
+</div>
+
+<button
+type="submit"
+class="btn-complete-checkout">
+
+Save Address
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+{% if show_add_modal %}
+
+<script>
+
+window.onload=function(){
+
+document
+.getElementById("addAddressModal")
+.classList.add("show");
+
+}
+
+</script>
+
+{% endif %}
+  <script src="{% static 'js/checkout.js' %}?v=12"></script>
+</body>
+</html>
