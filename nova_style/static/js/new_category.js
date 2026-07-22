@@ -1,81 +1,155 @@
-const categoryForm = document.getElementById('categoryForm');
+document.getElementById("categoryForm")
+.addEventListener("submit", async function (e) {
 
-categoryForm.addEventListener('submit', function (e) {
+    let isValid = true;
+
+    document
+        .querySelectorAll(".js-error")
+        .forEach(el => el.remove());
+    document.getElementById("image-error-container").innerHTML = "";
+
+    function showError(element, message) {
+
+    const error = document.createElement("small");
+
+    error.className = "field-error js-error";
+
+    error.textContent = message;
+
+    if (element.id === "file-input") {
+
+        document
+            .getElementById("image-error-container")
+            .appendChild(error);
+
+        return;
+    }
+
+    const formGroup = element.closest(".form-group");
+
+    if (formGroup) {
+        formGroup.appendChild(error);
+    } else {
+        element.parentNode.appendChild(error);
+    }
+}
 
     const categoryName =
-        document.getElementById('categoryName').value.trim();
+        document.getElementById("category-name");
+
+    const imageInput =
+        document.getElementById("file-input");
 
     const offer =
-        document.getElementById('offer').value.trim();
+        document.getElementById("offer");
 
-    // Category name validation
-    if (categoryName === '') {
-        e.preventDefault();
-        alert('Category name is required');
-        return;
-    }
+    const value = categoryName.value.trim();
 
-    if (categoryName.length < 3) {
-        e.preventDefault();
-        alert('Category name must contain at least 3 characters');
-        return;
-    }
+if (!value) {
 
-    // Only letters and spaces
-    const nameRegex = /^[A-Za-z\s]+$/;
+    showError(categoryName,
+        "Category name is required");
 
-    if (!nameRegex.test(categoryName)) {
-        e.preventDefault();
-        alert('Category name can contain only letters and spaces');
-        return;
-    }
+    isValid = false;
 
-    // Offer validation
-    if (offer !== '') {
+}
+else if (!/^[A-Za-z ]+$/.test(value)) {
 
-        const offerValue = Number(offer);
+    showError(categoryName,
+        "Only letters and spaces are allowed");
 
-        if (isNaN(offerValue)) {
-            e.preventDefault();
-            alert('Offer must be a number');
-            return;
+    isValid = false;
+
+}
+else if (value.length < 3) {
+
+    showError(categoryName,
+        "Category name must contain at least 3 characters");
+
+    isValid = false;
+}
+    
+
+    // Offer
+
+    if (offer.value.trim()) {
+
+        const offerValue =
+            parseFloat(offer.value);
+
+        if (offerValue < 0) {
+
+            showError(
+                offer,
+                "Offer cannot be negative"
+            );
+
+            isValid = false;
         }
 
-        if (offerValue < 0 || offerValue > 100) {
-            e.preventDefault();
-            alert('Offer must be between 0 and 100');
-            return;
+        else if (offerValue > 100) {
+
+            showError(
+                offer,
+                "Offer must be between 0 and 100"
+            );
+
+            isValid = false;
         }
     }
 
-    // Image validation (optional)
-    const imageFile = fileInput.files[0];
+    // Image
 
-    if (imageFile) {
+    if (!imageInput.files.length) {
 
-        const allowedTypes = [
-            'image/jpeg',
-            'image/png',
-            'image/webp'
-        ];
+        showError(
+            imageInput,
+            "Category image is required"
+        );
 
-        if (!allowedTypes.includes(imageFile.type)) {
-            e.preventDefault();
-            alert('Only JPG, PNG and WEBP images are allowed');
-            return;
-        }
-
-        const maxSize = 2 * 1024 * 1024; // 2 MB
-
-        if (imageFile.size > maxSize) {
-            e.preventDefault();
-            alert('Image size must be less than 2 MB');
-            return;
-        }
+        isValid = false;
     }
+
+ if (!isValid) {
+
+    e.preventDefault();
+
+    showToast("Failed.", "error");
+
+    return;
+}
+
+// Stop the normal submit
+e.preventDefault();
+
+// Check duplicate name
+const response = await fetch(
+    `${CHECK_CATEGORY_URL}?name=${encodeURIComponent(value)}`
+);
+
+const data = await response.json();
+
+console.log(data);
+
+if (data.exists) {
+
+    console.log("Duplicate category");
+
+    showError(categoryName, "Category already exists.");
+
+    showToast("Failed", "error");
+
+    return;
+}
+
+console.log("Submitting form");
+this.submit();
+
+// No duplicate -> submit form
+this.submit();
+
+
 });
-
-
 document.addEventListener("DOMContentLoaded", function () {
 
     const uploadBox = document.getElementById("upload-box");
@@ -214,13 +288,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     cancelBtn.addEventListener("click", function () {
 
-        cropModal.style.display = "none";
+    cropModal.style.display = "none";
 
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
-        }
-    });
+    fileInput.value = "";
+
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+});
 
     /* --------------------------
        DRAG & DROP
@@ -253,3 +329,57 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const toasts = document.querySelectorAll(".toast");
+
+    toasts.forEach((toast) => {
+
+        const closeBtn = toast.querySelector(".toast-close");
+
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                toast.classList.add("hide");
+                setTimeout(() => toast.remove(), 400);
+            });
+        }
+
+        setTimeout(() => {
+            toast.classList.add("hide");
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+
+    });
+
+});
+
+function showToast(message, type) {
+
+    let container = document.getElementById("toast-container");
+
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "toast-container";
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button class="toast-close">&times;</button>
+    `;
+
+    container.appendChild(toast);
+
+    toast.querySelector(".toast-close").onclick = () => {
+        toast.remove();
+    };
+
+    setTimeout(() => {
+        toast.classList.add("hide");
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
