@@ -8,10 +8,12 @@ from django.shortcuts import redirect,render,get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
 from .forms import SignupForm,LoginForm,OTPForm,ProfileForm
-from .models import EmailOTP,Users,Addresses
+from .models import EmailOTP,Users,Addresses,Wishlist,WishlistItem
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from product.models import Category
+from order.models import OrderItems,Orders
+
 
 MAX_ATTEMPTS = 5
 MAX_RESENDS = 3
@@ -451,3 +453,28 @@ def delete_address(request,pk):
     if request.method == "POST":
         address.delete()
     return redirect('addresses') 
+
+
+@login_required(login_url='login')
+def wishlist(request):
+    profile=request.user
+    wishlist=Wishlist.objects.filter(user=profile).first()
+    items=[]
+    if wishlist:
+        items=WishlistItem.objects.filter(wishlist=wishlist).select_related("variant","variant__product").prefetch_related("variant__images")
+
+    return render(request,"wishlist/wishlist.html",{ "details":profile,"items":items})
+
+@login_required(login_url="login")
+def add_to_wishlist(request,variant_id):
+    wishlist,_=Wishlist.objects.get_or_create(user=request.user)
+    item,created=WishlistItem.objects.get_or_create(wishlist=wishlist,variant_id=variant_id)
+    if not created:
+        item.delete()
+    
+    return redirect("product_list")
+@login_required(login_url='login')
+def orders(request):
+    orders=Orders.objects.select_related("user").prefetch_related("addresses","items__variant__product","items__variant__images",)
+    
+    return render(request,"orders.html",{"orders":orders})
