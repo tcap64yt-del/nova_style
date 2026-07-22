@@ -1,15 +1,24 @@
 from django.shortcuts import render,get_object_or_404,redirect
 from .models import ProductImage,Products,ProductVariant,Category
-from user.models import Users
+from user.models import Users,Wishlist,WishlistItem
 from .models import Review
 from django.core.paginator import Paginator
 from cart.models import Cart,CartItem
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db.models import F, Value, DecimalField, ExpressionWrapper, Case, When
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+from django.urls import reverse
 
 def product_list(request):
     details=request.user
-    variants=ProductVariant.objects.filter(is_active=True,product__is_active=True).select_related("product","product__category").prefetch_related("images").order_by("-created_at")
-
+    today=timezone.now().date()
+    variants=ProductVariant.objects.filter(is_active=True,product__is_active=True,product__category__is_active=True).select_related("product","product__category").prefetch_related("images").annotate(
+        category_offer=Coalesce(F("product__category__offer"),Value(0),output_field=DecimalField()),
+        variant_offer=Case(When(offer__gt=0,start_date__lte=today,end_date__gte=today,then=F("offer")),default=Value(0),output_field=DecimalField())
+    ).annotate(final_price=ExpressionWrapper((F("price")-(F("price")*F("category_offer")/Value(100)))-((F("price")-(F("price")*F("category_offer")/Value(100)))*F("variant_offer")/Value(100)),output_field=DecimalField(max_digits=10,decimal_places=2))
+    ).order_by("-created_at")   
     search=request.GET.get("search","")
     category=request.GET.get("category")
     size=request.GET.get("size")
@@ -28,25 +37,31 @@ def product_list(request):
         variants=variants.filter(size=size)
     
     if min_price:
-        variants=variants.filter(price__gte=min_price)
+        variants = variants.filter(final_price__gte=min_price)
 
     if max_price:
-        variants=variants.filter(price__lte=max_price)
+        variants = variants.filter(final_price__lte=max_price)
 
-    if sort =="price-low":
-         variants = variants.order_by("price")
-    elif sort =="price-high":
-         variants = variants.order_by("-price")
+    if sort == "price-low":
+        variants = variants.order_by("final_price")
+
+    elif sort == "price-high":
+        variants = variants.order_by("-final_price")
     elif sort =="az":
         variants = variants.order_by("product__name")
     elif sort =="za":
         variants = variants.order_by("-product__name")
     elif sort =="new":
         variants=variants.order_by("-created_at")
-    return render(request,'product/product_list.html',{"variants":variants,"categories":Category.objects.filter(is_active=True),"details":details})
 
-def product_details(request,variant_id): 
-    
+    wishlist_variants=[]
+    if request.user.is_authenticated:
+        wishlist=Wishlist.objects.filter(user=request.user).first()
+        if wishlist:
+            wishlist_variants=list(wishlist.wishlist_items.values_list("variant_id",flat=True))
+    return render(request,'product/product_list.html',{"variants":variants,"categories":Category.objects.filter(is_active=True),"details":details,"wishlist_variant_ids": wishlist_variants,})
+
+def product_details(request,variant_id):    
     profile=request.user
 
     variant=get_object_or_404(ProductVariant.objects.select_related("product"),id=variant_id)
@@ -113,7 +128,8 @@ def product_details(request,variant_id):
             Review.objects.create(user=request.user,product=product,rating=rating,title=title,comment=review)
             return redirect("product_details",variant_id=variant_id)
     cart_error = request.session.pop("cart_error",None)
-    return render(request,"product/product_details.html",{"details":profile,"product":product,"variant":variant,"sizes":sizes,"colors":colors,"related_products":related_products,"errors":errors,"reviews":reviews,"avg_rating": avg_rating,"review_count": review_count,"five_star_percent": five_star_percent,"four_star_percent": four_star_percent,"three_star_percent": three_star_percent,"two_star_percent": two_star_percent,"one_star_percent": one_star_percent,"next":next,"page_number":page_number,"cart_error":cart_error})
+    buy_now_error = request.session.pop("buy_now_error", None)
+    return render(request,"product/product_details.html",{"details":profile,"product":product,"variant":variant,"sizes":sizes,"colors":colors,"related_products":related_products,"errors":errors,"reviews":reviews,"avg_rating": avg_rating,"review_count": review_count,"five_star_percent": five_star_percent,"four_star_percent": four_star_percent,"three_star_percent": three_star_percent,"two_star_percent": two_star_percent,"one_star_percent": one_star_percent,"next":next,"page_number":page_number,"cart_error":cart_error,"buy_now_error": buy_now_error,})
 
 
 @login_required(login_url="login")
@@ -130,8 +146,7 @@ def add_to_cart(request):
     elif not variant.product.is_active:
         errors["cart"]="Product is unavailable"
 
-    elif  variant.stock <=0:
-        errors["cart"]="out of stock"
+   
 
 
     if not errors:
@@ -147,5 +162,24 @@ def add_to_cart(request):
                     cart_item.save(update_fields=["quantity"])
     if errors:
             request.session["cart_error"]=errors["cart"]
-
+            messages.error(request,"Failed")
+    else:
+         messages.success(request,"Added to cart")       
+    wishlist=Wishlist.objects.filter(user=request.user).first()
+    if wishlist:
+        WishlistItem.objects.filter(wishlist=wishlist,variant=variant).delete()
     return redirect("product_details",variant_id=variant.id)
+
+@login_required(login_url="login")
+def buy_now(request,variant_id):
+    errors={}
+    if request.method=="POST":
+        variant=get_object_or_404(ProductVariant.objects.select_related("product"),id=variant_id)
+        if variant.stock<=0:
+             errors["buy_now_error"] = "Out of stock"
+        if errors:
+            request.session["buy_now_error"] = errors['buy_now_error']
+            return redirect("product_details",variant_id=variant.id)
+    request.session["buy_now_variant"] = variant.id
+    return redirect('checkout')
+
