@@ -7,9 +7,10 @@ from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout 
 from django.core.paginator import Paginator
-from product.forms import CategoryForm
 import re
 from django.db.models import Count,Prefetch
+from django.http import JsonResponse
+from order.models import Orders,OrderItems,OrderAddress,OrderTrack,OrderReturns
 
 def admin_login(request):
     if request.user.is_authenticated:
@@ -59,13 +60,14 @@ def block_user(request, user_id):
     if user:
         user.status = False
         user.save(update_fields=["status"])
-    
+        messages.success(request, "user unblocked")
     return redirect('user_management')
 
 def unblock_user(request, user_id):
     user = Users.objects.filter(id=user_id).first()
     user.status = True
     user.save()
+    messages.success(request, "user blocked")
     return redirect("user_management")
 
 def admin_logout(request):
@@ -77,7 +79,7 @@ def admin_logout(request):
 def category_management(request):
     categories = Category.objects.annotate(
         product_count=Count("products")
-    )   
+    )
     search=request.GET.get('search','')
     sort=request.GET.get("sort","all")
     if search:
@@ -97,31 +99,79 @@ def category_management(request):
 
 @login_required(login_url='admin_login')
 def new_category(request):
-    if request.method == "POST":
-        form = CategoryForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Category added")
-            return redirect("category_management")
-    else:
-        form = CategoryForm()
-
-    return render(request, "staff/new_category.html", {"form": form})
+    errors={}
+    if request.method =="POST":
+        name=request.POST.get("name","").strip()
+        offer=request.POST.get("offer","").strip()
+        image=request.FILES.get("image_url")
+        if not name:
+            errors["name"]="category name is required"
+        if len(name)<3:
+            errors["name"]="category name must contain atleast 3 letters"
+        if not re.fullmatch(r"[A-Za-z ]+",name):
+            errors["name"]="only letters are allowed"
+        if Category.objects.filter(name__iexact=name).exists():
+            errors['name']="category name already exists."
+        offer_value=None
+        if offer:
+            if not re.fullmatch(r'^\d+(\.\d+)?$', offer):
+                errors["offer"] = "Offer must be a positive number."
+            else:
+                offer_value=float(offer)
+                if offer_value<0 or offer_value>100:
+                    errors["offer"]="offer must be between 0 and 100."
+        if not image:
+            errors["image"] = "Category image is required."
+        if errors:
+            return render(request,"staff/new_category.html",{"errors":errors,"name":name,"offer":offer,})
+        Category.objects.create( name=name,offer=offer if request.POST.get("offer") else None,image_url=image,) 
+        messages.success(request,"category added successfully.")
+        return redirect("category_management")
+    return render(request, "staff/new_category.html")
 
 
 @login_required(login_url='admin_login')
 def edit_category(request, category_id):
     category = get_object_or_404(Category, id=category_id)
-
+    errors={}
     if request.method == "POST":
-        category.name = request.POST.get('categoryName', '').strip()
-        category.offer = request.POST.get('offer')
+        name = request.POST.get('name', '').strip()
+        offer = request.POST.get('offer')
 
-        if request.FILES.get('image'):
-            category.image_url = request.FILES['image']
+        if not name:
+            errors["name"]="Category name is required"
+        if len(name)<3:
+            errors["name"]="Category name must contain atleast 3 letters"
+        if not re.fullmatch(r"[A-Za-z ]+",name):
+            errors["name"]="only letters are allowed"
+        if Category.objects.filter(name__iexact=name).exclude(id=category.id).exists():
+            errors['name']="Category name already exists."
+        offer_value=None
+        if offer:
+            if not re.fullmatch(r'^\d+(\.\d+)?$', offer):
+                errors["offer"] = "Offer must be a positive number."
+            else:
+                offer_value=float(offer)
+                if offer_value<0 or offer_value>100:
+                    errors["offer"]="offer must be between 0 and 100."
+        
+        uploaded_image = request.FILES.get('image_url')
+
+        if not uploaded_image and not category.image_url:
+            errors["image"] = "Category image is required."
+            return render(request, 'staff/edit_category.html', {"category": category})
+        if errors:
+            return render(request,"staff/edit_category.html",{"category":category,"errors":errors})
+        
+        category.name = name
+        category.offer = offer_value
+
+        if uploaded_image:
+            category.image_url = uploaded_image
 
         category.save()
-        messages.success(request, "category updated")
+
+        messages.success(request, "category updated.")
         return redirect('category_management')
 
     return render(request, 'staff/edit_category.html', {"category": category})
@@ -136,6 +186,8 @@ def category_status(request,category_id):
     else:
         category.is_active=True
     category.save()
+    messages.success(request, "category updated.")
+
     return redirect("category_management")
 
 @login_required(login_url="admin_login")
@@ -197,6 +249,8 @@ def add_product(request):
 
         elif not re.match(r'^[A-Za-z0-9 ]+$', product_name):
             errors["product_name"] = "only letters and numbers are allowed."
+        elif Products.objects.filter(name__iexact=product_name).exists():
+            errors["product_name"] = "alread name exists."
         if not description:
             errors["description"] = "description is required."
 
@@ -213,11 +267,15 @@ def add_product(request):
             errors["variant"]="atleast one variant is required"
         
         for i ,variant in enumerate(variants):
-            if not str(variant['price']).strip():
-                variant["errors"]["price"]="price is required"
+            if not variant["price"]:
+                variant["errors"]["price"] = "Price is required"
+            elif float(variant["price"]) <= 0:
+                variant["errors"]["price"] = "Price must postive number "
 
-            if not str(variant["stock"]).strip():
+            if not variant["stock"]:
                 variant["errors"]["stock"] = "Stock is required"
+            elif int(variant["stock"]) < 1:
+                variant["errors"]["stock"] = "Stock must be atleast 1"
 
             if not str(variant["size"]).strip():
                 variant["errors"]["size"] = "Size is required"
@@ -239,6 +297,8 @@ def add_product(request):
         variant_has_errors=any(variant["errors"] for variant in variants)
 
         if errors or variant_has_errors:
+            messages.error(request,"Failed")
+
             return render(request,"staff/add_product.html",{"categories":categories,"errors":errors,"variants":variants,"product_name":product_name,"description":description,"selected_category":category})
 
 
@@ -262,6 +322,7 @@ def add_product(request):
 @login_required(login_url="admin_login")
 def edit_product(request,product_id):
     products=get_object_or_404(Products.objects.prefetch_related('variants__images'),id=product_id)
+    
     categories=Category.objects.all()
     errors={}
 
@@ -314,11 +375,15 @@ def edit_product(request,product_id):
 
         for i ,variant in enumerate(variants):
 
-            if not str(variant['price']).strip():
-                variant["errors"]["price"]="price is required"
+            if not variant["price"]:
+                variant["errors"]["price"] = "Price is required"
+            elif float(variant["price"]) <= 0:
+                variant["errors"]["price"] = "Price must postive number "
 
-            if not str(variant["stock"]).strip():
+            if not variant["stock"]:
                 variant["errors"]["stock"] = "Stock is required"
+            elif int(variant["stock"]) < 1:
+                variant["errors"]["stock"] = "Stock must be atleast 1"
 
             if not str(variant["size"]).strip():
                 variant["errors"]["size"] = "Size is required"
@@ -351,6 +416,7 @@ def edit_product(request,product_id):
 
         variant_has_errors=any(variant["errors"] for variant in variants)
         if errors or variant_has_errors:
+            messages.error(request,"Failed")
             products.name=product_name
             products.description = description
             return render(request,"staff/edit_product.html",{"categories":categories,"errors":errors,"products":products,"variants":variants})
@@ -381,7 +447,7 @@ def edit_product(request,product_id):
 
                     if duplicate.exists():
                         variants[i]["errors"]["duplicate"]=("Color and size already exist.")
-                        return render("staff/edit_product.html",{"categories":categories,"errors":errors,"products":products,"variants":variants})
+                        return render(request,"staff/edit_product.html",{"categories":categories,"errors":errors,"products":products,"variants":variants})
 
 
                     variant.size= sizes[i]
@@ -403,6 +469,7 @@ def edit_product(request,product_id):
             for img_index, image in enumerate(upload_images):
                 ProductImage.objects.create(variant=variant,image=image,is_primary=(existing_images == 0 and img_index == 0))
         messages.success(request, "Product edited successfully.")
+
         return redirect("edit_product",product_id=products.id)
     
 
@@ -419,9 +486,11 @@ def edit_product(request,product_id):
         "start_date": v.start_date,
         "end_date": v.end_date,
         "status": True if v.is_active else False,
+    
         "images": v.images.all(),
         "errors": {},
     })
+      
     return render(request,"staff/edit_product.html",{"products":products,"categories":categories,"variants":variants,"errors":{}})
 
 @login_required(login_url="admin_login")
@@ -429,6 +498,8 @@ def activate_product(request,product_id):
     product=Products.objects.filter(id=product_id).first()
     product.is_active=True
     product.save(update_fields=["is_active"])
+    
+    messages.success(request, "activate")
     return redirect("product_management")
   
 @login_required(login_url="admin_login")
@@ -436,4 +507,108 @@ def deactivate_product(request,product_id):
     product=Products.objects.filter(id=product_id).first()
     product.is_active=False
     product.save(update_fields=["is_active"])
+
+    messages.success(request, "inactivate")
     return redirect("product_management")    
+
+
+def check_category_name(request):
+    name = request.GET.get("name", "").strip()
+    category_id = request.GET.get("category_id")
+
+    qs = Category.objects.filter(name__iexact=name)
+
+    if category_id:
+        qs = qs.exclude(id=category_id)
+
+    return JsonResponse({"exists": qs.exists()})
+
+def check_product_name(request):
+    name = request.GET.get("name", "").strip()
+    product_id = request.GET.get("product_id")
+
+    qs = Products.objects.filter(name__iexact=name)
+
+    if product_id:
+        qs = qs.exclude(id=product_id)
+
+    return JsonResponse({
+        "exists": qs.exists()
+    })
+
+@login_required(login_url="admin_login")
+def order_management(request):
+    orders=Orders.objects.select_related("user").prefetch_related("addresses","items__variant__product","items__variant__images",).order_by("-created_at")
+    return render(request,"staff/order_management.html",{"orders":orders})
+
+@login_required(login_url="admin_login")
+def admin_order_detail(request,order_id):
+
+    order=get_object_or_404(Orders.objects.select_related("user"),id=order_id)
+    items=(OrderItems.objects.filter(order=order).select_related("variant","variant__product").prefetch_related("variant__images"))
+    shipping=OrderAddress.objects.filter(order=order,address_type="shipping").first()
+    tracking=OrderTrack.objects.filter(order=order).order_by("-status_time").first()
+    for i in items:
+        i.line_total=i.quantity * i.unit_amount
+
+    STATUS_FLOW=["pending",'order placed','shipped','out for delivery','delivered']
+    if order.status in STATUS_FLOW:
+   
+        current_index=STATUS_FLOW.index(order.status)
+        if current_index == len(STATUS_FLOW)-1:
+            allowed_statuses=[STATUS_FLOW[current_index-1],STATUS_FLOW[current_index]]
+        else:
+            allowed_statuses=[STATUS_FLOW[current_index],STATUS_FLOW[current_index + 1]]
+
+    else:
+        allowed_statuses=[]
+
+    return render(request,"staff/admin_order_details.html",{"order":order,"items":items,"shipping":shipping,"tracking":tracking,"allowed_statuses": allowed_statuses,})
+
+@login_required(login_url="admin_login")
+def order_status(request,order_id):
+    order=get_object_or_404(Orders,id=order_id)
+    if request.method == "POST":  
+        new_status=request.POST.get("status")
+        
+        if order.status != new_status:
+            order.status =new_status
+            order.save(update_fields=['status'])
+            OrderTrack.objects.create(order=order,status=new_status)
+        return redirect('admin_order_detail',order_id=order.id)
+    return redirect("admin_order_detail",order_id=order.id)
+
+
+def admin_order_returns(request):
+   returns=OrderReturns.objects.select_related("order").prefetch_related("order__items__variant__product",Prefetch('order__addresses',queryset=OrderAddress.objects.filter(address_type="shipping"),to_attr="shipping")).order_by("-created_at")
+
+
+   return render(request,"staff/admin_order_returns.html",{"returns":returns})
+
+def return_details(request,return_id):
+    return_order=get_object_or_404(OrderReturns.objects.filter(id=return_id).select_related("order","order__user").prefetch_related(Prefetch('order__addresses',queryset=OrderAddress.objects.filter(address_type="shipping"),to_attr="shipping_address"),"order__items__variant__product","order__items__variant__images"),id=return_id)
+
+    return render(request,"staff/return_details.html",{"return_order":return_order})
+
+def update_return_status(request,return_id):
+    return_order=get_object_or_404(OrderReturns,id=return_id)
+
+    if request.method =="POST":
+        status=request.POST.get("status")
+        if status =="approved":
+            return_order.status='approved'
+            return_order.save(update_fields=["status"])
+            order=return_order.order
+            order.status="approved"
+
+            order.save(update_fields=['status'])
+            OrderTrack.objects.create(order=order,status='approved')
+        else:
+            return_order.status='rejected'
+            return_order.save(update_fields=["status"])
+            order=return_order.order
+            order.status="rejected"
+            order.save(update_fields=['status'])
+            OrderTrack.objects.create(order=order,status='rejected')
+
+    return redirect("return_details",return_id=return_id)
