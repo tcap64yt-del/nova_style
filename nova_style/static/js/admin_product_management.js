@@ -1,8 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // ==========================================
-    // MOBILE SIDEBAR
-    // ==========================================
 
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
@@ -39,9 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // SEARCH
-    // ==========================================
+
 
     const searchInput = document.getElementById('searchInput');
     const clearButton = document.getElementById('clearButton');
@@ -67,9 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleClearButton();
     }
 
-    // ==========================================
-    // SORT DROPDOWN
-    // ==========================================
+ 
 
     const sortDropdown = document.getElementById('sortDropdown');
 
@@ -85,9 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================
-    // DELETE MODAL
-    // ==========================================
+
 
     const deleteModal = document.getElementById('deleteModal');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
@@ -223,9 +214,7 @@ if (confirmStatusBtn) {
     }
 });
 }
-    // ==========================================
-    // MODAL OVERLAY CLOSE
-    // ==========================================
+
 
     document
         .querySelectorAll('.confirm-modal__overlay')
@@ -241,9 +230,6 @@ if (confirmStatusBtn) {
             });
         });
 
-    // ==========================================
-    // ESC KEY
-    // ==========================================
 
     document.addEventListener('keydown', (e) => {
 
@@ -256,4 +242,28 @@ if (confirmStatusBtn) {
             }
         }
     });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const toasts = document.querySelectorAll(".toast");
+
+    toasts.forEach((toast) => {
+
+        const closeBtn = toast.querySelector(".toast-close");
+
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                toast.classList.add("hide");
+                setTimeout(() => toast.remove(), 400);
+            });
+        }
+
+        setTimeout(() => {
+            toast.classList.add("hide");
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+
+    });
+
 });
