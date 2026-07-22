@@ -158,3 +158,45 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 });
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const toasts = document.querySelectorAll(".toast");
+
+    toasts.forEach((toast) => {
+
+        const closeBtn = toast.querySelector(".toast-close");
+
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                toast.classList.add("hide");
+                setTimeout(() => toast.remove(), 400);
+            });
+        }
+
+        setTimeout(() => {
+            toast.classList.add("hide");
+            setTimeout(() => toast.remove(), 400);
+        }, 3000);
+
+    });
+
+});
+
+document.querySelectorAll(".size-options a").forEach(link => {
+    link.addEventListener("click", function () {
+        localStorage.setItem("selectedSize", this.href);
+    });
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+    const selected = localStorage.getItem("selectedSize");
+
+    document.querySelectorAll(".size-options a").forEach(link => {
+        if (link.href === selected) {
+            link.querySelector(".size-btn").classList.add("active");
+        }
+    });
+});
