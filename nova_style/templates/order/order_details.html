@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Details | Nova Style</title>
+  <meta name="description" content="Track your order status and view purchase summary on Nova Style.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/order/order_details.css' %}?v=12">
+</head>
+<body class="order-details-body">
+  <div class="page-wrapper">
+    <!-- Header -->
+    <header class="site-header">
+        <div class="header-container">
+            <div class="logo-wrapper">
+                <a href="{% url "home" %}" class="logo" id="header-logo">NOVA STYLE</a>
+                <div class="auth-menu" tabindex="0">
+
+</div>
+            </div>
+            
+         
+
+            <div class="header-actions">
+                
+                        <button class="action-btn" id="action-wishlist" aria-label="Favorites Wishlist">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </button>
+                <a href="{% url 'cart' %}" class="action-btn" aria-label="Shopping Bag">
+    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <path d="M16 10a4 4 0 0 1-8 0"></path>
+    </svg>
+</a>
+                <div class="user-profile" id="user-profile-menu">
+                       <a href='{% url "profile" %}'>
+                        {% if details.avatar_url %}
+                        <img src="{{ details.avatar_url.url }}" alt="User Avatar" class="header-avatar-img">
+                        {% else %}
+                        <img src="{% static 'images/default.png' %}" alt="User Avatar" class="header-avatar-img">
+                        {% endif %}                       </a>
+                </div>
+            </div>
+        </div>
+    
+    </header>
+
+    <!-- Main Container -->
+    <main class="order-details-container">
+      <div class="order-details-card">
+        
+        <!-- Order Header Block -->
+        <div class="order-card-header">
+          <div class="order-meta-info">
+            <div class="meta-group">
+              <span class="meta-label">Order ID:</span>
+              <span class="meta-value order-id-value">#{{ order.id }}</span>
+            </div>
+            <div class="meta-group">
+              <span class="meta-label">Date:</span>
+              <span class="meta-value">{{ order.created_at |date:"d M Y"}}</span>
+            </div>
+          </div>
+          <button class="btn-download-invoice" id="downloadInvoiceBtn">Download Invoice</button>
+        </div>
+
+        <div class="tracking-stepper-wrapper">
+    <div class="tracking-stepper">
+
+    <div class="stepper-progress-line">
+        <div class="progress-line-fill" style="width:{{ progress }}%;"></div>
+    </div>
+
+    <!-- Pending -->
+    <div class="stepper-step
+        {% if order.status == 'cancelled' and cancel_index == 0 %}
+            cancelled-step
+        {% elif current_index >= 0 %}
+            completed
+        {% else %}
+            pending
+        {% endif %}
+        {% if current_index == 0 and order.status != 'cancelled' %}active-step{% endif %}">
+
+        <div class="step-circle-wrapper">
+            <div class="step-circle">
+
+                {% if order.status == "cancelled" and cancel_index == 0 %}
+                    ✕
+
+                {% elif current_index > 0 %}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+
+                {% endif %}
+
+            </div>
+        </div>
+
+        <div class="step-details">
+            <span class="step-name">PENDING</span>
+
+            {% for t in tracking %}
+                {% if t.status|lower == "pending" %}
+                    <span class="step-date">
+                        {{ t.status_time|date:"d M Y" }}<br>
+                        {{ t.status_time|time:"h:i A" }}
+                    </span>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Order Placed -->
+    <div class="stepper-step
+        {% if order.status == 'cancelled' and cancel_index == 1 %}
+            cancelled-step
+        {% elif current_index >= 1 %}
+            completed
+        {% else %}
+            pending
+        {% endif %}
+        {% if current_index == 1 and order.status != 'cancelled' %}active-step{% endif %}">
+
+        <div class="step-circle-wrapper">
+            <div class="step-circle">
+
+                {% if order.status == "cancelled" and cancel_index == 1 %}
+                    ✕
+
+                {% elif current_index > 1 %}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+
+                {% endif %}
+
+            </div>
+        </div>
+
+        <div class="step-details">
+            <span class="step-name">ORDER PLACED</span>
+
+            {% for t in tracking %}
+                {% if t.status|lower == "order placed" %}
+                    <span class="step-date">
+                        {{ t.status_time|date:"d M Y" }}<br>
+                        {{ t.status_time|time:"h:i A" }}
+                    </span>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Shipped -->
+    <div class="stepper-step
+        {% if order.status == 'cancelled' and cancel_index == 2 %}
+            cancelled-step
+        {% elif current_index >= 2 %}
+            completed
+        {% else %}
+            pending
+        {% endif %}
+        {% if current_index == 2 and order.status != 'cancelled' %}active-step{% endif %}">
+
+        <div class="step-circle-wrapper">
+            <div class="step-circle">
+
+                {% if order.status == "cancelled" and cancel_index == 2 %}
+                    ✕
+
+                {% elif current_index > 2 %}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+
+                {% elif current_index == 2 %}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="3" width="15" height="13"></rect>
+                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                    </svg>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <div class="step-details">
+            <span class="step-name">SHIPPED</span>
+
+            {% for t in tracking %}
+                {% if t.status|lower == "shipped" %}
+                    <span class="step-date">
+                        {{ t.status_time|date:"d M Y" }}<br>
+                        {{ t.status_time|time:"h:i A" }}
+                    </span>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Out For Delivery -->
+    <div class="stepper-step
+        {% if order.status == 'cancelled' and cancel_index == 3 %}
+            cancelled-step
+        {% elif current_index >= 3 %}
+            completed
+        {% else %}
+            pending
+        {% endif %}
+        {% if current_index == 3 and order.status != 'cancelled' %}active-step{% endif %}">
+
+        <div class="step-circle-wrapper">
+            <div class="step-circle">
+
+                {% if order.status == "cancelled" and cancel_index == 3 %}
+                    ✕
+
+                {% elif current_index > 3 %}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+
+                {% elif current_index == 3 %}
+                    <!-- keep your current delivery SVG -->
+                {% endif %}
+
+            </div>
+        </div>
+
+        <div class="step-details">
+            <span class="step-name">OUT FOR DELIVERY</span>
+
+            {% for t in tracking %}
+                {% if t.status|lower == "out for delivery" %}
+                    <span class="step-date">
+                        {{ t.status_time|date:"d M Y" }}<br>
+                        {{ t.status_time|time:"h:i A" }}
+                    </span>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- Delivered -->
+    <div class="stepper-step {% if current_index >= 4 %}completed{% else %}pending{% endif %} {% if current_index == 4 %}active-step{% endif %}">
+
+        <div class="step-circle-wrapper">
+            <div class="step-circle">
+
+                {% if current_index == 4 %}
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <div class="step-details">
+            <span class="step-name">DELIVERED</span>
+
+            {% for t in tracking %}
+                {% if t.status|lower == "delivered" %}
+                    <span class="step-date">
+                        {{ t.status_time|date:"d M Y" }}<br>
+                        {{ t.status_time|time:"h:i A" }}
+                    </span>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+        <!-- Addresses block -->
+        <div class="addresses-container">
+          <div class="address-block">
+            <h3 class="address-header">BILLING DETAILS</h3>
+            <div class="address-content">
+              {{ billing.address }}
+            </div>
+          </div>
+          
+          <div class="address-block">
+            <h3 class="address-header">SHIPPING ADDRESS</h3>
+            <div class="address-content">
+              {{ shipping.address }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Items Section -->
+        <div class="order-items-table">
+          <div class="table-header">
+            <div class="header-col col-item-img">ITEM</div>
+            <div class="header-col col-item-desc">DESCRIPTION</div>
+            <div class="header-col col-item-qty">QTY</div>
+            <div class="header-col col-item-price">PRICE</div>
+          </div>
+
+
+          {% for item in items %}
+          <div class="table-row">
+            <div class="row-col col-item-img">
+              <div class="product-img-wrapper">
+                {% for image in item.variant.images.all  %}
+                {% if image.is_primary %}
+                <img src="{{image.image.url}}" alt="">
+                {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            <div class="row-col col-item-desc">
+              <h4 class="product-title">{{ item.variant.product.name }}</h4>
+              <p class="product-subtitle">Size {{ item.variant.size }}</p>
+              <p class="product-subtitle">Price ₹{{ item.variant.discounted_price }}</p>
+{% if order.status == "delivered" or order.status == "return pending" or order.status == "approved" or order.status == "rejected"  %}
+
+  
+
+{% elif item.cancelled_quantity >= item.quantity or item.status == "cancelled" %}
+    <span class="cancelled-product">Cancelled Product</span>
+
+{% else %}
+    <a href="#"
+       class="btn-cancel-product"
+       data-url="{% url 'cancel_product' item.id %}"
+       data-quantity="{{ item.available_quantity }}">
+        Cancel This Product
+    </a>
+{% endif %}
+            </div>
+           <div class="row-col col-item-qty" data-label="QTY">
+    <div>{{ item.quantity }}</div>
+
+    {% if item.cancelled_quantity > 0 %}
+        <small class="cancelled-qty">
+            Cancelled: {{ item.cancelled_quantity }}
+        </small>
+    {% endif %}
+</div>
+            
+            <div class="row-col col-item-price" data-label="PRICE">₹{{ item.line_total }}</div>
+          </div>
+    {% endfor %}
+        <!-- Costs Breakdown -->
+        <div class="costs-breakdown-wrapper">
+          <div class="costs-breakdown">
+          
+            <div class="breakdown-divider"></div>
+            <div class="breakdown-line total-line">
+              <span class="breakdown-label total-label">Total</span>
+              <span class="breakdown-val total-val">₹ {{ total }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Action Buttons -->
+        <div class="order-actions">
+          <a href="{% url "product_list" %}" class="btn-order-back">Continue Shopping</a>
+{% if order.status == "rejected" %}
+    <span class="btn-order-cancel disabled-btn rejected-btn">
+        Rejected
+    </span>
+
+{% elif order.status == "approved" %}
+    <span class="btn-order-cancel disabled-btn returned-btn">
+        approved
+    </span>
+
+{% elif order.status == "return pending" %}
+    <span class="btn-order-cancel disabled-btn">
+        Return Pending
+    </span>
+
+{% elif order.status == "delivered" %}
+    <a href="#" id="openReturnOrderModal" class="btn-order-cancel">
+        Want To Return
+    </a>
+
+{% elif order.status != "cancelled" %}
+    <a href="#" class="btn-order-cancel" id="openOrderCancelModal">
+        Want To Cancel
+    </a>
+{% endif %}
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-links">
+        <a href="#" class="footer-link">TERMS OF SERVICE</a>
+        <a href="#" class="footer-link">PRIVACY POLICY</a>
+        <a href="#" class="footer-link">SHIPPING & RETURNS</a>
+        <a href="#" class="footer-link">SUSTAINABILITY</a>
+      </div>
+      <div class="footer-copyright">
+        &copy; 2024 NOVA STYLE. ALL RIGHTS RESERVED.
+      </div>
+    </footer>
+  </div>
+
+
+
+  <div id="cancelModal" class="cancel-modal">
+    <div class="cancel-modal-box">
+
+        <div class="modal-header">
+            <span class="modal-subtitle">ORDER MANAGEMENT</span>
+            <h2>Cancel Product</h2>
+        </div>
+
+        <form id="cancelForm" method="POST">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Quantity to Cancel</label>
+                
+               <select class="form-select" name="quantity" id="cancelQuantity">
+</select>
+               
+                        </div>
+
+            <div class="form-group">
+                <label>Reason</label>
+
+                <select class="form-select" name="reason" >
+                    <option value="" selected disabled>Select a reason</option>
+                    <option value="changed_mind">Changed my mind</option>
+                    <option value="ordered_by_mistake">Ordered by mistake</option>
+                 
+                 
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+
+                <textarea
+                    class="form-textarea"
+                    name="description"
+                    placeholder="Describe your reason..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary close-modal">
+                    Keep Product
+                </button>
+
+                <button type="submit" class="btn-primary">
+                    Confirm Cancellation
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+<div id="orderCancelModal" class="cancel-modal">
+    <div class="cancel-modal-box">
+
+        <div class="modal-header">
+            <span class="modal-subtitle">ORDER MANAGEMENT</span>
+            <h2>Cancel Order</h2>
+        </div>
+
+        <form method="POST" action="{% url 'cancel_order' order.id %}">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Reason</label>
+
+                <select class="form-select" name="reason" required>
+                    <option value="" selected disabled>Select a reason</option>
+                    <option value="changed_mind">Changed my mind</option>
+                    <option value="ordered_by_mistake">Ordered by mistake</option>
+                 
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+
+                <textarea
+                    class="form-textarea"
+                    name="description"
+                    placeholder="Describe your reason..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary close-order-modal">
+                    Keep Order
+                </button>
+
+                <button type="submit" class="btn-primary">
+                    Confirm Cancellation
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<div id="returnOrderModal" class="cancel-modal">
+    <div class="cancel-modal-box">
+
+        <div class="modal-header">
+            <span class="modal-subtitle">ORDER MANAGEMENT</span>
+            <h2>Return Order</h2>
+        </div>
+
+        <form id="returnForm" method="POST" action="{% url 'order_return' order.id %}" >
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label>Reason for Return</label>
+
+                <select class="form-select" name="reason" required>
+                    <option value="" selected disabled>Select a reason</option>
+                    <option value="wrong_product">Wrong Product Received</option>
+                    <option value="damaged_product">Damaged Product</option>
+                   
+                    <option value="size_issue">Size/Fit Issue</option>
+                    <option value="changed_mind">Changed My Mind</option>
+                
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+
+                <textarea
+                    class="form-textarea"
+                    name="description"
+                    placeholder="Describe your reason..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-secondary close-return-modal">
+                    Keep Order
+                </button>
+
+                <button type="submit" class="btn-primary">
+                    Confirm Return
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+ <script src="{% static 'js/order/order_details.js' %}?v=18"></script>
+</body>
+</html>
