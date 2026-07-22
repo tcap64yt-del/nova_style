@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nova Style - Product Inventory Admin Console</title>
   <meta name="description" content="Manage products, track variants, categories, and perform administrative operations in the Nova Style Admin Console.">
-  <link rel="stylesheet" href="{% static 'css/staff/admin_product_management.css' %}?v=5">
+  <link rel="stylesheet" href="{% static 'css/staff/admin_product_management.css' %}?v=6">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -72,7 +72,7 @@
           </li>
 
           <li>
-            <a href="#" class="nav-link">
+            <a href="{% url "order_management" %}" class="nav-link">
               <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="8" cy="21" r="1"></circle>
                 <circle cx="19" cy="21" r="1"></circle>
@@ -344,9 +344,16 @@
       </div>
     </div>
   </div>
+{% if messages %}
+<div id="toast-container">
+    {% for message in messages %}
+        <div class="toast {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
 
-  <!-- JS Reference Script -->
-
-  <script src="{% static 'js/admin_product_management.js' %}?v=4"></script>
+  <script src="{% static 'js/admin_product_management.js' %}?v=5"></script>
 </body>
 </html>
