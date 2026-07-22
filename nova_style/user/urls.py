@@ -11,7 +11,10 @@ urlpatterns = [
    path("profile/",views.profile,name="profile"),
    path("logout/", views.logout, name="logout"),
 
-   path("profile/addresses/", views.address_list, name="addresses"),
+   path("profile/addresses/", views.address_list, name="addresses"),   
+   path("profile/wishlist/", views.wishlist, name="wishlist"),   
+   path("profile/wishlist/add/<int:variant_id>/", views.add_to_wishlist, name="add_to_wishlist"),   
+   path("profile/orders/",views.orders, name="orders"),   
    path("profile/addresses/<int:pk>/", views.delete_address, name="delete_address"),
    path("profile/addresses/set-default/<int:pk>/",views.set_default_address,name="set_default_address"),
    path("profile/addresses/new-address", views.new_address, name="new_address"),
