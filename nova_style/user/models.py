@@ -113,3 +113,25 @@ class Addresses(models.Model):
 
         if self.is_default:
             Addresses.objects.filter(user=self.user).exclude(id=self.id).update(is_default=False)
+
+
+class Wishlist(models.Model):
+    user = models.OneToOneField(Users,on_delete=models.CASCADE,related_name="wishlist")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "wishlist"
+
+
+class WishlistItem(models.Model):
+    wishlist = models.ForeignKey(Wishlist,on_delete=models.CASCADE,related_name="wishlist_items")
+    variant = models.ForeignKey("product.ProductVariant",on_delete=models.CASCADE)
+
+    class Meta:
+        db_table="wishlist_items"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["wishlist", "variant"],
+                name="unique_wishlist_variant"
+            )
+        ]
