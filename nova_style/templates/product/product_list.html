@@ -274,9 +274,14 @@ NEW PRODUCTS
                                                {% endif %} 
                                                {% endfor %}
 
-                        <button class="wishlist-btn" aria-label="Add to wishlist">
-                            <i data-lucide="heart" class="heart-icon"></i>
-                        </button>
+                  <form method="POST" action="{% url 'add_to_wishlist' variant.id %}">
+    {% csrf_token %}
+    <button
+        type="submit"
+        class="wishlist-btn {% if variant.id in wishlist_variant_ids %}active{% endif %}">
+        <i data-lucide="heart"></i>
+    </button>
+</form>
                     </div>
                     <div class="product-info">
                         <span class="product-category">{{ variant.product.category.name }}</span>
@@ -284,12 +289,12 @@ NEW PRODUCTS
                         <div class="product-price-row">
                             <div class="price-group">
                                 <span class="price-original">₹{{variant.orginal_price  }}</span>
-                                <span class="price-current">₹{{ variant.final_price }}</span>
+                                <span class="price-current">₹{{ variant.discounted_price }}</span>
                             </div>
 
-{% if variant.discount_percentage %}
+{% if variant.total_offer %}
     <span class="discount-badge">
-        {{ variant.discount_percentage }}% OFF
+        {{ variant.total_offer }}% OFF
     </span>
 {% endif %}
                         </div>
@@ -313,7 +318,16 @@ NEW PRODUCTS
         </div>
         <p class="copyright">© 2024 NOVA STYLE. ALL RIGHTS RESERVED.</p>
     </footer>
+<script>
+document.querySelectorAll(".wishlist-btn").forEach(button => {
+    button.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
 
-    <script src="{% static 'js/product_list.js' %}?v=4"></script>
+        this.closest("form").submit();
+    });
+});
+</script>
+    <script src="{% static 'js/product_list.js' %}?v=5"></script>
 </body>
 </html>
