@@ -6,13 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Category Creator</title>
   <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"/>
-  <link rel="stylesheet" href="{% static 'css/staff/new_category.css' %}?v=4">
+  <link rel="stylesheet" href="{% static 'css/staff/new_category.css' %}?v=8">
 </head>
 <body>
   <div class="container">
     <div class="card">
-<form class="card-form" method="post" enctype="multipart/form-data" novalidate>
-          {% csrf_token %}
+<form id="categoryForm" class="card-form" method="post" enctype="multipart/form-data">          {% csrf_token %}
 
         <div class="card-section top-section">
           <div class="form-group">
@@ -22,9 +21,13 @@
               id="category-name"
               name="name"
               placeholder="e.g. Man"
-              value="{{ form.name.value|default_if_none:'' }}"
+              value="{{ name }}"
             >
-           
+{% if errors.name %}
+<small class="field-error">
+    {{ errors.name }}
+</small>
+{% endif %}
           </div>
 
           <div class="form-group">
@@ -34,13 +37,13 @@
                 type="number"
                 id="offer"
                 name="offer"
-                min="0"
-                max="100"
-                value="{{ form.offer.value|default_if_none:'' }}"
+              
+                value="{{ offer }}"
               >
               <span class="suffix">%</span>
             </div>
-         
+             <small class="field-error-container"></small>
+
           </div>
         </div>
 
@@ -70,6 +73,7 @@
                 stroke-width="2"
                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
         </svg>
+
       </div>
 
       <span class="upload-text">
@@ -88,14 +92,10 @@
         Change Image
       </button>
     </div>
+                <small id="image-error-container"></small>
+
 
   </div>
-
-  {% for error in form.image_url.errors %}
-    <p style="color:red; margin:6px 0 0; font-size:13px;">
-      {{ error }}
-    </p>
-  {% endfor %}
 
 </div>
         
@@ -150,9 +150,22 @@
   </div>
 
 </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 
-  <script src="{% static 'js/new_category.js' %}">
+<div id="toast-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast {{ message.tags }}">
+                <span>{{ message }}</span>
+                <button type="button" class="toast-close">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script>
+const CHECK_CATEGORY_URL = "{% url 'check_category_name' %}";
+</script>
+  <script src="{% static 'js/new_category.js' %}?v=8">
 </script>
 </body>
 </html>
