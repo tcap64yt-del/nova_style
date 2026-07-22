@@ -8,9 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/staff/add_product.css' %}?v=3">
-  <link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+  <link rel="stylesheet" href="{% static 'css/staff/add_product.css' %}?v=13">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 </head>
@@ -58,9 +57,9 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
             </div>
             
             <!-- Variant Item Grid -->
-            <div class="variant-grid" id="variant-items-container">
+              <div id="variant-items-container">
                 {% for variant in variants %}
-                
+                <div class="variant-grid">
               <div class="variant-item-row">
               <button type="button" class="btn-remove-variant">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -232,13 +231,15 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
                     </div>
                   </div>
                 </div>
-
+</div>
             {% endfor %}
               </div>
+
             </div>
 
 
           </section>
+          
         </div>
 
         <!-- Right Column: Sidebar Settings -->
@@ -349,13 +350,26 @@ href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 
     </div>
 </div>
- 
+<div id="toast-container">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast {{ message.tags }}">
+                <span>{{ message }}</span>
+                <button type="button" class="toast-close">&times;</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>
+ <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+const CHECK_PRODUCT_URL = "{% url 'check_product_name' %}";
+</script>
+
+<script src="{% static 'js/add_product.js' %}?v=6">
+</script>
 </body>
 
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-<script src="{% static 'js/add_product.js' %}">
-</script>
 
 </html>
