@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/staff/edit_category.css' %}?v=11">
+    <link rel="stylesheet" href="{% static 'css/staff/edit_category.css' %}?v=12">
     <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
 
 </head>
@@ -27,6 +27,9 @@
                         class="input-field"
                         value="{{ category.name }}"
                     >
+               
+                    <small id="nameError" class="error-message"></small>
+
                 </div>
 
                 <div class="input-group">
@@ -41,6 +44,8 @@
                         >
                         <span class="input-suffix">%</span>
                     </div>
+                        <small id="offerError" class="error-message"></small>
+
                 </div>
 
                 <div class="divider"></div>
@@ -53,13 +58,14 @@
         accept="image/*"
         hidden
     >
-
     <img
         id="previewImage"
         class="preview-image"
         src="{% if category.image_url %}{{ category.image_url.url }}{% endif %}"
         alt="Preview"
     >
+<small id="imageError" class="error-message"></small>
+
 
     <div class="upload-content" id="uploadContent">
 
@@ -142,224 +148,21 @@
     </div>
 
 </div>
+{% if messages %}
+<div id="toast-container">
+    {% for message in messages %}
+        <div class="toast {{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="toast-close">&times;</button>
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
-    <script>
-/* ==========================================
-   IMAGE UPLOAD + PREVIEW + CROPPER
-========================================== */
-
-const uploadZone = document.getElementById('uploadZone');
-const fileInput = document.getElementById('fileInput');
-
-const previewImage =
-    document.getElementById('previewImage');
-
-const cropModal =
-    document.getElementById('cropModal');
-
-const cropImage =
-    document.getElementById('cropImage');
-
-const applyCrop =
-    document.getElementById('applyCrop');
-
-const cancelCrop =
-    document.getElementById('cancelCrop');
-
-let cropper = null;
-
-/* Show existing category image */
-
-if (
-    previewImage &&
-    previewImage.getAttribute('src') &&
-    previewImage.getAttribute('src').trim() !== ''
-) {
-    previewImage.style.display = 'block';
-
-    uploadZone.classList.add('has-image');
-}
-
-/* Open file picker */
-
-uploadZone.addEventListener('click', () => {
-    fileInput.click();
-});
-
-uploadZone.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        fileInput.click();
-    }
-});
-
-/* Select Image */
-
-fileInput.addEventListener('change', function (e) {
-
-    const file = e.target.files[0];
-
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function (event) {
-
-        cropImage.src = event.target.result;
-
-        cropModal.style.display = 'flex';
-
-        if (cropper) {
-            cropper.destroy();
-        }
-
-     cropper = new Cropper(cropImage,{
-    aspectRatio: 1,
-    viewMode: 2,
-    dragMode: 'move',
-    autoCropArea: 0.9,
-    responsive: true,
-    restore: false,
-    guides: false,
-    center: false,
-    highlight: false,
-    background: false,
-    cropBoxMovable: true,
-    cropBoxResizable: true,
-    movable: true,
-    zoomable: true
-});
-    };
-
-    reader.readAsDataURL(file);
-});
-
-/* Apply Crop */
-
-applyCrop.addEventListener('click', function () {
-
-    if (!cropper) return;
-
-    const canvas = cropper.getCroppedCanvas({
-        width: 800,
-        height: 800,
-        imageSmoothingQuality: 'high'
-    });
-
-    previewImage.src =
-        canvas.toDataURL('image/jpeg', 0.9);
-
-    previewImage.style.display = 'block';
-
-    uploadZone.classList.add('has-image');
-
-    canvas.toBlob(function (blob) {
-
-        const croppedFile = new File(
-            [blob],
-            'category.jpg',
-            {
-                type: 'image/jpeg'
-            }
-        );
-
-        const dataTransfer =
-            new DataTransfer();
-
-        dataTransfer.items.add(croppedFile);
-
-        fileInput.files =
-            dataTransfer.files;
-
-    }, 'image/jpeg', 0.9);
-
-    cropModal.style.display = 'none';
-
-    cropper.destroy();
-    cropper = null;
-});
-
-/* Cancel Crop */
-
-cancelCrop.addEventListener('click', function () {
-
-    cropModal.style.display = 'none';
-
-    if (cropper) {
-        cropper.destroy();
-        cropper = null;
-    }
-});
-
-/* ==========================================
-   DELETE MODAL
-========================================== */
-
-const deleteModal =
-    document.getElementById('deleteModal');
-
-const deleteForm =
-    document.getElementById('deleteForm');
-
-const deleteModalText =
-    document.getElementById('deleteModalText');
-
-function openDeleteModal(id, name, url) {
-
-    deleteForm.action = url;
-
-    deleteModalText.textContent =
-        `Are you sure you want to delete "${name}"?`;
-
-    deleteModal.style.display = 'flex';
-}
-
-function closeDeleteModal() {
-    deleteModal.style.display = 'none';
-}
-
-window.addEventListener('click', function (e) {
-
-    if (e.target === deleteModal) {
-        closeDeleteModal();
-    }
-});
-
-document.addEventListener('keydown', function (e) {
-
-    if (
-        e.key === 'Escape' &&
-        deleteModal.style.display === 'flex'
-    ) {
-        closeDeleteModal();
-    }
-
-    if (
-        e.key === 'Escape' &&
-        cropModal.style.display === 'flex'
-    ) {
-        cropModal.style.display = 'none';
-
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
-        }
-    }
-});
-
-/* ==========================================
-   CANCEL BUTTON
-========================================== */
-
-const btnCancel =
-    document.getElementById('btnCancel');
-
-if (btnCancel) {
-
-    btnCancel.addEventListener('click', function () {
-        window.history.back();
-    });
-}
+<script>
+const CHECK_CATEGORY_URL = "{% url 'check_category_name' %}";
+const CATEGORY_ID = "{{ category.id }}";
 </script>
+    <script src="{% static 'js/edit_category.js' %}?v=3"></script>
 </body>
 </html>
