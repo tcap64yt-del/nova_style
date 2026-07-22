@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmed | Nova Style</title>
+  <meta name="description" content="Thank you for your purchase from Nova Style. Your order has been successfully placed.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/checkout/success.css' %}">
+</head>
+<body class="thankyou-body">
+  <div class="thankyou-wrapper">
+    <!-- Success Icon -->
+    <div class="success-icon-badge">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+
+    <!-- Headers -->
+    <h1 class="thankyou-title">Thank You</h1>
+    <p class="thankyou-subtitle">
+      Your order <span id="orderName"></span> has been successfully placed.
+      <br>
+      We're getting it ready for shipment.
+    </p>
+
+    <!-- Order Card -->
+    <div class="thankyou-card">
+      <div class="delivery-estimate-block">
+        <span class="delivery-estimate-label">order id </span>
+        <span class="delivery-estimate-date">#{{ order.id }} </span>
+      </div>
+
+      {% for item in order_items  %}
+      <div class="thankyou-item-row">
+        <div class="thankyou-item-image-wrapper">
+          {% for  image in item.variant.images.all %}
+          {% if image.is_primary %}
+          <img src="{{ image.image.url }}" alt="{{ item.variant.product.name }}" class="thankyou-item-image">
+          {% endif %}
+          {% endfor %}
+        </div>
+        <div class="thankyou-item-info">
+          <h2 class="thankyou-item-name">{{ item.variant.product.name }}</h2>
+        </br>
+          <h2 class="thankyou-item-name">Price :₹{{ item.variant.discounted_price }}</h2>
+          <span class="thankyou-item-meta">Size: {{ item.variant.size }} |Qty : {{ item.quantity }}</span>
+        </div>
+        <div class="thankyou-item-price">₹{{ item.line_total }}</div>
+      </div>
+
+      <div class="thankyou-card-divider"></div>
+ {% endfor %}
+      <div class="thankyou-total-row">
+        <span class="thankyou-total-label">TOTAL PAID</span>
+        <span class="thankyou-total-value">₹{{ order.final_amount  }}</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="thankyou-actions">
+      <a href="{% url "order_details" order.id %}" class="btn-action-primary">View Order Status</a>
+      <a href="{% url "product_list" %}" class="btn-action-secondary">Continue Shopping</a>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get('name');
+      if (name) {
+        // Capitalize the first letter for professional display
+        const formattedName = name.trim();
+        document.getElementById('orderName').textContent = formattedName;
+      }
+    });
+  </script>
+</body>
+</html>
