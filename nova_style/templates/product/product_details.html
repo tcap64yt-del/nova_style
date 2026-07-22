@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/product/product_details.css' %}?v=7">
+  <link rel="stylesheet" href="{% static 'css/product/product_details.css' %}?v=11">
   <link rel="stylesheet"href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 </head>
 <body>
@@ -105,7 +105,7 @@
 
       <div class="product-details">
         <h1 class="product-title">{{ product.name }}</h1>
-        <p class="product-price">₹{{ variant.final_price }}</p>
+        <p class="product-price">₹{{ variant.discounted_price }}</p>
 
         <!-- Size Selector -->
         <div class="selector-group">
@@ -115,7 +115,7 @@
 
 <a href="{% url 'product_details' size.id %}">
     <button
-        class="size-btn {% if size ==  variant.size %}active{% endif %}">
+        class="size-btn {% if size.id ==  variant.id %}active{% endif %}">
         {{ size.size }}
     </button>
 </a>
@@ -129,23 +129,24 @@
           <div class="selector-label">COLOR</div>
           <div class="color-row">
             <div class="color-options">
-{% for variant in colors %}
+{% for color in colors %}
 
-<a href="{% url 'product_details' variant.id %}">
+<a href="{% url 'product_details' color.id %}">
     <button
-        class="color-btn {% if variant.id ==  variant.id %}active{% endif %}"
-        style="background-color: {{ variant.color }}">
+        class="color-btn {% if color.id ==  variant.id %}active{% endif %}"
+        style="background-color: {{ color.color }}">
     </button>
 </a>
 
 {% endfor %}
 
             </div>
-{% if variant.offer > 0 %}
+{% if variant.total_offer %}
     <span class="discount-badge">
-        {{ variant.offer }}% OFF
+        {{ variant.total_offer }}% OFF
     </span>
-{% endif %}          </div>
+{% endif %}       
+   </div>
         </div>
 
 <p class="stock-status">
@@ -179,7 +180,16 @@
             Add to cart
         </button>
     </form>
- <button class="btn btn-primary">Buy Now</button>
+    {% if buy_now_error %}
+    <div class="field-error">
+        {{ buy_now_error }}
+    </div>
+{% endif %}
+<form method="POST" action="{% url 'buy_now' variant.id %}" style="display:contents;">
+    {% csrf_token %}
+    <input type="hidden" name="variant_id" value="{{ variant.id }}">
+    <button class="btn btn-primary">Buy Now</button>
+</form>
 
           <button class="btn btn-outline btn-wishlist">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -241,9 +251,15 @@
 
           </div>
           <h3 class="card-title">{{ variant.product.name }} </h3>
-          <p class="card-price">₹{{ variant.final_price  }}</p>
+          <p class="card-price">₹{{ variant.discounted_price  }}</p>
         </div>
+        {% if variant.total_offer %}
+    <span class="discount-badge">
+        {{ variant.total_offer }}% OFF
+    </span>
+{% endif %}
       </a>
+     
                 {% endfor %}
 
       </div>
@@ -405,6 +421,7 @@
         <a href="#" class="footer-link">SHIPPING</a>
         <a href="#" class="footer-link">CONTACT</a>
       </div>
+      
       <p class="copyright">© 2024 NOVA STYLE. ALL RIGHTS RESERVED.</p>
     </div>
   </footer>
@@ -434,6 +451,7 @@
                 <span class="rating-star" data-rating="5">★</span>
            
             </div>
+            
 {% if errors.rating %}
 <div class="field-error">
     {{ errors.rating }}
@@ -486,6 +504,17 @@
     </div>
 
 </div>
+
+{% if messages %}
+<div id="toast-container">
+    {% for message in messages %}
+        <div class="toast {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 {% if errors %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
@@ -497,6 +526,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 {% endif %}
-<script  src="{% static 'js/product_details.js' %}?v=5"></script>
+<script  src="{% static 'js/product_details.js' %}?v=7"></script>
 </body>
 </html>
