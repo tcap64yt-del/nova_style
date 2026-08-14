@@ -8,9 +8,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout 
 from django.core.paginator import Paginator
 import re
+from itertools import chain
+from operator import attrgetter
+from django.db.models import F
 from django.db.models import Count,Prefetch
 from django.http import JsonResponse
-from order.models import Orders,OrderItems,OrderAddress,OrderTrack,OrderReturns
+from order.models import Orders,OrderItems,OrderAddress,OrderTrack,OrderReturns,OrderItemReturn
 
 def admin_login(request):
     if request.user.is_authenticated:
@@ -52,7 +55,7 @@ def user_management(request):
 
     total=Users.objects.count()
 
-    return render(request,'staff/admin_user_management.html',{"users":page_obj,"total":total,"sort":sort,"search":search,'page_obj':page_obj})
+    return render(request,'staff/admin_user_management.html',{"users":page_obj,"total":total,"sort":sort,"search":search,'page_obj':page_obj,"active_page": "admin_user_management",})
 
 
 def block_user(request, user_id):
@@ -95,7 +98,7 @@ def category_management(request):
     total_categories=Category.objects.filter(is_active=True).count()
 
     
-    return render(request,'staff/admin_category_management.html',{"categories":page_obj,"total_categories":total_categories,'page_obj':page_obj,"search":search,"sort":sort})
+    return render(request,'staff/admin_category_management.html',{"categories":page_obj,"total_categories":total_categories,'page_obj':page_obj,"search":search,"sort":sort,"active_page": "admin_category_management",})
 
 @login_required(login_url='admin_login')
 def new_category(request):
@@ -213,7 +216,7 @@ def product_management(request):
         page_obj=paginator.get_page(page_number)
 
         
-        return render(request,"staff/admin_product_management.html",{"products":page_obj,"page_obj":page_obj,"search":search,"sort":sort})
+        return render(request,"staff/admin_product_management.html",{"products":page_obj,"page_obj":page_obj,"search":search,"sort":sort,"active_page":"admin_product_management"})
 
 @login_required(login_url='admin_login')
 def add_product(request):
@@ -249,6 +252,7 @@ def add_product(request):
 
         elif not re.match(r'^[A-Za-z0-9 ]+$', product_name):
             errors["product_name"] = "only letters and numbers are allowed."
+
         elif Products.objects.filter(name__iexact=product_name).exists():
             errors["product_name"] = "alread name exists."
         if not description:
@@ -274,7 +278,7 @@ def add_product(request):
 
             if not variant["stock"]:
                 variant["errors"]["stock"] = "Stock is required"
-            elif int(variant["stock"]) < 1:
+            elif int(variant["stock"]) <= 0:
                 variant["errors"]["stock"] = "Stock must be atleast 1"
 
             if not str(variant["size"]).strip():
@@ -288,7 +292,11 @@ def add_product(request):
                     variant["errors"]["start_date"]=("start date required  ")
                 if not end_date[i]:
                     variant["errors"]["end_date"]=("end date required  ")
+                if start_date[i] and end_date[i]:
 
+                    if start_date[i] > end_date[i]:
+                        variant["errors"]["start_date"] = ("Start date cannot be after end date.")
+                        variant["errors"]["end_date"] = ("End date must be after start date.")
             variant_images = request.FILES.getlist(f"images_{i}[]")
 
             if len(variant_images)<3:
@@ -299,7 +307,7 @@ def add_product(request):
         if errors or variant_has_errors:
             messages.error(request,"Failed")
 
-            return render(request,"staff/add_product.html",{"categories":categories,"errors":errors,"variants":variants,"product_name":product_name,"description":description,"selected_category":category})
+            return render(request,"staff/add_product.html",{"active_page":"admin_product_management","categories":categories,"errors":errors,"variants":variants,"product_name":product_name,"description":description,"selected_category":category})
 
 
         category_obj=get_object_or_404(Category,id=category)
@@ -313,8 +321,8 @@ def add_product(request):
             for i,image in enumerate(variant_images):
                 ProductImage.objects.create(variant=variant,image=image,is_primary=(i==0))
         messages.success(request, "Product added successfully.")
-        return redirect("add_product")
-    return render(request,"staff/add_product.html",{"categories":categories,"errors":{},"variants":[{"index":0,"errors":{}  }]})
+        return redirect("product_management")
+    return render(request,"staff/add_product.html",{"active_page":"admin_product_management","categories":categories,"errors":{},"variants":[{"index":0,"errors":{}  }]})
 
 
 
@@ -340,7 +348,6 @@ def edit_product(request,product_id):
         stocks = request.POST.getlist("stock[]")
         statuses = request.POST.getlist("status[]")
         variant_ids = request.POST.getlist('variant_id[]')
-        
         variants=[]
         variant_count=max(len(prices),len(sizes),len(colors),len(stocks),len(statuses))
         for i in range(variant_count):
@@ -357,7 +364,8 @@ def edit_product(request,product_id):
 
         elif not re.match(r'^[A-Za-z0-9 ]+$', product_name):
             errors["product_name"] = "only letters and numbers are allowed."
-
+        elif Products.objects.filter(name__iexact=product_name).exclude(id=products.id).exists():
+                    errors["product_name"] = "Product name already exists."
         if not description:
             errors["description"] = "description is required."
 
@@ -382,8 +390,8 @@ def edit_product(request,product_id):
 
             if not variant["stock"]:
                 variant["errors"]["stock"] = "Stock is required"
-            elif int(variant["stock"]) < 1:
-                variant["errors"]["stock"] = "Stock must be atleast 1"
+            elif int(variant["stock"]) <0 :
+                variant["errors"]["stock"] = "Stock must be postive number"
 
             if not str(variant["size"]).strip():
                 variant["errors"]["size"] = "Size is required"
@@ -396,7 +404,10 @@ def edit_product(request,product_id):
                     variant["errors"]["start_date"]=("start date required  ")
                 if not end_date[i]:
                     variant["errors"]["end_date"]=("end date required  ")
-
+                if start_date[i] and end_date[i]:
+                    if start_date[i] > end_date[i]:
+                        variant["errors"]["start_date"] = ("Start date cannot be after end date.")
+                        variant["errors"]["end_date"] = ("End date must be after start date.")
             variant_images = request.FILES.getlist(f"images_{i}[]")
             existing_count=0
 
@@ -415,11 +426,13 @@ def edit_product(request,product_id):
             seen.add(key)
 
         variant_has_errors=any(variant["errors"] for variant in variants)
+        
         if errors or variant_has_errors:
+            print(errors,variant_has_errors)
             messages.error(request,"Failed")
             products.name=product_name
             products.description = description
-            return render(request,"staff/edit_product.html",{"categories":categories,"errors":errors,"products":products,"variants":variants})
+            return render(request,"staff/edit_product.html",{"active_page":"admin_product_management","categories":categories,"errors":errors,"products":products,"variants":variants})
         category_obj=get_object_or_404(Category,id=category)
             
         products.name=product_name
@@ -430,14 +443,26 @@ def edit_product(request,product_id):
         delete_image_ids = request.POST.get("deleted_image_ids","")
         delete_variant_ids= request.POST.get("deleted_variant_ids","")
 
-        print(delete_variant_ids)
 
         if delete_variant_ids:
             ProductVariant.objects.filter(id__in=delete_variant_ids.split(",")).delete()
             
         if delete_image_ids:
-            ProductImage.objects.filter(id__in=delete_image_ids.split(",")).delete()
-        
+            deleted_ids = delete_image_ids.split(",")
+
+            deleted_images = ProductImage.objects.filter(id__in=deleted_ids)
+            affected_variant_ids = list(deleted_images.values_list("variant_id", flat=True))
+
+            deleted_images.delete()
+
+            for variant_id in affected_variant_ids:
+                remaining_images = ProductImage.objects.filter(variant_id=variant_id).order_by("id")
+
+                if remaining_images.exists():
+                    remaining_images.update(is_primary=False)
+                    first_image = remaining_images.first()
+                    first_image.is_primary = True
+                    first_image.save(update_fields=["is_primary"])
 
         for i in range(len(prices)):
             variant_id=(variant_ids[i] if i <len(variant_ids) else "")
@@ -470,7 +495,7 @@ def edit_product(request,product_id):
                 ProductImage.objects.create(variant=variant,image=image,is_primary=(existing_images == 0 and img_index == 0))
         messages.success(request, "Product edited successfully.")
 
-        return redirect("edit_product",product_id=products.id)
+        return redirect("edit_product",product_id=products.id,)
     
 
     variants=[]
@@ -491,7 +516,7 @@ def edit_product(request,product_id):
         "errors": {},
     })
       
-    return render(request,"staff/edit_product.html",{"products":products,"categories":categories,"variants":variants,"errors":{}})
+    return render(request,"staff/edit_product.html",{"active_page":"admin_product_management","products":products,"categories":categories,"variants":variants,"errors":{}})
 
 @login_required(login_url="admin_login")
 def activate_product(request,product_id):
@@ -512,34 +537,24 @@ def deactivate_product(request,product_id):
     return redirect("product_management")    
 
 
-def check_category_name(request):
-    name = request.GET.get("name", "").strip()
-    category_id = request.GET.get("category_id")
-
-    qs = Category.objects.filter(name__iexact=name)
-
-    if category_id:
-        qs = qs.exclude(id=category_id)
-
-    return JsonResponse({"exists": qs.exists()})
-
-def check_product_name(request):
-    name = request.GET.get("name", "").strip()
-    product_id = request.GET.get("product_id")
-
-    qs = Products.objects.filter(name__iexact=name)
-
-    if product_id:
-        qs = qs.exclude(id=product_id)
-
-    return JsonResponse({
-        "exists": qs.exists()
-    })
 
 @login_required(login_url="admin_login")
 def order_management(request):
-    orders=Orders.objects.select_related("user").prefetch_related("addresses","items__variant__product","items__variant__images",).order_by("-created_at")
-    return render(request,"staff/order_management.html",{"orders":orders})
+    search=request.GET.get("search","")
+    status = request.GET.get("status", "").strip().lower()
+
+    print(search)
+    orders=(Orders.objects.select_related("user").prefetch_related("addresses","items__variant__product","items__variant__images",).order_by("-created_at"))
+    if search:
+        orders=orders.filter(Q(items__variant__product__name__icontains=search)|Q (addresses__name__icontains=search)).distinct()
+    if status:
+        orders = orders.filter(status=status)
+
+    paginator = Paginator(orders, 5)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request,"staff/order_management.html",{"orders":page_obj,"page_obj":page_obj,"search":search,"active_page": "admin_order_management","status": status,})
 
 @login_required(login_url="admin_login")
 def admin_order_detail(request,order_id):
@@ -563,7 +578,7 @@ def admin_order_detail(request,order_id):
     else:
         allowed_statuses=[]
 
-    return render(request,"staff/admin_order_details.html",{"order":order,"items":items,"shipping":shipping,"tracking":tracking,"allowed_statuses": allowed_statuses,})
+    return render(request,"staff/admin_order_details.html",{"order":order,"items":items,"shipping":shipping,"tracking":tracking,"allowed_statuses": allowed_statuses,"active_page": "admin_order_management"})
 
 @login_required(login_url="admin_login")
 def order_status(request,order_id):
@@ -580,35 +595,105 @@ def order_status(request,order_id):
 
 
 def admin_order_returns(request):
-   returns=OrderReturns.objects.select_related("order").prefetch_related("order__items__variant__product",Prefetch('order__addresses',queryset=OrderAddress.objects.filter(address_type="shipping"),to_attr="shipping")).order_by("-created_at")
+
+    search = request.GET.get("search", "")
+    status = request.GET.get("status", "all")
+    start_date = request.GET.get("start_date", "")
+    end_date = request.GET.get("end_date", "")
+
+    order_returns = (OrderReturns.objects.select_related("order", "order__user").prefetch_related(Prefetch("order__addresses",queryset=OrderAddress.objects.filter(address_type="shipping"),to_attr="shipping")))
+    item_returns = (OrderItemReturn.objects.select_related("order_item","order_item__order","order_item__order__user","order_item__variant__product",))
+    if status == "pending":
+
+        order_returns = order_returns.filter(status="pending")
+        item_returns = item_returns.filter(status="pending")
 
 
-   return render(request,"staff/admin_order_returns.html",{"returns":returns})
+    elif status == "approved":
+        order_returns = order_returns.filter(status="approved")
+        item_returns = item_returns.filter(status="approved")
 
-def return_details(request,return_id):
-    return_order=get_object_or_404(OrderReturns.objects.filter(id=return_id).select_related("order","order__user").prefetch_related(Prefetch('order__addresses',queryset=OrderAddress.objects.filter(address_type="shipping"),to_attr="shipping_address"),"order__items__variant__product","order__items__variant__images"),id=return_id)
 
-    return render(request,"staff/return_details.html",{"return_order":return_order})
+    elif status == "rejected":
+        order_returns = order_returns.filter(status="rejected")
+        item_returns = item_returns.filter(status="rejected")
 
-def update_return_status(request,return_id):
-    return_order=get_object_or_404(OrderReturns,id=return_id)
+
+    if search:
+        order_returns = order_returns.filter(Q(order__addresses__name__icontains=search)).distinct()
+        item_returns = item_returns.filter(Q(order_item__order__addresses__name__icontains=search)).distinct()
+
+    if start_date:
+        order_returns = order_returns.filter(created_at__date__gte=start_date)
+        item_returns = item_returns.filter(created_at__date__gte=start_date)
+    if end_date:
+        order_returns = order_returns.filter(created_at__date__lte=end_date)
+        item_returns = item_returns.filter(created_at__date__lte=end_date)
+
+
+    returns = sorted(chain(order_returns, item_returns),key=attrgetter("created_at"),reverse=True,)
+
+
+    return render(request,"staff/admin_order_returns.html",{"returns":returns,"search": search,"status": status,"start_date": start_date,"end_date": end_date,"active_page": "admin_order_management"})
+
+def return_details(request,return_type,return_id):
+
+    if return_type =="order":
+        return_obj=get_object_or_404(OrderReturns.objects.select_related("order","order__user").prefetch_related(Prefetch("order__addresses",queryset=OrderAddress.objects.filter(address_type='shipping'),to_attr='shipping_address'),"order__items__variant__product",'order__items__variant__images'),id=return_id)
+        items=return_obj.order.items.all()
+        refund_amount=return_obj.order.final_amount
+    else:
+        return_obj=get_object_or_404(OrderItemReturn.objects.select_related("order_item","order_item__order","order_item__order__user","order_item__variant__product").prefetch_related("order_item__variant__images",Prefetch("order_item__order__addresses",queryset=OrderAddress.objects.filter(address_type="shipping"),to_attr="shipping_address")),id=return_id)
+        items=[return_obj.order_item]
+        refund_amount=(return_obj.quantity*return_obj.order_item.unit_amount)
+
+    return render(request,"staff/return_details.html",{"return_type": return_type,"return_obj": return_obj, "order": return_obj.order if return_type == "order" else return_obj.order_item.order,  "items": items,"refund_amount": refund_amount,"active_page": "admin_order_management"},)
+
+def update_return_status(request,return_id,return_type):
+    if return_type == "order":
+        return_order = get_object_or_404(OrderReturns, id=return_id)
+        order = return_order.order
+    else:
+        return_order = get_object_or_404(OrderItemReturn, id=return_id)
+        order = return_order.order_item.order
 
     if request.method =="POST":
         status=request.POST.get("status")
-        if status =="approved":
-            return_order.status='approved'
-            return_order.save(update_fields=["status"])
-            order=return_order.order
-            order.status="approved"
 
-            order.save(update_fields=['status'])
-            OrderTrack.objects.create(order=order,status='approved')
+        if status == "approved":
+            if return_order.status == "pending":
+                if return_type == "order":
+
+                    for item in order.items.select_related("variant"):
+                        if OrderItemReturn.objects.filter(order_item=item,status="approved").exists():
+                            continue
+
+                        ProductVariant.objects.filter(id=item.variant.id).update(stock=F("stock") + item.quantity)
+                    order.status = "approved"
+                    order.save(update_fields=["status"])
+                    OrderTrack.objects.create(order=order,status="approved")
+
+                else:
+
+                    ProductVariant.objects.filter(id=return_order.order_item.variant.id).update(stock=F("stock") + return_order.quantity)
+
+                    return_order.order_item.status = "approved"
+                    return_order.order_item.save(update_fields=["status"])
+
+                return_order.status = "approved"
+                return_order.save(update_fields=["status"])
+
         else:
-            return_order.status='rejected'
-            return_order.save(update_fields=["status"])
-            order=return_order.order
-            order.status="rejected"
-            order.save(update_fields=['status'])
-            OrderTrack.objects.create(order=order,status='rejected')
 
-    return redirect("return_details",return_id=return_id)
+            return_order.status = "rejected"
+            return_order.save(update_fields=["status"])
+
+            if return_type == "order":
+                order.status = "rejected"
+                order.save(update_fields=["status"])
+                OrderTrack.objects.create(order=order,status="rejected")
+            else:
+                return_order.order_item.status = "rejected"
+                return_order.order_item.save(update_fields=["status"])
+
+    return redirect("admin_order_returns")
