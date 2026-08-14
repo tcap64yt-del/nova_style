@@ -8,21 +8,29 @@ from django.http import JsonResponse
 
 @login_required(login_url="login")
 def cart(request):
-    profile=request.user
+    details=request.user
     cart=Cart.objects.filter(user=request.user).first()
     if cart:
-        CartItem.objects.filter(cart=cart).filter(Q(variant__is_active=False)| Q(variant__product__is_active=False)).delete()
-        cart_items=CartItem.objects.filter(cart=cart,variant__is_active=True,variant__product__is_active=True).select_related("variant","variant__product").prefetch_related("variant__images")
+        CartItem.objects.filter(cart=cart).filter(Q(variant__is_active=False)| Q(variant__product__is_active=False) |Q(variant__product__category__is_active=False)).delete()
+        cart_items=CartItem.objects.filter(cart=cart,variant__is_active=True,variant__product__category__is_active=True,variant__product__is_active=True).select_related("variant","variant__product").prefetch_related("variant__images")
     
     cart_count=cart_items.count()
     cart_items=[]
     subtotal=0
+    checkout_errors = []
+
     if cart:
         cart_items=cart.items.all()
+        checkout_errors = []
+
         for item in cart_items:
             subtotal+=item.variant.discounted_price*item.quantity
 
-    return render(request,"cart/cart.html",{"cart_items":cart_items,"subtotal":subtotal,"cart_count":cart_count,"profile":profile})
+            if item.quantity > item.variant.stock:
+                checkout_errors.append({"name": item.variant.product.name,"color": item.variant.color,"size": item.variant.size,"stock": item.variant.stock,})
+    else:
+        checkout_errors.append({"message": "It's empty. Please add a product."})  
+    return render(request,"cart/cart.html",{"details":details,"cart_items":cart_items,"subtotal":subtotal,"cart_count":cart_count,"checkout_errors": checkout_errors,"show_sidebar": False,"show_search": False})
 
 @login_required(login_url="login")
 def remove_cart_item(request,item_id):
@@ -66,3 +74,5 @@ def decrease_quantity(request,item_id):
         subtotal += cart_item.variant.discounted_price * cart_item.quantity
 
     return JsonResponse({"success": True,"message": "Quantity decreased.","quantity": item.quantity,"subtotal": subtotal,"item_total": item.quantity * item.variant.discounted_price,"cart_count": item.cart.items.count()})
+
+
