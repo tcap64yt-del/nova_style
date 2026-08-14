@@ -365,13 +365,21 @@ input[type="text"]:focus,
   padding: 20px;
 }
 
-.crop-card {
-  width: 100%;
-  max-width: 650px;
-  background: #fff;
-  border-radius: 16px;
-  overflow: hidden;
+#crop-image{
+    width: 100%;
+    max-height: 100%;
+    object-fit: contain;
 }
+.crop-card {
+    width: min(90vw, 700px);
+    max-height: 90vh;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
 
 .crop-header {
   padding: 18px 20px;
@@ -385,13 +393,21 @@ input[type="text"]:focus,
 }
 
 .crop-body {
-  padding: 20px;
+    height: 500px;          /* Fixed cropping area */
+    max-height: 65vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
 }
 
 .crop-body img {
-  max-width: 100%;
-  display: block;
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
 }
+
 
 .crop-actions {
   padding: 20px;
