@@ -59,7 +59,7 @@ def product_list(request):
         wishlist=Wishlist.objects.filter(user=request.user).first()
         if wishlist:
             wishlist_variants=list(wishlist.wishlist_items.values_list("variant_id",flat=True))
-    return render(request,'product/product_list.html',{"variants":variants,"categories":Category.objects.filter(is_active=True),"details":details,"wishlist_variant_ids": wishlist_variants,})
+    return render(request,'product/product_list.html',{"variants":variants,"categories":Category.objects.filter(is_active=True),"details":details,"wishlist_variant_ids": wishlist_variants,"show_search":True})
 
 def product_details(request,variant_id):    
     profile=request.user
@@ -129,7 +129,15 @@ def product_details(request,variant_id):
             return redirect("product_details",variant_id=variant_id)
     cart_error = request.session.pop("cart_error",None)
     buy_now_error = request.session.pop("buy_now_error", None)
-    return render(request,"product/product_details.html",{"details":profile,"product":product,"variant":variant,"sizes":sizes,"colors":colors,"related_products":related_products,"errors":errors,"reviews":reviews,"avg_rating": avg_rating,"review_count": review_count,"five_star_percent": five_star_percent,"four_star_percent": four_star_percent,"three_star_percent": three_star_percent,"two_star_percent": two_star_percent,"one_star_percent": one_star_percent,"next":next,"page_number":page_number,"cart_error":cart_error,"buy_now_error": buy_now_error,})
+
+    is_wishlisted=False
+    wishlist = None
+
+    if request.user.is_authenticated:
+         wishlist = Wishlist.objects.filter(user=request.user).first()
+    if wishlist:
+        is_wishlisted=WishlistItem.objects.filter(wishlist=wishlist,variant=variant).exists()
+    return render(request,"product/product_details.html",{"details":profile,"product":product,"variant":variant,"sizes":sizes,"colors":colors,"related_products":related_products,"is_wishlisted": is_wishlisted,"errors":errors,"reviews":reviews,"avg_rating": avg_rating,"review_count": review_count,"five_star_percent": five_star_percent,"four_star_percent": four_star_percent,"three_star_percent": three_star_percent,"two_star_percent": two_star_percent,"one_star_percent": one_star_percent,"next":next,"page_number":page_number,"cart_error":cart_error,"buy_now_error": buy_now_error,})
 
 
 @login_required(login_url="login")
@@ -145,7 +153,10 @@ def add_to_cart(request):
         errors["cart"]="Variant is unavailable"
     elif not variant.product.is_active:
         errors["cart"]="Product is unavailable"
-
+    elif variant.stock <= 0:
+        errors["cart"] = "Out of stock"
+    elif not variant.product.category.is_active:
+        errors['cart']="category is unavailable"
    
 
 
@@ -161,13 +172,13 @@ def add_to_cart(request):
                     cart_item.quantity+=1
                     cart_item.save(update_fields=["quantity"])
     if errors:
-            request.session["cart_error"]=errors["cart"]
-            messages.error(request,"Failed")
+        messages.error(request, errors["cart"])
     else:
-         messages.success(request,"Added to cart")       
-    wishlist=Wishlist.objects.filter(user=request.user).first()
-    if wishlist:
-        WishlistItem.objects.filter(wishlist=wishlist,variant=variant).delete()
+        messages.success(request,"Added to cart")       
+        wishlist=Wishlist.objects.filter(user=request.user).first()
+        if wishlist:
+            WishlistItem.objects.filter(wishlist=wishlist,variant=variant).delete()
+        return redirect("product_details", variant_id=variant.id)
     return redirect("product_details",variant_id=variant.id)
 
 @login_required(login_url="login")
@@ -180,6 +191,5 @@ def buy_now(request,variant_id):
         if errors:
             request.session["buy_now_error"] = errors['buy_now_error']
             return redirect("product_details",variant_id=variant.id)
-    request.session["buy_now_variant"] = variant.id
-    return redirect('checkout')
+    return redirect("buy_now_checkout", variant_id=variant.id)
 
