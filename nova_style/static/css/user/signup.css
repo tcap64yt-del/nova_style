@@ -1,0 +1,431 @@
+/* Base Reset & Globals */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --text-primary: #2d2d2d;
+    --text-secondary: #777;
+    --text-light: #aaa;
+    --bg-main: #ffffff;
+    --bg-input: #f4f5f6;
+    --border-light: #eaeaea;
+    --btn-primary: #5c5c5c;
+    --btn-primary-hover: #4a4a4a;
+    --footer-bg: #fdfdfd;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg-main);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Layout */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.left-panel {
+    display: flex;
+    justify-content: center;
+    padding: 48px 24px;
+    background-color: var(--bg-main);
+    flex: 1;
+}
+
+.right-panel {
+    display: none; /* Hidden on mobile */
+    position: relative;
+    background-color: #ddd; /* Fallback */
+}
+
+/* Form Container */
+.form-container {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center vertically if space allows */
+}
+
+/* Header */
+header {
+    margin-bottom: 48px;
+}
+
+.brand {
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-weight: 400;
+}
+
+header h1 {
+    font-size: 28px;
+    font-weight: 400;
+    margin-top: 12px;
+    color: var(--text-primary);
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-group input {
+    background-color: var(--bg-input);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--text-primary);
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input::placeholder {
+    color: #aaa;
+}
+
+.form-group input:focus {
+    border-color: #d0d0d0;
+    background-color: #fff;
+}
+
+input[type="password"] {
+    letter-spacing: 2px;
+}
+
+/* Checkbox */
+.checkbox-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 32px;
+    margin-bottom: 24px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    appearance: none;
+    background-color: #fff;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.checkbox-group input[type="checkbox"]:checked {
+    background-color: var(--btn-primary);
+    border-color: var(--btn-primary);
+}
+
+.checkbox-group input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.checkbox-group label {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+}
+
+.checkbox-group a {
+    color: var(--text-primary);
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+/* Buttons */
+.btn-primary {
+    width: 100%;
+    background-color: var(--btn-primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: var(--btn-primary-hover);
+}
+
+.btn-google {
+    width: 100%;
+    background-color: #fff;
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-family: inherit;
+    transition: background-color 0.2s;
+}
+
+.btn-google:hover {
+    background-color: #fafafa;
+}
+
+.btn-google img {
+    width: 18px;
+    height: 18px;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 32px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.login-link a {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+.bg-img {
+    width: 100%;
+    height: 125%;
+    object-fit: cover;
+    object-position: center;
+    position: absolute;
+    top: 0;
+    left: 0; 
+}
+
+.quote-container {
+    position: absolute;
+    bottom: 10px;
+    left: 60px;
+    right: 60px;
+    z-index: 1;
+}
+
+.quote-line {
+    width: 40px;
+    height: 1px;
+    background-color: #222;
+    border: none;
+    margin-left: 0;
+    margin-bottom: 24px;
+}
+
+.quote {
+    font-size: 22px;
+    line-height: 1.4;
+    color: #222;
+    font-weight: 300;
+}
+
+.site-footer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 14%;
+    padding: 24px;
+    background-color: var(--footer-bg);
+    border-top: 1px solid var(--border-light);
+}
+
+.site-footer p {
+    font-size: 11px;
+    color: #888;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.footer-links {
+    display: flex;
+    gap: 24px;
+}
+
+.footer-links a {
+    font-size: 11px;
+    color: #888;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.footer-links a:hover {
+    color: var(--text-primary);
+}
+
+/* Media Queries for Desktop */
+@media (min-width: 900px) {
+    .main-content {
+        flex-direction: row;
+    }
+    
+    .left-panel {
+        flex: 1;
+        padding: 60px 40px;
+        align-items: center;
+    }
+    
+    .right-panel {
+        display: block;
+        flex: 1;
+    }
+    
+    .site-footer {
+        flex-direction: row;
+        justify-content: space-between;
+        padding: 24px 60px;
+    }
+}
+
+
+.flash-message {
+    margin: 12px 0 18px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+.flash-message.success {
+    background: #e8f7ee;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.flash-message.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+.flash-message.warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.flash-message.info {
+    background: #e0f2fe;
+    color: #075985;
+    border: 1px solid #7dd3fc;
+}
+.form-errors,
+.field-errors,
+.otp-message-area {
+    text-align: center;
+}
+
+.form-errors p,
+.field-errors p,
+.otp-message {
+    margin: 6px 0 0;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #d93025;
+}
+
+.field-errors,
+.form-errors {
+    margin-top: 8px;
+}
+
+.form-errors .msg {
+    color: #d93025;
+}
+
+.msg.error,
+.msg.success,
+.msg.info,
+.msg.warning {
+    color: #d93025;
+}
+
+input.ng-invalid {
+    border-color: #d93025;
+}
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 70px; /* space for the button */
+}
+
+.toggle-password {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    width: auto;
+    height: auto;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+    color: #666;
+    font-size: 13px;
+    font-weight: 500;
+}

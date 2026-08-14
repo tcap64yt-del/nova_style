@@ -1,0 +1,629 @@
+/* =====================================
+   PROFILE PAGE
+===================================== */
+
+.content-header {
+    margin-bottom: 40px;
+}
+
+.main-title {
+    font-size: 2.25rem;
+    font-weight: 500;
+    color: #111;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+}
+
+.main-subtitle {
+    font-size: .95rem;
+    color: #666;
+    font-weight: 400;
+}
+
+/* =====================================
+   PROFILE CARD
+===================================== */
+
+.profile-card {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.profile-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding-bottom: 20px;
+}
+
+/* =====================================
+   AVATAR
+===================================== */
+
+.profile-avatar-wrap {
+    position: relative;
+    width: 110px;
+    height: 110px;
+}
+
+.profile-avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+.avatar-edit-btn {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+
+    width: 30px;
+    height: 30px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: #4a4a4a;
+    color: #fff;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 14px;
+
+    transition: .25s;
+}
+
+.avatar-edit-btn:hover {
+    background: #222;
+    transform: scale(1.05);
+}
+
+/* =====================================
+   PROFILE INFO
+===================================== */
+
+.profile-info {
+    flex: 1;
+    min-width: 180px;
+}
+
+.profile-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 4px;
+}
+
+.profile-membership {
+    font-size: .85rem;
+    color: #999;
+}
+
+.profile-actions {
+    margin-left: auto;
+}
+
+.change-password-link {
+    background: transparent;
+    border: none;
+
+    color: #666;
+
+    font-size: .75rem;
+    font-weight: 500;
+
+    letter-spacing: .05em;
+
+    cursor: pointer;
+
+    padding: 8px 0;
+
+    border-bottom: 1.5px solid transparent;
+
+    transition: .25s;
+}
+
+.change-password-link:hover {
+    color: #111;
+    border-bottom-color: #111;
+}
+
+/* =====================================
+   PROFILE FORM
+===================================== */
+
+.profile-form{
+    display:flex;
+    flex-direction:column;
+    gap:32px;
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:30px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.form-label{
+    font-size:.7rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    color:#999;
+}
+
+.form-input{
+    width:100%;
+
+    padding:16px 20px;
+
+    border:1px solid transparent;
+    border-radius:10px;
+
+    background:#f1f3f6;
+
+    color:#111;
+    font-size:.95rem;
+
+    transition:.25s;
+}
+
+.form-input:focus{
+
+    outline:none;
+
+    background:#fff;
+
+    border-color:#999;
+
+    box-shadow:0 2px 8px rgba(0,0,0,.03);
+
+}
+
+.form-input::placeholder{
+    color:#aaa;
+}
+
+/* =====================================
+   FORM ERRORS
+===================================== */
+
+.form-errors{
+
+    margin-top:-18px;
+
+    color:#d62828;
+
+    font-size:.85rem;
+
+}
+
+.form-errors p{
+
+    margin-top:4px;
+
+}
+
+/* =====================================
+   ACTIONS
+===================================== */
+
+.form-actions{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+}
+
+.btn-save{
+
+    background:#4a4a4a;
+
+    color:#fff;
+
+    border:none;
+
+    border-radius:8px;
+
+    padding:14px 40px;
+
+    font-size:.9rem;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+
+}
+
+.btn-save:hover{
+
+    background:#2d2d2d;
+
+    transform:translateY(-1px);
+
+    box-shadow:0 6px 20px rgba(0,0,0,.15);
+
+}
+
+.btn-save:active{
+
+    transform:translateY(0);
+
+}
+
+/* =====================================
+   PROFILE MODAL
+===================================== */
+
+.profile-modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:1000;
+}
+
+.profile-modal.show{
+    display:block;
+}
+
+/* Overlay */
+
+.profile-modal-overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.45);
+}
+
+/* Modal Box */
+
+.profile-modal-box{
+
+    position:relative;
+    z-index:2;
+
+    width:420px;
+    max-width:calc(100% - 32px);
+
+    margin:8% auto;
+
+    background:#fff;
+
+    border-radius:16px;
+
+    padding:24px;
+
+    box-shadow:0 20px 60px rgba(0,0,0,.18);
+
+}
+
+/* Header */
+
+.profile-modal-header{
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    margin-bottom:18px;
+
+}
+
+.profile-modal-header h3{
+
+    font-size:1.15rem;
+    font-weight:600;
+    color:#111;
+
+}
+
+.modal-close-btn{
+
+    background:none;
+    border:none;
+
+    font-size:28px;
+
+    cursor:pointer;
+
+    color:#555;
+
+    line-height:1;
+
+    transition:.25s;
+
+}
+
+.modal-close-btn:hover{
+
+    color:#111;
+
+}
+
+/* Image Preview */
+
+.profile-modal-preview{
+
+    width:100px;
+    height:100px;
+
+    margin:0 auto 18px;
+
+    border-radius:50%;
+
+    overflow:hidden;
+
+}
+
+.profile-modal-preview img{
+
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+}
+
+/* Upload */
+
+.upload-label{
+
+    display:block;
+
+    margin:14px 0 8px;
+
+    font-size:.9rem;
+
+    font-weight:600;
+
+    color:#444;
+
+}
+
+.file-input{
+
+    width:100%;
+
+    padding:12px 14px;
+
+    border:1px solid #ddd;
+
+    border-radius:10px;
+
+    outline:none;
+
+    transition:.25s;
+
+}
+
+.file-input:focus{
+
+    border-color:#999;
+
+}
+
+/* Footer Buttons */
+
+.modal-actions{
+
+    display:flex;
+
+    gap:12px;
+
+    margin-top:22px;
+
+}
+
+.back-btn,
+.save-btn{
+
+    flex:1;
+
+    padding:12px 18px;
+
+    border:none;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-size:.9rem;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.back-btn{
+
+    background:#e8e8e8;
+
+    color:#333;
+
+}
+
+.back-btn:hover{
+
+    background:#dcdcdc;
+
+}
+
+.save-btn{
+
+    background:#4a4a4a;
+
+    color:#fff;
+
+}
+
+.save-btn:hover{
+
+    background:#2d2d2d;
+
+}
+
+/* =====================================
+   ALERTS
+===================================== */
+
+.alert{
+    padding:12px 16px;
+    margin-bottom:20px;
+    border-radius:8px;
+    font-size:.9rem;
+    font-weight:500;
+}
+
+.alert-success{
+    color:#155724;
+    background:#d4edda;
+    border:1px solid #c3e6cb;
+}
+
+.alert-error,
+.alert-danger{
+    color:#721c24;
+    background:#f8d7da;
+    border:1px solid #f5c6cb;
+}
+
+/* =====================================
+   TABLET
+===================================== */
+
+@media (max-width:992px){
+
+    .content-header{
+        margin-bottom:30px;
+    }
+
+    .main-title{
+        font-size:2rem;
+    }
+
+    .profile-meta-row{
+        gap:20px;
+    }
+
+}
+
+/* =====================================
+   MOBILE
+===================================== */
+
+@media (max-width:768px){
+
+    .content-header{
+        margin-bottom:24px;
+    }
+
+    .main-title{
+        font-size:1.75rem;
+    }
+
+    .main-subtitle{
+        font-size:.9rem;
+    }
+
+    .profile-card{
+        gap:30px;
+    }
+
+    .profile-meta-row{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .profile-actions{
+        margin-left:0;
+        width:100%;
+    }
+
+    .change-password-link{
+        padding:6px 0;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+        gap:20px;
+    }
+
+    .form-actions{
+        justify-content:stretch;
+    }
+
+    .btn-save{
+        width:100%;
+    }
+
+    .profile-modal-box{
+        margin:20% auto;
+        padding:20px;
+    }
+
+}
+
+/* =====================================
+   SMALL MOBILE
+===================================== */
+
+@media (max-width:480px){
+
+    .profile-avatar-wrap{
+        width:90px;
+        height:90px;
+    }
+
+    .profile-avatar{
+        width:90px;
+        height:90px;
+    }
+
+    .avatar-edit-btn{
+        width:28px;
+        height:28px;
+        font-size:12px;
+    }
+
+    .profile-name{
+        font-size:1.1rem;
+    }
+
+    .main-title{
+        font-size:1.55rem;
+    }
+
+    .profile-modal-box{
+        width:calc(100% - 24px);
+        padding:18px;
+    }
+
+    .modal-actions{
+        flex-direction:column;
+    }
+
+    .back-btn,
+    .save-btn{
+        width:100%;
+    }
+
+}

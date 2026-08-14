@@ -1,0 +1,89 @@
+/* ==========================================
+   FOOTER
+========================================== */
+
+.main-footer {
+
+    border-top: 1px solid var(--border-color);
+
+    padding: 40px 20px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 20px;
+
+    margin-top: 80px;
+
+    background-color: var(--bg-primary);
+
+}
+
+.footer-links {
+
+    display: flex;
+
+    gap: 32px;
+
+}
+
+.footer-link {
+
+    font-family: var(--font-primary);
+
+    font-size: 0.75rem;
+
+    text-transform: uppercase;
+
+    color: var(--text-muted);
+
+    text-decoration: none;
+
+    letter-spacing: 0.08em;
+
+    font-weight: 500;
+
+    transition: var(--transition-smooth);
+
+}
+
+.footer-link:hover {
+
+    color: var(--text-main);
+
+}
+
+.footer-copyright {
+
+    font-family: var(--font-primary);
+
+    font-size: 0.65rem;
+
+    color: var(--text-light);
+
+    letter-spacing: 0.08em;
+
+    font-weight: 400;
+
+}
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width:520px) {
+
+    .footer-links {
+
+        flex-wrap: wrap;
+
+        justify-content: center;
+
+        gap: 20px;
+
+    }
+
+}

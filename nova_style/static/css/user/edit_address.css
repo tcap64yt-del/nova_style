@@ -1,0 +1,313 @@
+/* =====================================
+   MAIN CONTENT
+===================================== */
+
+.main-content{
+    flex:1;
+}
+
+.content-header{
+    margin-bottom:40px;
+}
+
+.main-title{
+    font-size:2.25rem;
+    font-weight:500;
+    color:#111;
+    margin-bottom:8px;
+    letter-spacing:-0.02em;
+}
+
+.main-subtitle{
+    font-size:.95rem;
+    color:#666;
+}
+
+/* =====================================
+   ADDRESS FORM CARD
+===================================== */
+
+.address-form-card{
+    background:#fff;
+    border:1px solid #f0f0f0;
+    border-radius:16px;
+    padding:32px;
+}
+
+.address-form{
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+}
+
+.form-row{
+    display:grid;
+    gap:24px;
+}
+
+.form-row.full-width{
+    grid-template-columns:1fr;
+}
+
+.form-row.two-col{
+    grid-template-columns:repeat(2,1fr);
+}
+
+.form-row.three-col{
+    grid-template-columns:repeat(3,1fr);
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.form-group label{
+    font-size:.72rem;
+    font-weight:700;
+    color:#999;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+}
+
+.form-group input,
+.form-group textarea{
+    width:100%;
+    border:1px solid transparent;
+    background:#f5f6f8;
+    border-radius:10px;
+    padding:15px 18px;
+    font-size:.95rem;
+    transition:.25s;
+}
+
+.form-group input{
+    height:52px;
+}
+
+.form-group textarea{
+    min-height:130px;
+    resize:vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus{
+    background:#fff;
+    border-color:#cfd3da;
+    box-shadow:0 0 0 3px rgba(0,0,0,.04);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder{
+    color:#aaa;
+}
+/* =====================================
+   FORM ACTIONS
+===================================== */
+
+.form-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:14px;
+    padding-top:10px;
+}
+
+.btn-cancel,
+.btn-save{
+    height:48px;
+    padding:0 24px;
+    border:none;
+    border-radius:10px;
+    font-size:.9rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.btn-cancel{
+    background:#ececec;
+    color:#444;
+}
+
+.btn-cancel:hover{
+    background:#dddddd;
+}
+
+.btn-save{
+    background:#4a4a4a;
+    color:#fff;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+}
+
+.btn-save:hover{
+    background:#2d2d2d;
+    transform:translateY(-1px);
+    box-shadow:0 6px 20px rgba(0,0,0,.15);
+}
+
+.btn-save:active{
+    transform:translateY(0);
+}
+
+/* =====================================
+   VALIDATION ERRORS
+===================================== */
+
+.error-message{
+    padding:14px 16px;
+    margin-bottom:24px;
+    background:#fde8e8;
+    border:1px solid #f7caca;
+    border-radius:10px;
+    color:#b42318;
+    font-size:.9rem;
+    font-weight:500;
+}
+
+.form-group small{
+    color:#d92d20;
+    font-size:.82rem;
+    margin-top:2px;
+}
+
+/* =====================================
+   FOOTER
+===================================== */
+
+.main-footer{
+    margin-top:80px;
+    border-top:1px solid #ededed;
+    padding:40px 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+}
+
+.footer-links{
+    display:flex;
+    gap:32px;
+}
+
+.footer-link{
+    font-size:.75rem;
+    color:#666;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    transition:.25s;
+}
+
+.footer-link:hover{
+    color:#111;
+}
+
+.footer-copyright{
+    font-size:.7rem;
+    color:#999;
+}
+
+/* =====================================
+   TABLET
+===================================== */
+
+@media (max-width:992px){
+
+    .dashboard-container{
+        padding:40px 24px;
+        gap:40px;
+    }
+
+    .sidebar{
+        width:200px;
+    }
+
+}
+
+/* =====================================
+   MOBILE
+===================================== */
+
+@media (max-width:768px){
+
+    .header-container{
+        padding:0 20px;
+        height:70px;
+    }
+
+    .dashboard-container{
+        flex-direction:column;
+        gap:30px;
+        padding:30px 20px;
+    }
+
+    .sidebar{
+        width:100%;
+        border-right:none;
+        border-bottom:1px solid #ededed;
+        padding-right:0;
+        padding-bottom:20px;
+    }
+
+    .sidebar-nav{
+        flex-direction:row;
+        overflow-x:auto;
+        scrollbar-width:none;
+    }
+
+    .sidebar-nav::-webkit-scrollbar{
+        display:none;
+    }
+
+    .sidebar-link{
+        flex-shrink:0;
+    }
+
+    .content-header{
+        margin-bottom:28px;
+    }
+
+    .main-title{
+        font-size:1.8rem;
+    }
+
+    .form-row.two-col,
+    .form-row.three-col{
+        grid-template-columns:1fr;
+    }
+
+    .address-form-card{
+        padding:22px;
+    }
+
+    .form-actions{
+        flex-direction:column;
+    }
+
+    .btn-cancel,
+    .btn-save{
+        width:100%;
+    }
+
+}
+
+/* =====================================
+   SMALL MOBILE
+===================================== */
+
+@media (max-width:520px){
+
+    .footer-links{
+        flex-wrap:wrap;
+        justify-content:center;
+    }
+
+    .address-form-card{
+        padding:18px;
+    }
+
+    .main-title{
+        font-size:1.55rem;
+    }
+
+}
