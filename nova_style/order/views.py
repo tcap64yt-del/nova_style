@@ -1,29 +1,89 @@
+import re
 from django.shortcuts import render,get_object_or_404,redirect
 from product.models import ProductVariant
 from cart.models import CartItem
 from user.models import Addresses
-from .models import OrderAddress,OrderItems,Orders,OrderTrack,OrderCancellation,OrderItemCancellation,OrderReturns
+from .models import OrderAddress,OrderItems,Orders,OrderTrack,OrderCancellation,OrderItemCancellation,OrderReturns,OrderItemReturn
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
+from reportlab.pdfgen import canvas
+from reportlab.lib.colors import black
+from reportlab.lib.units import inch
+from django.http import HttpResponse
+from django.contrib import messages
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import (getSampleStyleSheet,ParagraphStyle,)
+from reportlab.lib.units import mm
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    HRFlowable,
+)
+
+from xml.sax.saxutils import escape
+
+
+
+
 @login_required(login_url="login")
-def checkout (request):
+def checkout (request,variant_id=None):
     addersses=Addresses.objects.filter(user=request.user).order_by("-created_at")
     default_address=addersses.filter(is_default=True).first()
     
     profile=request.user
-    buy_now = request.session.get("buy_now_variant")
+    buy_now = variant_id is not None    
     subtotal=0
     if buy_now:
-        variant=get_object_or_404(ProductVariant.objects.select_related("product"),id=buy_now)
+        variant = get_object_or_404(ProductVariant.objects.select_related("product"),id=variant_id)
         items=[{"variant":variant,"quantity":1,"subtotal":variant.discounted_price}]
         
     else:
         items=CartItem.objects.filter(cart__user=request.user).select_related("variant","variant__product")
-        print(items)
-        
-        for item in items:
+        if not items.exists():
+            messages.error(request, "It's empty.")
+            return redirect("product_list")
+
+
+        for item in items:         
             subtotal+=item.variant.discounted_price*item.quantity
+
     if request.method=="POST":
+        checkout_errors = []
+
+        if not buy_now:
+            for item in items:
+                variant=item.variant
+                if not variant.product.category.is_active:
+                   checkout_errors.append({"name": variant.product.name,"message": "Category is unavailable."})
+            
+                if not variant.product.is_active:
+                    checkout_errors.append({"name": variant.product.name,"message": "Product is unavailable."})
+            
+                if not variant.is_active:
+                    checkout_errors.append({"name": variant.product.name,"color": variant.color,"size": variant.size,"message": "Variant is unavailable."})
+            
+                if item.quantity >variant.stock:
+                    checkout_errors.append({"name": variant.product.name,"color": variant.color,"size": variant.size,"stock": variant.stock})
+                
+        else:
+            if not variant.product.category.is_active:
+                checkout_errors.append({"name": variant.product.name,"message": "Category is unavailable."})
+
+            if not variant.product.is_active:
+                checkout_errors.append({"name": variant.product.name,"message": "Product is unavailable."})
+
+
+            if not variant.is_active:
+                checkout_errors.append({"name": variant.product.name,"color": variant.color,"size": variant.size,"message": "Variant is unavailable."})
+
+            if variant.stock < 1:
+                checkout_errors.append({"name": variant.product.name,"color": variant.color,"size": variant.size,"stock": variant.stock,})
+        if checkout_errors:
+            return render(request,"checkout/checkout.html",{"details": profile,"items": items,"buy_now": bool(buy_now),"subtotal": subtotal,"default_address": default_address,"addresses": addersses,"checkout_errors": checkout_errors,})
 
         if request.POST.get("action") == "add_address":
             address_errors={}
@@ -38,9 +98,6 @@ def checkout (request):
 
             if not name:
                 address_errors["name"] = "Name is required."
-
-            elif len(name) < 3:
-                address_errors["name"] = "Name must be at least 3 characters."
 
             elif not name.replace(" ", "").isalpha():
                 address_errors["name"] = "Name must contain only letters."
@@ -65,8 +122,6 @@ def checkout (request):
             if not district:
                 address_errors["district"] = "District is required."
 
-            elif len(district) < 3:
-                address_errors["district"] = "District must be at least 3 characters."
 
             elif not district.replace(" ", "").isalpha():
                 address_errors["district"] = "District must contain only letters."
@@ -75,8 +130,6 @@ def checkout (request):
             if not state:
                 address_errors["state"] = "State is required."
 
-            elif len(state) < 3:
-                address_errors["state"] = "State must be at least 3 characters."
 
             elif not state.replace(" ", "").isalpha():
                 address_errors["state"] = "State must contain only letters."
@@ -85,8 +138,6 @@ def checkout (request):
             if not country:
                 address_errors["country"] = "Country is required."
 
-            elif len(country) < 3:
-                address_errors["country"] = "Country must be at least 3 characters."
 
             elif not country.replace(" ", "").isalpha():
                 address_errors["country"] = "Country must contain only letters."
@@ -118,8 +169,6 @@ def checkout (request):
         if not shipping_name:
             errors["shipping_name"] = "Name is required."
 
-        elif len(shipping_name) < 3:
-            errors["shipping_name"] = "Name must be at least 3 characters."
 
         elif not shipping_name.replace(" ", "").isalpha():
             errors["shipping_name"] = "Name must contain only letters."
@@ -142,8 +191,6 @@ def checkout (request):
         if not shipping_state:
             errors["shipping_state"] = "State is required."
 
-        elif len(shipping_state) < 3:
-            errors["shipping_state"] = "State must be at least 3 characters."
 
         elif not shipping_state.replace(" ", "").isalpha():
             errors["shipping_state"] = "State must contain only letters."
@@ -151,8 +198,6 @@ def checkout (request):
         if not shipping_district:
             errors["shipping_district"] = "District is required."
 
-        elif len(shipping_district) < 3:
-            errors["shipping_district"] = "District must be at least 3 characters."
 
         elif not shipping_district.replace(" ", "").isalpha():
             errors["shipping_district"] = "District must contain only letters."
@@ -160,8 +205,6 @@ def checkout (request):
         if not shipping_country:
             errors["shipping_country"] = "Country is required."
 
-        elif len(shipping_country) < 3:
-            errors["shipping_country"] = "Country must be at least 3 characters."
 
         elif not shipping_country.replace(" ", "").isalpha():
             errors["shipping_country"] = "Country must contain only letters."
@@ -186,8 +229,6 @@ def checkout (request):
             if not billing_name:
                 errors["billing_name"] = "Name is required."
 
-            elif len(billing_name) < 3:
-                errors["billing_name"] = "Name must be at least 3 characters."
 
             elif not billing_name.replace(" ", "").isalpha():
                 errors["billing_name"] = "Name must contain only letters."
@@ -210,17 +251,11 @@ def checkout (request):
             if not billing_state:
                 errors["billing_state"] = "State is required."
 
-            elif len(billing_state) < 3:
-                errors["billing_state"] = "State must be at least 3 characters."
-
             elif not billing_state.replace(" ", "").isalpha():
                 errors["billing_state"] = "State must contain only letters."
 
             if not billing_district:
                 errors["billing_district"] = "District is required."
-
-            elif len(billing_district) < 3:
-                errors["billing_district"] = "District must be at least 3 characters."
 
             elif not billing_district.replace(" ", "").isalpha():
                 errors["billing_district"] = "District must contain only letters."
@@ -228,9 +263,7 @@ def checkout (request):
             if not billing_country:
                 errors["billing_country"] = "Country is required."
 
-            elif len(billing_country) < 3:
-                errors["billing_country"] = "Country must be at least 3 characters."
-
+   
             elif not billing_country.replace(" ", "").isalpha():
                 errors["billing_country"] = "Country must contain only letters."
 
@@ -245,6 +278,12 @@ def checkout (request):
 
         if errors: 
             return render(request,"checkout/checkout.html",{"errors":errors,"details":profile,"items":items,"buy_now":buy_now,"subtotal":subtotal,"default_address":default_address,"addresses":addersses})
+        if buy_now:
+            if variant.stock < 1:
+                 checkout_errors = [{"name": variant.product.name,"color": variant.color,"size": variant.size,"stock": variant.stock,}]
+
+                 return render( request,"checkout/checkout.html",{"details": profile,"items": items,"buy_now": True,"subtotal": subtotal,"default_address": default_address,"addresses": addersses,"checkout_errors": checkout_errors,},)
+
         if buy_now:
             final_amount = variant.discounted_price
         else:
@@ -333,7 +372,9 @@ def order_details(request,order_id):
         )
 
         item.available_quantity = item.quantity - item.cancelled_quantity
-            
+        item.pending_return = (item.returns.filter(status="pending").aggregate(total=Sum("quantity"))["total"] or 0)
+        item.approved_return = (item.returns.filter(status="approved").aggregate(total=Sum("quantity"))["total"] or 0)
+        item.available_return = (item.quantity- item.pending_return- item.approved_return)
     return render(request,"order/order_details.html",{"details":profile,"order":order,"items":items,"shipping":shipping,"billing":billing,"tracking":tracking,"steps": steps,"total":total,"current_index": current_index,"status_list": STATUSS,"progress":progress,"cancel_index":cancel_index,"tracking_map":tracking_map})
 
 
@@ -385,6 +426,8 @@ def cancel_order(request,order_id):
     order=get_object_or_404(Orders,id=order_id,user=request.user)
     order_items=OrderItems.objects.filter(order=order)
     if request.method =="POST":
+        if order.status =="cancelled":
+            return redirect("order_details",order_id=order.id)
         reason=request.POST.get("reason")
         description=request.POST.get("description")
 
@@ -396,10 +439,16 @@ def cancel_order(request,order_id):
         
         OrderTrack.objects.get_or_create(order=order,status='cancelled')
         for item in order_items:
-            item.status="cancelled"
-            item.save(update_fields=['status'])
-            item.variant.stock+=item.quantity
-            item.variant.save()
+            cancelled_qty = item.cancellation.aggregate(total=Sum("quantity"))["total"] or 0
+
+            remaining_qty = item.quantity - cancelled_qty
+
+            if remaining_qty > 0:
+                item.variant.stock += remaining_qty
+                item.variant.save()
+
+            item.status = "cancelled"
+            item.save(update_fields=["status"])
         return redirect("order_details",order_id=order.id)
     return redirect("order_details",order_id=order.id)
 
@@ -419,3 +468,1156 @@ def order_return(request,order_id):
     return redirect("order_details",order_id=order.id)
 
 
+@login_required(login_url='login')
+def return_product(request,item_id):
+    
+    order_item = get_object_or_404( OrderItems,id=item_id,order__user=request.user,)
+
+    if request.method == "POST":
+
+        quantity = int(request.POST.get("quantity"))
+        reason = request.POST.get("reason")
+        description = request.POST.get("description")
+
+        OrderItemReturn.objects.create(order_item=order_item,quantity=quantity,reason=reason,description=description,)
+
+        
+        return redirect('order_details',order_id=order_item.order.id)
+
+    return redirect("order_details", order_id=order_item.order.id)
+
+
+@login_required(login_url="login")
+def download_invoice(request, order_id):
+
+    # =========================================================
+    # GET ORDER
+    # =========================================================
+    #
+    # order.id is used ONLY internally to find the database row.
+    # It will NOT be displayed in the invoice.
+    #
+    order = get_object_or_404(
+        Orders.objects.select_related("user"),
+        id=order_id,
+        user=request.user
+    )
+
+ 
+    frontend_order_id = order.order_id
+
+
+    items = (
+        OrderItems.objects
+        .filter(order=order)
+        .select_related(
+            "variant",
+            "variant__product"
+        )
+    )
+
+
+    billing = OrderAddress.objects.filter(
+        order=order,
+        address_type="billing"
+    ).first()
+
+    # =========================================================
+    # SHIPPING ADDRESS
+    # =========================================================
+
+    shipping = OrderAddress.objects.filter(
+        order=order,
+        address_type="shipping"
+    ).first()
+
+    # =========================================================
+    # PDF RESPONSE
+    # =========================================================
+
+    response = HttpResponse(
+        content_type="application/pdf"
+    )
+
+    # IMPORTANT:
+    # Use frontend order_id, NOT database id.
+    response["Content-Disposition"] = (
+        f'attachment; filename="Invoice_{frontend_order_id}.pdf"'
+    )
+
+    # =========================================================
+    # PDF DOCUMENT
+    # =========================================================
+
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+
+        leftMargin=18 * mm,
+        rightMargin=18 * mm,
+        topMargin=12 * mm,
+        bottomMargin=12 * mm,
+
+        title=f"Nova Style Invoice {frontend_order_id}",
+        author="Nova Style",
+    )
+
+    # =========================================================
+    # STYLES
+    # =========================================================
+
+    styles = getSampleStyleSheet()
+
+    # ---------------------------------------------------------
+    # BRAND
+    # ---------------------------------------------------------
+
+    brand_style = ParagraphStyle(
+        "Brand",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=22,
+        leading=24,
+        textColor=colors.HexColor("#111111"),
+        alignment=0,
+    )
+
+
+    brand_subtitle_style = ParagraphStyle(
+        "BrandSubtitle",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor("#666666"),
+        alignment=0,
+    )
+
+ 
+    invoice_title_style = ParagraphStyle(
+        "InvoiceTitle",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=21,
+        leading=23,
+        textColor=colors.HexColor("#111111"),
+        alignment=2,
+    )
+
+
+    normal_style = ParagraphStyle(
+        "NormalInvoice",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#333333"),
+    )
+
+
+    small_style = ParagraphStyle(
+        "SmallInvoice",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=8,
+        leading=10,
+        textColor=colors.HexColor("#666666"),
+    )
+
+    # ---------------------------------------------------------
+    # BOLD
+    # ---------------------------------------------------------
+
+    bold_style = ParagraphStyle(
+        "BoldInvoice",
+        parent=normal_style,
+        fontName="Helvetica-Bold",
+        textColor=colors.HexColor("#111111"),
+    )
+
+    # ---------------------------------------------------------
+    # TABLE HEADER
+    # ---------------------------------------------------------
+    #
+    # IMPORTANT:
+    # White text is explicitly defined here because Paragraph
+    # colors do not get overridden reliably by TableStyle.
+    #
+
+    table_header_style = ParagraphStyle(
+        "TableHeader",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=8,
+        leading=10,
+        textColor=colors.white,
+        alignment=0,
+    )
+
+    table_header_center_style = ParagraphStyle(
+        "TableHeaderCenter",
+        parent=table_header_style,
+        alignment=1,
+    )
+
+    table_header_right_style = ParagraphStyle(
+        "TableHeaderRight",
+        parent=table_header_style,
+        alignment=2,
+    )
+
+    # ---------------------------------------------------------
+    # PRODUCT
+    # ---------------------------------------------------------
+
+    product_name_style = ParagraphStyle(
+        "ProductName",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        leading=11,
+        textColor=colors.HexColor("#111111"),
+    )
+
+    product_detail_style = ParagraphStyle(
+        "ProductDetail",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=7.5,
+        leading=9,
+        textColor=colors.HexColor("#777777"),
+    )
+
+    # ---------------------------------------------------------
+    # TOTAL
+    # ---------------------------------------------------------
+
+    total_label_style = ParagraphStyle(
+        "TotalLabel",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10.5,
+        leading=13,
+        textColor=colors.HexColor("#111111"),
+        alignment=2,
+    )
+
+    total_value_style = ParagraphStyle(
+        "TotalValue",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=12,
+        leading=14,
+        textColor=colors.HexColor("#111111"),
+        alignment=2,
+    )
+
+    # =========================================================
+    # HELPER
+    # =========================================================
+
+    def money(value):
+        """
+        Currency formatting.
+
+        Using Rs. instead of ₹ because standard Helvetica
+        does not reliably support the rupee character.
+        """
+        return f"Rs. {value:,.2f}"
+
+    # =========================================================
+    # ADDRESS HELPER
+    # =========================================================
+
+    def create_address(address):
+
+        if not address:
+            return Paragraph(
+                "Address not available",
+                normal_style
+            )
+
+        name = escape(str(address.name or ""))
+        phone = escape(str(address.phone or ""))
+        street = escape(str(address.address or ""))
+        district = escape(str(address.district or ""))
+        state = escape(str(address.state or ""))
+        country = escape(str(address.country or ""))
+        postal_code = escape(str(address.postal_code or ""))
+
+        address_content = f"""
+        <b>{name}</b><br/>
+        {phone}<br/>
+        {street}<br/>
+        {district}, {state}<br/>
+        {country} - {postal_code}
+        """
+
+        return Paragraph(
+            address_content,
+            normal_style
+        )
+
+    # =========================================================
+    # STORY
+    # =========================================================
+
+    story = []
+
+    # =========================================================
+    # HEADER
+    # =========================================================
+
+    header_left = [
+        Paragraph(
+            "NOVA STYLE",
+            brand_style
+        ),
+
+        Spacer(1, 2),
+
+        Paragraph(
+            "FASHION • STYLE • CONFIDENCE",
+            brand_subtitle_style
+        ),
+    ]
+
+    header_right = [
+        Paragraph(
+            "INVOICE",
+            invoice_title_style
+        ),
+
+        Spacer(1, 3),
+
+        Paragraph(
+            f"<b>Invoice #</b> "
+            f"{escape(str(frontend_order_id))}",
+            normal_style
+        ),
+
+        Paragraph(
+            f"<b>Date:</b> "
+            f"{order.created_at.strftime('%d %b %Y')}",
+            normal_style
+        ),
+    ]
+
+    header_table = Table(
+        [[
+            header_left,
+            header_right
+        ]],
+        colWidths=[
+            100 * mm,
+            70 * mm
+        ],
+    )
+
+    header_table.setStyle(
+        TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+
+            ("ALIGN", (0, 0), (0, 0), "LEFT"),
+            ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ])
+    )
+
+    story.append(header_table)
+
+    story.append(
+        Spacer(1, 7)
+    )
+
+    story.append(
+        HRFlowable(
+            width="100%",
+            thickness=1,
+            color=colors.HexColor("#222222"),
+            spaceBefore=0,
+            spaceAfter=10,
+        )
+    )
+
+    # =========================================================
+    # ORDER INFORMATION
+    # =========================================================
+
+    order_status = str(
+        order.status or ""
+    ).replace("_", " ").title()
+
+    order_info = Table(
+        [
+            [
+                Paragraph(
+                    "<b>Customer</b>",
+                    small_style
+                ),
+
+                Paragraph(
+                    "<b>Order ID</b>",
+                    small_style
+                ),
+
+                Paragraph(
+                    "<b>Order Date</b>",
+                    small_style
+                ),
+
+                Paragraph(
+                    "<b>Status</b>",
+                    small_style
+                ),
+            ],
+
+            [
+                Paragraph(
+                    escape(str(order.user.name or "")),
+                    normal_style
+                ),
+
+                # IMPORTANT:
+                # order.order_id, NOT order.id
+                Paragraph(
+                    f"#{escape(str(frontend_order_id))}",
+                    normal_style
+                ),
+
+                Paragraph(
+                    order.created_at.strftime(
+                        "%d %b %Y"
+                    ),
+                    normal_style
+                ),
+
+                Paragraph(
+                    escape(order_status),
+                    normal_style
+                ),
+            ],
+        ],
+
+        colWidths=[
+            50 * mm,
+            35 * mm,
+            45 * mm,
+            40 * mm,
+        ],
+    )
+
+    order_info.setStyle(
+        TableStyle([
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, 0),
+                colors.HexColor("#F5F5F5")
+            ),
+
+            (
+                "BOX",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#D8D8D8")
+            ),
+
+            (
+                "INNERGRID",
+                (0, 0),
+                (-1, -1),
+                0.3,
+                colors.HexColor("#E5E5E5")
+            ),
+
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "MIDDLE"
+            ),
+
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                7
+            ),
+
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                7
+            ),
+
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                6
+            ),
+
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                6
+            ),
+        ])
+    )
+
+    story.append(order_info)
+
+    story.append(
+        Spacer(1, 11)
+    )
+
+    # =========================================================
+    # BILLING + SHIPPING
+    # =========================================================
+
+    billing_box = [
+        Paragraph(
+            "BILLING DETAILS",
+            bold_style
+        ),
+
+        Spacer(1, 4),
+
+        create_address(billing),
+    ]
+
+    shipping_box = [
+        Paragraph(
+            "SHIPPING ADDRESS",
+            bold_style
+        ),
+
+        Spacer(1, 4),
+
+        create_address(shipping),
+    ]
+
+    address_table = Table(
+        [[
+            billing_box,
+            shipping_box
+        ]],
+        colWidths=[
+            85 * mm,
+            85 * mm
+        ],
+    )
+
+    address_table.setStyle(
+        TableStyle([
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, -1),
+                colors.HexColor("#FAFAFA")
+            ),
+
+            (
+                "BOX",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#D8D8D8")
+            ),
+
+            (
+                "INNERGRID",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#D8D8D8")
+            ),
+
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "TOP"
+            ),
+
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                9
+            ),
+
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                9
+            ),
+
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                8
+            ),
+
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                8
+            ),
+        ])
+    )
+
+    story.append(address_table)
+
+    story.append(
+        Spacer(1, 12)
+    )
+
+    # =========================================================
+    # ITEMS TABLE
+    # =========================================================
+
+    item_rows = []
+
+    # Header
+    item_rows.append([
+        Paragraph(
+            "ITEM",
+            table_header_style
+        ),
+
+        Paragraph(
+            "DESCRIPTION",
+            table_header_style
+        ),
+
+        Paragraph(
+            "QTY",
+            table_header_center_style
+        ),
+
+        Paragraph(
+            "UNIT PRICE",
+            table_header_right_style
+        ),
+
+        Paragraph(
+            "TOTAL",
+            table_header_right_style
+        ),
+    ])
+
+    total = 0
+
+    # =========================================================
+    # PRODUCTS
+    # =========================================================
+
+    for index, item in enumerate(items, start=1):
+
+        line_total = (
+            item.quantity *
+            item.unit_amount
+        )
+
+        total += line_total
+
+        product_name = escape(
+            str(item.variant.product.name or "")
+        )
+
+        product_size = escape(
+            str(
+                getattr(
+                    item.variant,
+                    "size",
+                    None
+                ) or "N/A"
+            )
+        )
+
+        description = Paragraph(
+            f"""
+            <b>{product_name}</b><br/>
+            <font size="7.5" color="#777777">
+            Size: {product_size}
+            </font>
+            """,
+            product_name_style
+        )
+
+        item_rows.append([
+            Paragraph(
+                str(index),
+                normal_style
+            ),
+
+            description,
+
+            Paragraph(
+                str(item.quantity),
+                normal_style
+            ),
+
+            Paragraph(
+                money(item.unit_amount),
+                normal_style
+            ),
+
+            Paragraph(
+                money(line_total),
+                normal_style
+            ),
+        ])
+
+    # =========================================================
+    # ITEMS TABLE
+    # =========================================================
+
+    items_table = Table(
+        item_rows,
+
+        colWidths=[
+            25 * mm,
+            70 * mm,
+            18 * mm,
+            30 * mm,
+            27 * mm,
+        ],
+
+        repeatRows=1,
+    )
+
+    items_table.setStyle(
+        TableStyle([
+            # -------------------------------------------------
+            # HEADER
+            # -------------------------------------------------
+
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, 0),
+                colors.HexColor("#181818")
+            ),
+
+            (
+                "TEXTCOLOR",
+                (0, 0),
+                (-1, 0),
+                colors.white
+            ),
+
+            # -------------------------------------------------
+            # BODY ALTERNATING ROWS
+            # -------------------------------------------------
+
+            (
+                "ROWBACKGROUNDS",
+                (0, 1),
+                (-1, -1),
+                [
+                    colors.white,
+                    colors.HexColor("#FAFAFA")
+                ]
+            ),
+
+            # -------------------------------------------------
+            # BORDER
+            # -------------------------------------------------
+
+            (
+                "BOX",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#D8D8D8")
+            ),
+
+            (
+                "INNERGRID",
+                (0, 0),
+                (-1, -1),
+                0.3,
+                colors.HexColor("#E5E5E5")
+            ),
+
+            # -------------------------------------------------
+            # ALIGNMENT
+            # -------------------------------------------------
+
+            (
+                "ALIGN",
+                (2, 1),
+                (2, -1),
+                "CENTER"
+            ),
+
+            (
+                "ALIGN",
+                (3, 1),
+                (4, -1),
+                "RIGHT"
+            ),
+
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "MIDDLE"
+            ),
+
+            # -------------------------------------------------
+            # PADDING
+            # -------------------------------------------------
+
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                7
+            ),
+
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                7
+            ),
+
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                7
+            ),
+
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                7
+            ),
+        ])
+    )
+
+    story.append(items_table)
+
+    story.append(
+        Spacer(1, 5)
+    )
+
+    # =========================================================
+    # TOTALS
+    # =========================================================
+
+    subtotal = total
+
+    totals_data = [
+        [
+            "",
+            Paragraph(
+                "Subtotal",
+                normal_style
+            ),
+
+            Paragraph(
+                money(subtotal),
+                normal_style
+            ),
+        ],
+
+        [
+            "",
+            Paragraph(
+                "Shipping",
+                normal_style
+            ),
+
+            Paragraph(
+                "Free",
+                normal_style
+            ),
+        ],
+
+        [
+            "",
+            Paragraph(
+                "TOTAL",
+                total_label_style
+            ),
+
+            Paragraph(
+                money(total),
+                total_value_style
+            ),
+        ],
+    ]
+
+    totals_table = Table(
+        totals_data,
+
+        colWidths=[
+            85 * mm,
+            45 * mm,
+            40 * mm,
+        ],
+    )
+
+    totals_table.setStyle(
+        TableStyle([
+            (
+                "ALIGN",
+                (1, 0),
+                (-1, -1),
+                "RIGHT"
+            ),
+
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "MIDDLE"
+            ),
+
+            (
+                "LINEABOVE",
+                (1, 2),
+                (-1, 2),
+                1.2,
+                colors.HexColor("#111111")
+            ),
+
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                3
+            ),
+
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                3
+            ),
+
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                5
+            ),
+
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                5
+            ),
+        ])
+    )
+
+    story.append(totals_table)
+
+    story.append(
+        Spacer(1, 9)
+    )
+
+    # =========================================================
+    # PAYMENT / ORDER INFORMATION
+    # =========================================================
+
+    payment_box = Table(
+        [
+            [
+                Paragraph(
+                    "PAYMENT & ORDER INFORMATION",
+                    bold_style
+                )
+            ],
+
+            [
+                Paragraph(
+                    f"""
+                    Invoice generated for Order
+                    <b>#{escape(str(frontend_order_id))}</b>.<br/>
+                    Order Status:
+                    <b>{escape(order_status)}</b><br/>
+                    Thank you for shopping with Nova Style.
+                    """,
+                    normal_style
+                )
+            ],
+        ],
+
+        colWidths=[
+            170 * mm
+        ],
+    )
+
+    payment_box.setStyle(
+        TableStyle([
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, 0),
+                colors.HexColor("#F5F5F5")
+            ),
+
+            (
+                "BACKGROUND",
+                (0, 1),
+                (-1, 1),
+                colors.HexColor("#FCFCFC")
+            ),
+
+            (
+                "BOX",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#D8D8D8")
+            ),
+
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                9
+            ),
+
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                9
+            ),
+
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                7
+            ),
+
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                7
+            ),
+        ])
+    )
+
+    story.append(payment_box)
+
+    story.append(
+        Spacer(1, 12)
+    )
+
+    # =========================================================
+    # FOOTER LINE
+    # =========================================================
+
+    story.append(
+        HRFlowable(
+            width="100%",
+            thickness=0.5,
+            color=colors.HexColor("#CCCCCC"),
+            spaceBefore=2,
+            spaceAfter=6,
+        )
+    )
+
+
+    footer = Table(
+        [
+            [
+                Paragraph(
+                    """
+                    <b>NOVA STYLE</b><br/>
+                    Thank you for choosing us.
+                    """,
+                    small_style
+                ),
+
+                Paragraph(
+                    """
+                    This is a computer-generated invoice.<br/>
+                    No signature is required.
+                    """,
+                    small_style
+                ),
+            ]
+        ],
+
+        colWidths=[
+            85 * mm,
+            85 * mm,
+        ],
+    )
+
+    footer.setStyle(
+        TableStyle([
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "TOP"
+            ),
+
+            (
+                "ALIGN",
+                (1, 0),
+                (1, 0),
+                "RIGHT"
+            ),
+
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                0
+            ),
+
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                0
+            ),
+
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                0
+            ),
+
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                0
+            ),
+        ])
+    )
+
+    story.append(footer)
+
+
+    doc.build(story)
+
+    return response
