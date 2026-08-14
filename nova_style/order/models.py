@@ -1,7 +1,7 @@
 from django.db import models
 from user.models import Users
 from product.models import ProductVariant
-# Create your models here.
+from django.utils import timezone
 
 
 class Orders(models.Model):
@@ -16,7 +16,7 @@ class Orders(models.Model):
         ("approved", "Approved"),
         ("rejected", "Rejected"),
         ]
-
+    order_id=models.CharField(max_length=20,unique=True,null=True,blank=True)
     user=models.ForeignKey(Users,on_delete=models.CASCADE,related_name="orders")
     final_amount=models.DecimalField(max_digits=10,decimal_places=2)
     status=models.CharField(max_length=20,choices=STATUS_CHOICES,default="pending",)
@@ -24,10 +24,14 @@ class Orders(models.Model):
 
     class Meta:
         db_table="orders"
+     
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"order {self.id}"
-    
+        if not self.order_id:
+            self.order_id = f"ORD{timezone.now():%Y%m%d}{self.id:05d}"
+            super().save(update_fields=["order_id"])
+
 class OrderAddress(models.Model):
     ADDRESS_TYPE_CHOICES=[
         ("billing", "Billing"),
@@ -59,6 +63,9 @@ class OrderItems(models.Model):
     STATUS_CHOICES = [
         ("active", "Active"),
         ("cancelled", "Cancelled"),
+        ("return pending", "Return Pending"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
     ]
     order=models.ForeignKey(Orders,on_delete=models.CASCADE,related_name="items")
     variant=models.ForeignKey(ProductVariant,on_delete=models.CASCADE,related_name="order_items")
@@ -119,4 +126,13 @@ class OrderReturns(models.Model):
     class Meta:
         db_table = "order_returns"
 
-   
+class OrderItemReturn(models.Model):
+    STATUS_CHOICES = [("approved", "Approved"),("rejected", "Rejected"),("pending", "Pending"),]
+    order_item=models.ForeignKey(OrderItems,on_delete=models.CASCADE,related_name='returns')
+    quantity=models.PositiveIntegerField()
+    reason=models.CharField(max_length=255)
+    description=models.TextField(blank=True)
+    status=models.CharField(max_length=20,choices=STATUS_CHOICES,default='pending')
+    created_at=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        db_table='order_item_returns'
