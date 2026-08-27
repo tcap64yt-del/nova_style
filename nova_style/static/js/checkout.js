@@ -171,29 +171,337 @@ function validateAddress(prefix){
 
     return valid;
 }
-    // -----------------------------
-    // Submit
-    // -----------------------------
-    form.addEventListener("submit", function (e) {
+form.addEventListener("submit", async function (e) {
 
-        clearErrors();
-
-        let valid = true;
-
-valid = validateAddress("shipping");
-
-if (!billingCheckbox.checked) {
-    valid = validateAddress("billing") && valid;
-}
-
-if (!valid) {
     e.preventDefault();
+
+    clearErrors();
+
+    let valid = true;
+
+    valid = validateAddress("shipping");
+
+    if (!billingCheckbox.checked) {
+        valid = validateAddress("billing") && valid;
+    }
+
+    if (!valid) {
+        return;
+    }
+
+    const paymentMethod = document.querySelector(
+        'input[name="payment_method"]:checked'
+    )?.value;
+
+    console.log("Payment method:", paymentMethod);
+
+    purchaseBtn.disabled = true;
+    purchaseBtn.innerHTML = "Processing...";
+
+    // -----------------------------
+    // RAZORPAY
+    // -----------------------------
+
+    if (paymentMethod === "razorpay") {
+
+        try {
+
+            const formData = new FormData(form);
+
+            const response = await fetch(
+    form.action,
+    {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    }
+);
+
+const contentType =
+    response.headers.get("content-type") || "";
+
+console.log("Response content type:", contentType);
+
+
+// Django returned normal checkout HTML
+if (contentType.includes("text/html")) {
+
+    const html = await response.text();
+
+    document.open();
+    document.write(html);
+    document.close();
+
     return;
 }
-        purchaseBtn.disabled = true;
-        purchaseBtn.innerHTML = "Processing...";
 
-    });
+
+// Django returned JSON → Razorpay can open normally
+const data = await response.json();
+
+console.log("Django response:", data);
+
+            if (data.status !== "razorpay") {
+
+                console.error(data);
+
+                alert(
+                    data.message ||
+                    "Unable to create Razorpay order."
+                );
+
+                purchaseBtn.disabled = false;
+                purchaseBtn.innerHTML = "Complete Purchase";
+
+                return;
+            }
+
+            // -----------------------------
+            // OPEN RAZORPAY
+            // -----------------------------
+
+            const options = {
+
+                key: data.razorpay_key,
+
+                amount: data.amount,
+
+                currency: "INR",
+
+                name: "Nova Style",
+
+                description: "Order Payment",
+
+                order_id: data.razorpay_order_id,
+
+                handler: async function (paymentResponse) {
+
+    console.log("RAZORPAY SUCCESS:", paymentResponse);
+
+    const response = await fetch(
+        "/order/checkout/verify-razorpay/",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+
+            body: JSON.stringify({
+                order_id: data.order_id,
+                razorpay_payment_id:
+                    paymentResponse.razorpay_payment_id,
+                razorpay_order_id:
+                    paymentResponse.razorpay_order_id,
+                razorpay_signature:
+                    paymentResponse.razorpay_signature
+            })
+        }
+    );
+
+    const result = await response.json();
+
+    console.log("VERIFY RESULT:", result);
+
+    if (result.status === "success") {
+        window.location.href = result.redirect_url;
+    }
+},
+                prefill: {
+                    name: document.getElementById(
+                        "shipping-name"
+                    )?.value || "",
+
+                    contact: document.getElementById(
+                        "shipping-phone"
+                    )?.value || ""
+                },
+
+                theme: {
+                    color: "#111111"
+                },
+
+                modal: {
+
+                    ondismiss: function () {
+
+                        console.log(
+                            "Razorpay window closed"
+                        );
+
+                        purchaseBtn.disabled = false;
+                        purchaseBtn.innerHTML =
+                            "Complete Purchase";
+                    }
+                }
+            };
+
+            console.log(
+                "Opening Razorpay...",
+                options
+            );
+
+            const razorpay = new Razorpay(options);
+
+            razorpay.on("payment.failed", async function (response) {
+
+    console.log("Razorpay payment failed:", response);
+
+    try {
+
+        const failedResponse = await fetch(
+            "/order/checkout/razorpay-payment-failed/",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+
+                body: JSON.stringify({
+    order_id: data.order_id,
+    razorpay_order_id: data.razorpay_order_id,
+    razorpay_payment_id:
+        response.error?.metadata?.payment_id || null
+})
+            }
+        );
+
+        const result = await failedResponse.json();
+
+        console.log(
+            "Failed payment response:",
+            result
+        );
+
+        if (result.redirect_url) {
+
+            window.location.href =
+                result.redirect_url;
+
+            return;
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Could not save failed payment:",
+            error
+        );
+
+        // Fallback redirect
+        window.location.href =
+            `/order/payment-failed/${data.order_id}/`;
+    }
+
+});
+            razorpay.open();
+
+        } catch (error) {
+
+            console.error(
+                "Razorpay error:",
+                error
+            );
+
+            alert(
+                "Something went wrong while opening Razorpay."
+            );
+
+            purchaseBtn.disabled = false;
+            purchaseBtn.innerHTML =
+                "Complete Purchase";
+        }
+
+        return;
+    }
+
+    form.submit();
+
+});
+
+async function verifyRazorpayPayment(paymentResponse, orderId) {
+
+    try {
+
+        const response = await fetch(
+            "/order/checkout/verify-razorpay/",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+
+                body: JSON.stringify({
+                    order_id: orderId,
+
+                    razorpay_payment_id:
+                        paymentResponse.razorpay_payment_id,
+
+                    razorpay_order_id:
+                        paymentResponse.razorpay_order_id,
+
+                    razorpay_signature:
+                        paymentResponse.razorpay_signature
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("VERIFY:", data);
+
+        if (data.status === "success") {
+            window.location.href = data.redirect_url;
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Payment verification error:",
+            error
+        );
+
+    }
+}
+function getCookie(name) {
+
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+
+            cookie = cookie.trim();
+
+            if (
+                cookie.substring(
+                    0,
+                    name.length + 1
+                ) === name + "="
+            ) {
+
+                cookieValue = decodeURIComponent(
+                    cookie.substring(
+                        name.length + 1
+                    )
+                );
+
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}
 
 });
 
@@ -459,3 +767,97 @@ if (addAddressForm) {
     });
 
 }
+
+
+
+const walletModal = document.getElementById("walletModal");
+
+const walletRadio = document.querySelector(
+    'input[name="payment_method"][value="wallet"]'
+);
+
+const closeWalletModal = document.getElementById("closeWalletModal");
+const cancelWallet = document.getElementById("cancelWallet");
+const confirmWallet = document.getElementById("confirmWallet");
+
+
+// Open wallet modal when Wallet is selected
+if (walletRadio) {
+
+    walletRadio.addEventListener("change", function () {
+
+        if (this.checked) {
+
+            walletModal.classList.add("show");
+
+        }
+
+    });
+
+}
+
+
+// Close modal
+if (closeWalletModal) {
+
+    closeWalletModal.addEventListener("click", function () {
+
+        walletModal.classList.remove("show");
+
+    });
+
+}
+
+
+// Cancel
+if (cancelWallet) {
+
+    cancelWallet.addEventListener("click", function () {
+
+        walletModal.classList.remove("show");
+
+        // Return to Razorpay
+        const razorpayRadio = document.querySelector(
+            'input[name="payment_method"][value="razorpay"]'
+        );
+
+        if (razorpayRadio) {
+            razorpayRadio.checked = true;
+        }
+
+    });
+
+}
+
+
+// Okay
+if (confirmWallet) {
+
+    confirmWallet.addEventListener("click", function () {
+
+ 
+        walletModal.classList.remove("show");
+
+    });
+
+}
+
+
+// Close when clicking outside modal
+if (walletModal) {
+
+    walletModal.addEventListener("click", function (event) {
+
+        if (event.target === walletModal) {
+
+            walletModal.classList.remove("show");
+
+        }
+
+    });
+
+}
+
+
+
+

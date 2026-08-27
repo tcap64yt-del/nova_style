@@ -16,10 +16,18 @@ class Orders(models.Model):
         ("approved", "Approved"),
         ("rejected", "Rejected"),
         ]
+    PAYMENT_STATUS=[
+        ("pending", "Pending"),
+        ("paid", "Paid"),
+        ("failed", "Failed"),
+        ("refunded", "Refunded"),
+        ]
+    
     order_id=models.CharField(max_length=20,unique=True,null=True,blank=True)
     user=models.ForeignKey(Users,on_delete=models.CASCADE,related_name="orders")
     final_amount=models.DecimalField(max_digits=10,decimal_places=2)
-    status=models.CharField(max_length=20,choices=STATUS_CHOICES,default="pending",)
+    status=models.CharField(max_length=30,choices=STATUS_CHOICES,default="pending",)
+    payment_status=models.CharField(max_length=30,choices=PAYMENT_STATUS,default="pending")
     created_at=models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -40,7 +48,7 @@ class OrderAddress(models.Model):
     
     order=models.ForeignKey(Orders,on_delete=models.CASCADE,related_name="addresses")
     name = models.CharField(max_length=255)
-    address_type=models.CharField(max_length=20,choices=ADDRESS_TYPE_CHOICES,)
+    address_type=models.CharField(max_length=30,choices=ADDRESS_TYPE_CHOICES,)
     phone=models.CharField(max_length=10)
     address=models.TextField()
     state = models.CharField(max_length=255)
@@ -71,7 +79,7 @@ class OrderItems(models.Model):
     variant=models.ForeignKey(ProductVariant,on_delete=models.CASCADE,related_name="order_items")
     quantity=models.PositiveIntegerField()
     unit_amount=models.DecimalField(max_digits=10,decimal_places=2)
-    status=models.CharField(max_length=20,choices=STATUS_CHOICES,default="active",)
+    status=models.CharField(max_length=30,choices=STATUS_CHOICES,default="active",)
     created_at=models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -136,3 +144,27 @@ class OrderItemReturn(models.Model):
     created_at=models.DateTimeField(auto_now_add=True)
     class Meta:
         db_table='order_item_returns'
+
+class Payment(models.Model):
+    PAYMENT_METHODS=[
+        ("razorpay","Razorpay"),('cod',"Cash on Delivery"),('wallet',"Wallet")]
+    
+    STATUS_CHOICES=[
+            ("pending", "Pending"),
+            ("paid", "Paid"),
+            ("failed", "Failed"),
+            ("refunded", "Refunded"),
+            ]
+    order=models.ForeignKey(Orders,on_delete=models.CASCADE,related_name='payments')
+    payment_method=models.CharField(max_length=30,choices=PAYMENT_METHODS)
+    amount=models.DecimalField(max_digits=10,decimal_places=2)
+    currency=models.CharField(max_length=10,default='INR')
+    status=models.CharField(max_length=30,choices=STATUS_CHOICES,default='pending')
+    razorpay_order_id = models.CharField(max_length=100,null=True,blank=True,unique=True)
+    razorpay_payment_id = models.CharField(max_length=100,null=True,blank=True,unique=True)
+    razorpay_signature = models.CharField(max_length=255,null=True,blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "payments"

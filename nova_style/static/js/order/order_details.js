@@ -90,3 +90,27 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+
+
+const returnModal = document.getElementById("returnProductModal");
+
+document.querySelectorAll(".btn-return-product").forEach(btn => {
+    btn.addEventListener("click", function(e) {
+        e.preventDefault();
+
+        document.getElementById("returnProductForm").action = this.dataset.url;
+
+        document.getElementById("returnProductName").textContent = this.dataset.name;
+        document.getElementById("returnProductQty").textContent = this.dataset.qty;
+        document.getElementById("returnProductPrice").textContent = this.dataset.price;
+
+        const select = document.getElementById("returnQuantity");
+        select.innerHTML = "";
+
+        for (let i = 1; i <= Number(this.dataset.qty); i++) {
+            select.innerHTML += `<option value="${i}">${i}</option>`;
+        }
+
+        returnModal.style.display = "flex";
+    });
+});

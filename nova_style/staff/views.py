@@ -12,8 +12,8 @@ from itertools import chain
 from operator import attrgetter
 from django.db.models import F
 from django.db.models import Count,Prefetch
-from django.http import JsonResponse
-from order.models import Orders,OrderItems,OrderAddress,OrderTrack,OrderReturns,OrderItemReturn
+from order.models import Orders,OrderItems,OrderAddress,OrderTrack,OrderReturns,OrderItemReturn,Payment
+from django.db.models import Sum
 
 def admin_login(request):
     if request.user.is_authenticated:
@@ -138,6 +138,9 @@ def edit_category(request, category_id):
     category = get_object_or_404(Category, id=category_id)
     errors={}
     if request.method == "POST":
+        method = request.POST.get("_method", "POST").upper()
+        if method != "PATCH":
+            return redirect("category_management")
         name = request.POST.get('name', '').strip()
         offer = request.POST.get('offer')
 
@@ -158,8 +161,8 @@ def edit_category(request, category_id):
                 if offer_value<0 or offer_value>100:
                     errors["offer"]="offer must be between 0 and 100."
         
-        uploaded_image = request.FILES.get('image_url')
-
+        uploaded_image = request.FILES.get('image')
+        print(uploaded_image)
         if not uploaded_image and not category.image_url:
             errors["image"] = "Category image is required."
             return render(request, 'staff/edit_category.html', {"category": category})
@@ -171,7 +174,7 @@ def edit_category(request, category_id):
 
         if uploaded_image:
             category.image_url = uploaded_image
-
+           
         category.save()
 
         messages.success(request, "category updated.")
@@ -223,6 +226,7 @@ def add_product(request):
     categories=Category.objects.all()
     errors={}
     if request.method=="POST":
+        
         product_name=request.POST.get("product_name","").strip()
         description = request.POST.get("description", "").strip()
         category = request.POST.get("category")
@@ -240,7 +244,7 @@ def add_product(request):
         variant_count=max(len(prices),len(sizes),len(colors),len(stocks),len(statuses))
 
         for i in range(variant_count):
-            variants.append({"index":i,"price":prices[i] if i < len(prices) else "", "size": sizes[i] if i < len(sizes) else "","color": colors[i] if i < len(colors) else "","stock": stocks[i] if i < len(stocks) else "","offer": offer[i] if i < len(offer) else "","status": statuses[i] if i < len(statuses) else "true","errors":{}})
+            variants.append({"index":i,"price":prices[i] if i < len(prices) else "", "size": sizes[i] if i < len(sizes) else "","color": colors[i] if i < len(colors) else "","stock": stocks[i] if i < len(stocks) else "","offer": offer[i] if i < len(offer) else "","start_date": start_date[i] if i < len(start_date) else "","end_date": end_date[i] if i < len(end_date) else "","status": statuses[i] if i < len(statuses) else "true","errors":{}})
 
         
 
@@ -298,7 +302,7 @@ def add_product(request):
                         variant["errors"]["start_date"] = ("Start date cannot be after end date.")
                         variant["errors"]["end_date"] = ("End date must be after start date.")
             variant_images = request.FILES.getlist(f"images_{i}[]")
-
+        
             if len(variant_images)<3:
                 variant["errors"]["images"]=("upload atleast 3 image")
 
@@ -335,6 +339,34 @@ def edit_product(request,product_id):
     errors={}
 
     if request.method=="POST":
+        delete_image_ids = request.POST.get("deleted_image_ids","")
+        delete_variant_ids= request.POST.get("deleted_variant_ids","")
+        
+        method = request.POST.get("_method", "POST").upper()
+
+   
+        if method != "PATCH":
+            return redirect("product_management")
+        if delete_variant_ids:
+            ProductVariant.objects.filter(id__in=delete_variant_ids.split(",")).delete()
+            
+        if delete_image_ids:
+            deleted_ids = delete_image_ids.split(",")
+
+            deleted_images = ProductImage.objects.filter(id__in=deleted_ids)
+            affected_variant_ids = list(deleted_images.values_list("variant_id", flat=True))
+
+            deleted_images.delete()
+
+            for variant_id in affected_variant_ids:
+                remaining_images = ProductImage.objects.filter(variant_id=variant_id).order_by("id")
+
+                if remaining_images.exists():
+                    remaining_images.update(is_primary=False)
+                    first_image = remaining_images.first()
+                    first_image.is_primary = True
+                    first_image.save(update_fields=["is_primary"])
+        
         product_name=request.POST.get("product_name","").strip()
         description = request.POST.get("description", "").strip()
         category = request.POST.get("category")
@@ -409,6 +441,15 @@ def edit_product(request,product_id):
                         variant["errors"]["start_date"] = ("Start date cannot be after end date.")
                         variant["errors"]["end_date"] = ("End date must be after start date.")
             variant_images = request.FILES.getlist(f"images_{i}[]")
+            print(
+                "VARIANT:",
+                i,
+                "IMAGE COUNT:",
+                len(variant_images)
+            )
+
+            for image in variant_images:
+                print("IMAGE:", image.name, image.content_type, image.size)
             existing_count=0
 
             if  i < len(variant_ids) and variant_ids[i]:
@@ -417,7 +458,6 @@ def edit_product(request,product_id):
             total_images=existing_count+len(variant_images)
             if total_images<3:
                 variant["errors"]["images"]=("upload atleast 3 image")
-
         seen=set()
         for i,variant in enumerate(variants):
             key=(variant["size"],variant["color"])
@@ -440,30 +480,7 @@ def edit_product(request,product_id):
         products.category=category_obj
         products.is_active=(show_on_list=="yes")
         products.save()
-        delete_image_ids = request.POST.get("deleted_image_ids","")
-        delete_variant_ids= request.POST.get("deleted_variant_ids","")
-
-
-        if delete_variant_ids:
-            ProductVariant.objects.filter(id__in=delete_variant_ids.split(",")).delete()
-            
-        if delete_image_ids:
-            deleted_ids = delete_image_ids.split(",")
-
-            deleted_images = ProductImage.objects.filter(id__in=deleted_ids)
-            affected_variant_ids = list(deleted_images.values_list("variant_id", flat=True))
-
-            deleted_images.delete()
-
-            for variant_id in affected_variant_ids:
-                remaining_images = ProductImage.objects.filter(variant_id=variant_id).order_by("id")
-
-                if remaining_images.exists():
-                    remaining_images.update(is_primary=False)
-                    first_image = remaining_images.first()
-                    first_image.is_primary = True
-                    first_image.save(update_fields=["is_primary"])
-
+        
         for i in range(len(prices)):
             variant_id=(variant_ids[i] if i <len(variant_ids) else "")
             if variant_id:
@@ -543,12 +560,12 @@ def order_management(request):
     search=request.GET.get("search","")
     status = request.GET.get("status", "").strip().lower()
 
-    print(search)
-    orders=(Orders.objects.select_related("user").prefetch_related("addresses","items__variant__product","items__variant__images",).order_by("-created_at"))
+    orders=(Orders.objects.select_related("user").prefetch_related("payments","addresses","items__variant__product","items__variant__images",).order_by("-created_at"))
     if search:
         orders=orders.filter(Q(items__variant__product__name__icontains=search)|Q (addresses__name__icontains=search)).distinct()
     if status:
         orders = orders.filter(status=status)
+    orders = orders.distinct()
 
     paginator = Paginator(orders, 5)
     page_number = request.GET.get("page")
@@ -559,14 +576,14 @@ def order_management(request):
 @login_required(login_url="admin_login")
 def admin_order_detail(request,order_id):
 
-    order=get_object_or_404(Orders.objects.select_related("user"),id=order_id)
+    order=get_object_or_404(Orders.objects.select_related("user").prefetch_related("payments"),id=order_id)
     items=(OrderItems.objects.filter(order=order).select_related("variant","variant__product").prefetch_related("variant__images"))
     shipping=OrderAddress.objects.filter(order=order,address_type="shipping").first()
     tracking=OrderTrack.objects.filter(order=order).order_by("-status_time").first()
     for i in items:
         i.line_total=i.quantity * i.unit_amount
 
-    STATUS_FLOW=["pending",'order placed','shipped','out for delivery','delivered']
+    STATUS_FLOW=["pending",'order placed','shipped','out for delivery','delivered','cancelled']
     if order.status in STATUS_FLOW:
    
         current_index=STATUS_FLOW.index(order.status)
@@ -577,8 +594,9 @@ def admin_order_detail(request,order_id):
 
     else:
         allowed_statuses=[]
+    payment = order.payments.order_by("-created_at").first()
 
-    return render(request,"staff/admin_order_details.html",{"order":order,"items":items,"shipping":shipping,"tracking":tracking,"allowed_statuses": allowed_statuses,"active_page": "admin_order_management"})
+    return render(request,"staff/admin_order_details.html",{"order":order,"payment": payment,"items":items,"shipping":shipping,"tracking":tracking,"allowed_statuses": allowed_statuses,"active_page": "admin_order_management"})
 
 @login_required(login_url="admin_login")
 def order_status(request,order_id):
@@ -588,8 +606,29 @@ def order_status(request,order_id):
         
         if order.status != new_status:
             order.status =new_status
-            order.save(update_fields=['status'])
+            if new_status =="delivered":
+                payment=get_object_or_404(Payment,order=order)
+                if payment:
+                    payment.status='paid'
+                    payment.save(update_fields=['status'])
+                    order.payment_status='paid'
+            order.save(update_fields=['status','payment_status'])
             OrderTrack.objects.create(order=order,status=new_status)
+            if new_status =="cancelled":
+                order_items=OrderItems.objects.filter(order=order)
+                order.status ='cancelled'
+                for item in order_items:
+                    cancelled_qty = item.cancellation.aggregate(total=Sum("quantity"))["total"] or 0
+                    remaining_qty = item.quantity - cancelled_qty
+        
+                    if remaining_qty > 0:
+                        item.variant.stock += remaining_qty
+                        item.variant.save()
+        
+                    item.status = "cancelled"
+                    item.save(update_fields=["status"])
+
+
         return redirect('admin_order_detail',order_id=order.id)
     return redirect("admin_order_detail",order_id=order.id)
 

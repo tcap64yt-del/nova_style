@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Category Creator</title>
   <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"/>
-  <link rel="stylesheet" href="{% static 'css/staff/new_category.css' %}?v=8">
+  <link rel="stylesheet" href="{% static 'css/staff/new_category.css' %}?v=9">
 </head>
 <body>
   <div class="container">
@@ -92,8 +92,11 @@
         Change Image
       </button>
     </div>
-                <small id="image-error-container"></small>
-
+<small id="image-error-container">
+    {% if errors.image %}
+        {{ errors.image }}
+    {% endif %}
+</small>
 
   </div>
 
@@ -162,10 +165,8 @@
     {% endif %}
 </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
-<script>
-const CHECK_CATEGORY_URL = "{% url 'check_category_name' %}";
-</script>
-  <script src="{% static 'js/new_category.js' %}?v=8">
+
+  <script src="{% static 'js/new_category.js' %}?v=9">
 </script>
 </body>
 </html>

@@ -1,97 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-        {% load static  %}
+{% extends "base/user/base.html" %}
+{% load static %}
 
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Profile - NOVA STYLE</title>
-  <!-- Google Fonts for Inter and Montserrat -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/profile.css' %}?v=2">
-</head>
-<body>
+{% block title %}
+<title>My Profile - NOVA STYLE</title>
+{% endblock %}
 
-  <header class="main-header">
-    <div class="header-container">
-      <div class="logo">
-        <a href="{% url "home" %}">NOVA STYLE</a>
-      </div>
-      
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/user/profile.css' %}">
+{% endblock %}
 
-      <div class="header-actions">
-        <a href="#" class="action-btn" aria-label="Wishlist">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-svg">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-          </svg>
-        </a>
-        <a href="{% url "cart" %}" class="action-btn" aria-label="Shopping Bag">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-svg">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-          </svg>
-        </a>
-        <div class="user-avatar-header">
-           {% if details.avatar_url %}
-  <img src="{{ details.avatar_url.url }}" alt="User Avatar" class="header-avatar-img">
-{% else %}
-  <img src="{% static 'images/default.png' %}" alt="User Avatar" class="header-avatar-img">
-{% endif %}
-        </div>
-      </div>
-    </div>
-  </header>
+{% block content %}
 
-  <div class="dashboard-wrapper">
-    <div class="dashboard-container">
-      
-      <aside class="sidebar">
-        <h2 class="sidebar-title">Dashboard</h2>
-        <nav class="sidebar-nav">
-          <a href="#" class="sidebar-link active">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="sidebar-icon">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-            </svg>
-            Profile
-          </a>
-          <a href="{% url "addresses" %}" class="sidebar-link">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="sidebar-icon">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25s-7.5-4.108-7.5-11.25a7.5 7.5 0 1 1 15 0Z" />
-            </svg>
-            Addresses
-          </a>
-          <a href="{% url "orders" %}" class="sidebar-link">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="sidebar-icon">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.03 0 1.9.693 2.166 1.638m-7.377 2.24c-.407-.03-.815-.071-1.222-.123A2.25 2.25 0 0 0 6 8.19V18.75a2.25 2.25 0 0 0 2.25 2.25h1.65m2.285 0M12 22.75" />
-            </svg>
-            Orders
-          </a>
-          <a href="#" class="sidebar-link">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="sidebar-icon">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-5.625 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6.75a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6.75v10.5a1.5 1.5 0 0 0 1.5 1.5Z" />
-            </svg>
-            Wallet
-          </a>
-          <a href="#" class="sidebar-link">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="sidebar-icon">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
-            </svg>
-            Coupons
-          </a>
-          <a href="{% url "wishlist" %}" class="sidebar-link">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="sidebar-icon">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-            </svg>
-            Wishlist
-          </a>
-        </nav>
-      </aside>
 
-      <!-- Main Profile Content -->
-      <main class="main-content">
         <div class="content-header">
           <h1 class="main-title">My Profile</h1>
           <p class="main-subtitle">Update your personal details and manage your account security.</p>
@@ -129,22 +49,38 @@
 
     <form method="post" enctype="multipart/form-data" class="profile-modal-form">
       {% csrf_token %}
+    <input type="hidden" name="avatar_form" value="1">
 
       <div class="profile-modal-preview">
-        {% if details.avatar_url %}
-          <img src="{{ details.avatar_url }}" alt="Preview" id="avatarPreview">
-        {% else %}
-          <img src="{% static 'images/default.png' %}" alt="Preview" id="avatarPreview">
-        {% endif %}
+     {% if details.avatar_url %}
+    <img
+        src="{{ details.avatar_url.url }}"
+        alt="Preview"
+        id="avatarPreview"
+    >
+{% else %}
+    <img
+        src="{% static 'images/default.png' %}"
+        alt="Preview"
+        id="avatarPreview"
+    >
+{% endif %}
       </div>
 
       <label class="upload-label">Select image</label>
       <input type="file" name="avatar_url" id="avatarInput" accept="image/*" class="file-input">
-
+{% if avatar_form.avatar_url.errors %}
+    <div class="form-errors" style="color: red;">
+        {% for error in avatar_form.avatar_url.errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
       <div class="modal-actions">
         <button type="button" class="back-btn" id="backBtn">Back</button>
-        <button type="submit" class="save-btn">Save</button>
-      </div>
+<button type="submit" name="save_avatar" value="1" class="save-btn">
+    Save
+</button>      </div>
     </form>
   </div>
 </div>
@@ -155,9 +91,9 @@
             </div>
 
             <div class="profile-actions">
-              <a href="{% url "user_change_password" %}" class="sidebar-link">
-              <button class="change-password-link">CHANGE PASSWORD</button>
-              </a>
+             <a href="{% url 'user_change_password' %}" class="change-password-link">
+    CHANGE PASSWORD
+</a>
             </div>
             
           </div>
@@ -193,59 +129,56 @@
                         {% endif %}
 
   <div class="form-actions">
-    <button type="submit" class="btn-save">Save</button>
+<button type="submit" name="save_profile" value="1" class="btn-save">
+    Save
+</button>
   </div>
 </form>
 
         </section>
-      </main>
+     
 
-    </div>
-  </div>
-
-  <!-- Page Footer -->
-  <footer class="main-footer">
-    <div class="footer-links">
-      <a href="#" class="footer-link">Privacy</a>
-      <a href="#" class="footer-link">Terms</a>
-      <a href="#" class="footer-link">Shipping</a>
-      <a href="#" class="footer-link">Contact</a>
-    </div>
-    <div class="footer-copyright">
-      &copy; 2024 NOVA STYLE. ALL RIGHTS RESERVED.
-    </div>
-  </footer>
 <script>
-  const modal = document.getElementById("profileModal");
-  const openBtn = document.getElementById("openProfileModal");
-  const closeBtn = document.getElementById("closeModalBtn");
-  const closeOverlay = document.getElementById("closeProfileModal");
-  const backBtn = document.getElementById("backBtn");
-  const avatarInput = document.getElementById("avatarInput");
-  const avatarPreview = document.getElementById("avatarPreview");
+const modal = document.getElementById("profileModal");
+const openBtn = document.getElementById("openProfileModal");
+const closeBtn = document.getElementById("closeModalBtn");
+const closeOverlay = document.getElementById("closeProfileModal");
+const backBtn = document.getElementById("backBtn");
+const avatarInput = document.getElementById("avatarInput");
+const avatarPreview = document.getElementById("avatarPreview");
 
-  function openModal() {
+function openModal() {
     modal.classList.add("show");
-  }
+}
 
-  function closeModal() {
+function closeModal() {
     modal.classList.remove("show");
-  }
+}
 
-  openBtn.addEventListener("click", openModal);
-  closeBtn.addEventListener("click", closeModal);
-  closeOverlay.addEventListener("click", closeModal);
-  backBtn.addEventListener("click", closeModal);
+if(openBtn) openBtn.addEventListener("click", openModal);
+if(closeBtn) closeBtn.addEventListener("click", closeModal);
+if(closeOverlay) closeOverlay.addEventListener("click", closeModal);
+if(backBtn) backBtn.addEventListener("click", closeModal);
 
-  avatarInput.addEventListener("change", function () {
-    if (this.files && this.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        avatarPreview.src = e.target.result;
-      };
-      reader.readAsDataURL(this.files[0]);
-    }
-  });
+if(avatarInput){
+    avatarInput.addEventListener("change", function () {
+
+        if(this.files && this.files[0]){
+
+            const reader = new FileReader();
+
+            reader.onload = function(e){
+
+                avatarPreview.src = e.target.result;
+
+            };
+
+            reader.readAsDataURL(this.files[0]);
+
+        }
+
+    });
+}
 </script>
-</body>
-</html>
+
+{% endblock %}

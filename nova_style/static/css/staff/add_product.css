@@ -1,3 +1,6 @@
+/* =========================================================
+   ADD PRODUCT
+========================================================= */
 
 .page-container {
     display: flex;
@@ -7,8 +10,9 @@
 }
 
 
-
-
+/* =========================================================
+   PRODUCT PAGE CONTENT
+========================================================= */
 
 .product-page-content {
     width: 100%;
@@ -18,12 +22,15 @@
 }
 
 
+/* =========================================================
+   PAGE TITLE
+========================================================= */
 
 .page-title {
-    font-family: var(--font-title);
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 26px;
     font-weight: 600;
-    color: var(--text-main);
+    color: #0B0F19;
     margin-bottom: 24px;
     letter-spacing: -0.01em;
 }
@@ -34,20 +41,21 @@
 ========================================================= */
 
 .card {
-    background-color: var(--bg-card);
-    border: 1px solid var(--border-card);
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
     border-radius: 12px;
     padding: 24px;
     margin-bottom: 20px;
-    box-shadow: var(--shadow-card);
+    box-shadow:
+        0 2px 8px rgba(11, 15, 25, 0.04);
 }
 
 
 .card-title {
-    font-family: var(--font-title);
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-size: 16px;
     font-weight: 600;
-    color: var(--text-main);
+    color: #0B0F19;
     margin-bottom: 20px;
     letter-spacing: -0.01em;
 }
@@ -74,61 +82,81 @@
 ========================================================= */
 
 .field-label {
-    font-family: var(--font-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+
     font-size: 10px;
+
     font-weight: 600;
-    color: var(--text-muted);
+
+    color: #6B7280;
+
     letter-spacing: 0.05em;
+
     text-transform: uppercase;
+
     margin-bottom: 8px;
 }
 
 
 .field-label-category {
-    font-family: var(--font-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+
     font-size: 10px;
+
     font-weight: 700;
-    color: var(--text-muted);
+
+    color: #6B7280;
+
     letter-spacing: 0.06em;
+
     text-transform: uppercase;
+
     margin-bottom: 8px;
 }
 
 
 /* =========================================================
    INPUTS
+   SAME DESIGN AS EDIT PRODUCT
 ========================================================= */
 
 .form-input {
-    font-family: var(--font-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
 
     width: 100%;
 
     font-size: 13px;
+
     font-weight: 400;
+
+    color: #0B0F19;
+
+    background: #F3F4F6;
+
+    border: 1px solid transparent;
+
+    border-radius: 8px;
 
     padding: 12px 14px;
 
-    border-radius: 8px;
-    border: 1px solid var(--border-input);
-
-    background-color: var(--bg-input);
-    color: var(--text-main);
-
     transition: all 0.2s ease;
+
+    box-sizing: border-box;
 }
 
 
 .form-input::placeholder {
-    color: var(--text-placeholder);
+    color: #9CA3AF;
 }
 
 
 .form-input:focus {
-    background-color: var(--bg-input-focus);
-    border-color: var(--border-input-focus);
+    background: #FFFFFF;
 
-    box-shadow: var(--shadow-input-focus);
+    border-color: #3B82F6;
+
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.12);
 
     outline: none;
 }
@@ -136,43 +164,50 @@
 
 /* =========================================================
    TEXTAREA
+   SAME DESIGN AS EDIT PRODUCT
 ========================================================= */
 
 .form-textarea {
-    font-family: var(--font-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
 
     width: 100%;
 
-    height: 108px;
+    min-height: 108px;
 
     font-size: 13px;
+
     font-weight: 400;
+
+    color: #0B0F19;
+
+    background: #F3F4F6;
+
+    border: 1px solid transparent;
+
+    border-radius: 8px;
 
     padding: 12px 14px;
 
-    border-radius: 8px;
-    border: 1px solid var(--border-input);
-
-    background-color: var(--bg-input);
-    color: var(--text-main);
-
-    resize: none;
+    resize: vertical;
 
     transition: all 0.2s ease;
+
+    box-sizing: border-box;
 }
 
 
 .form-textarea::placeholder {
-    color: var(--text-placeholder);
+    color: #9CA3AF;
 }
 
 
 .form-textarea:focus {
-    background-color: var(--bg-input-focus);
+    background: #FFFFFF;
 
-    border-color: var(--border-input-focus);
+    border-color: #3B82F6;
 
-    box-shadow: var(--shadow-input-focus);
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.12);
 
     outline: none;
 }
@@ -180,45 +215,54 @@
 
 /* =========================================================
    SELECT
+   SAME DESIGN AS EDIT PRODUCT
 ========================================================= */
 
 .custom-select-wrapper {
     position: relative;
+
     width: 100%;
 }
 
 
 .form-select {
-    font-family: var(--font-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
 
     width: 100%;
 
     font-size: 13px;
+
     font-weight: 400;
+
+    color: #0B0F19;
+
+    background: #F3F4F6;
+
+    border: 1px solid transparent;
+
+    border-radius: 8px;
 
     padding: 12px 36px 12px 14px;
 
-    border-radius: 8px;
-    border: 1px solid var(--border-input);
-
-    background-color: var(--bg-input);
-    color: var(--text-main);
-
     appearance: none;
+
     -webkit-appearance: none;
 
     cursor: pointer;
 
     transition: all 0.2s ease;
+
+    box-sizing: border-box;
 }
 
 
 .form-select:focus {
-    background-color: var(--bg-input-focus);
+    background: #FFFFFF;
 
-    border-color: var(--border-input-focus);
+    border-color: #3B82F6;
 
-    box-shadow: var(--shadow-input-focus);
+    box-shadow:
+        0 0 0 3px rgba(59, 130, 246, 0.12);
 
     outline: none;
 }
@@ -228,15 +272,17 @@
     position: absolute;
 
     right: 14px;
+
     top: 50%;
 
     transform: translateY(-50%);
 
-    color: var(--text-muted);
+    color: #6B7280;
 
     pointer-events: none;
 
     display: flex;
+
     align-items: center;
 
     transition: transform 0.2s ease;
@@ -283,6 +329,7 @@
     width: 100%;
 
     display: flex;
+
     align-items: center;
 }
 
@@ -292,7 +339,7 @@
 
     left: 14px;
 
-    color: var(--text-muted);
+    color: #6B7280;
 
     font-size: 13px;
 
@@ -301,12 +348,12 @@
 
 
 .price-input {
-    padding-left: 28px;
+    padding-left: 28px !important;
 }
 
 
 /* =========================================================
-   PERCENTAGE INPUT
+   PERCENTAGE
 ========================================================= */
 
 .percentage-symbol {
@@ -314,7 +361,7 @@
 
     right: 14px;
 
-    color: var(--text-muted);
+    color: #6B7280;
 
     font-size: 13px;
 
@@ -323,7 +370,7 @@
 
 
 .percentage-input {
-    padding-right: 28px;
+    padding-right: 28px !important;
 }
 
 
@@ -339,9 +386,9 @@
 
 
 .date-input {
-    padding-right: 36px;
-
     position: relative;
+
+    padding-right: 36px !important;
 
     cursor: pointer;
 }
@@ -351,6 +398,7 @@
     position: absolute;
 
     right: 14px;
+
     top: 50%;
 
     transform: translateY(-50%);
@@ -360,6 +408,7 @@
     pointer-events: none;
 
     display: flex;
+
     align-items: center;
 }
 
@@ -370,6 +419,7 @@
 
 .color-badge-container {
     display: flex;
+
     align-items: center;
 
     position: relative;
@@ -378,13 +428,14 @@
 
 .color-pill {
     display: inline-flex;
+
     align-items: center;
 
     gap: 8px;
 
     padding: 8px 12px;
 
-    background-color: var(--bg-input);
+    background: #F3F4F6;
 
     border: 1px solid transparent;
 
@@ -397,38 +448,39 @@
 
 
 .color-pill:hover {
-    background-color: #E5E7EB;
+    background: #E5E7EB;
 }
 
 
 .color-pill:focus {
     outline: none;
 
-    border-color: var(--border-input-focus);
+    border-color: #3B82F6;
 }
 
 
 .color-pill-text {
-    font-family: var(--font-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
 
     font-size: 13px;
+
     font-weight: 500;
 
-    color: var(--text-main);
+    color: #0B0F19;
 
     text-transform: lowercase;
 }
 
 
 .edit-icon {
-    color: var(--text-muted);
+    color: #6B7280;
 
     transition: color 0.2s ease;
 }
 
 
 .color-pill:hover .edit-icon {
-    color: var(--text-main);
+    color: #0B0F19;
 }
 
 
@@ -436,9 +488,11 @@
     position: absolute;
 
     top: 0;
+
     left: 0;
 
     width: 100%;
+
     height: 100%;
 
     opacity: 0;
@@ -451,13 +505,14 @@
 
 .color-square {
     width: 48px;
+
     height: 48px;
 
     border: none;
 
     border-radius: 8px;
 
-    background: var(--bg-input);
+    background: #F3F4F6;
 
     cursor: pointer;
 
@@ -472,33 +527,40 @@
 }
 
 
+.color-square::-moz-color-swatch {
+    border: none;
+
+    border-radius: 6px;
+}
+
+
 /* =========================================================
    VARIANT
 ========================================================= */
 
-.variant-item-row {
-    padding: 0;
-
-    border: none;
-
-    background: transparent;
-
-    box-shadow: none;
+.variant-grid {
+    margin-bottom: 24px;
 }
 
 
-.variant-grid {
+.variant-item-row {
+    position: relative;
+
     background: #FFFFFF;
 
-    border: 1px solid #CBD5E1;
+    border: 1px solid #E2E8F0;
 
-    border-radius: 16px;
+    border-radius: 12px;
 
     padding: 24px;
 
-    margin-bottom: 28px;
+    box-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.04);
+}
 
-    box-shadow: 0 6px 24px rgba(0, 0, 0, .06);
+
+.variant-item-row:last-child {
+    margin-bottom: 0;
 }
 
 
@@ -523,7 +585,7 @@
 
 
 /* =========================================================
-   OFFER
+   OFFER SECTION
 ========================================================= */
 
 .offer-section {
@@ -536,13 +598,13 @@
 
 
 .section-subtitle {
-    font-family: var(--font-title);
+    font-family: 'Plus Jakarta Sans', sans-serif;
 
     font-size: 14px;
 
     font-weight: 600;
 
-    color: var(--text-main);
+    color: #0B0F19;
 
     margin-bottom: 16px;
 }
@@ -564,7 +626,7 @@
 .section-description {
     font-size: 11px;
 
-    color: var(--text-muted);
+    color: #6B7280;
 
     margin-top: -12px;
 
@@ -582,11 +644,12 @@
 
 
 /* =========================================================
-   MEDIA UPLOAD
+   UPLOAD BOX
 ========================================================= */
 
 .media-upload-box {
     width: 96px;
+
     height: 96px;
 
     border: 1.5px dashed #CBD5E1;
@@ -596,6 +659,7 @@
     display: flex;
 
     align-items: center;
+
     justify-content: center;
 
     cursor: pointer;
@@ -604,24 +668,24 @@
 
     transition: all 0.2s ease;
 
-    background-color: var(--bg-card);
+    background: #FFFFFF;
 }
 
 
 .media-upload-box:hover {
     border-color: #3B82F6;
 
-    background-color: #F8FAFC;
+    background: #F8FAFC;
 }
 
 
 .hidden-file-input {
     position: absolute;
 
-    top: 0;
-    left: 0;
+    inset: 0;
 
     width: 100%;
+
     height: 100%;
 
     opacity: 0;
@@ -637,6 +701,8 @@
 
     align-items: center;
 
+    justify-content: center;
+
     text-align: center;
 
     padding: 8px;
@@ -644,7 +710,7 @@
 
 
 .upload-icon {
-    color: var(--text-muted);
+    color: #6B7280;
 
     margin-bottom: 6px;
 
@@ -662,73 +728,85 @@
 
     font-weight: 500;
 
-    color: var(--text-muted);
+    color: #6B7280;
 
     line-height: 1.2;
 }
 
 
 /* =========================================================
-   T-SHIRT PLACEHOLDER
-========================================================= */
-
-.tshirt-placeholder {
-    width: 100%;
-    height: 100%;
-
-    background-color: #0B0F19;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    padding: 8px;
-}
-
-
-.tshirt-svg {
-    width: 80%;
-    height: 80%;
-
-    filter: drop-shadow(
-        0px 2px 8px rgba(0, 0, 0, 0.4)
-    );
-}
-
-
-/* =========================================================
-   MEDIA ITEMS
+   MEDIA ITEM
 ========================================================= */
 
 .media-item-box {
     width: 120px;
+
     height: 120px;
 
     position: relative;
 
     cursor: move;
+
+    overflow: hidden;
+
+    border-radius: 8px;
+
+    background: #F8FAFC;
 }
 
 
 .media-item-box.active-main {
-    border: 3px solid #2563eb;
+    border: 3px solid #2563EB;
 }
 
 
 .preview-image {
     width: 100%;
+
     height: 100%;
 
     object-fit: cover;
+
+    display: block;
 }
 
+
+/* =========================================================
+   DELETE IMAGE
+========================================================= */
 
 .btn-delete-image {
     position: absolute;
 
     top: 5px;
+
     right: 5px;
+
+    width: 28px;
+
+    height: 28px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: rgba(15, 23, 42, 0.75);
+
+    color: #FFFFFF;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    opacity: 0;
+
+    transition: all 0.2s ease;
 }
 
 
@@ -738,7 +816,7 @@
 
 
 .btn-delete-image:hover {
-    background-color: rgba(239, 68, 68, 0.9);
+    background: rgba(239, 68, 68, 0.9);
 }
 
 
@@ -747,7 +825,7 @@
 ========================================================= */
 
 .btn {
-    font-family: var(--font-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
 
     font-size: 13px;
 
@@ -770,9 +848,9 @@
 
 
 .btn-primary {
-    background-color: var(--btn-primary-bg);
+    background: #2563EB;
 
-    border: 1px solid var(--btn-primary-bg);
+    border: 1px solid #2563EB;
 
     color: #FFFFFF;
 
@@ -781,32 +859,32 @@
 
 
 .btn-primary:hover {
-    background-color: var(--btn-primary-hover);
+    background: #1D4ED8;
 
-    border-color: var(--btn-primary-hover);
+    border-color: #1D4ED8;
 }
 
 
 .btn-secondary {
-    background-color: #FFFFFF;
+    background: #FFFFFF;
 
-    border: 1px solid var(--btn-secondary-border);
+    border: 1px solid #CBD5E1;
 
-    color: var(--text-main);
+    color: #0B0F19;
 
     padding: 10px 20px;
 }
 
 
 .btn-secondary:hover {
-    background-color: var(--btn-secondary-hover);
+    background: #F8FAFC;
 }
 
 
 .btn-dark {
-    background-color: var(--btn-dark-bg);
+    background: #111827;
 
-    border: 1px solid var(--btn-dark-bg);
+    border: 1px solid #111827;
 
     color: #FFFFFF;
 
@@ -815,9 +893,9 @@
 
 
 .btn-dark:hover {
-    background-color: var(--btn-dark-hover);
+    background: #0B0F19;
 
-    border-color: var(--btn-dark-hover);
+    border-color: #0B0F19;
 }
 
 
@@ -834,15 +912,17 @@
     position: fixed;
 
     bottom: 0;
+
     left: 0;
 
     width: 100%;
 
-    background-color: #FFFFFF;
+    background: #FFFFFF;
 
     border-top: 1px solid #E2E8F0;
 
-    box-shadow: var(--shadow-footer);
+    box-shadow:
+        0 -4px 15px rgba(11, 15, 25, 0.03);
 
     padding: 16px 24px;
 
@@ -876,7 +956,22 @@
 
 
 /* =========================================================
-   MESSAGES
+   FIELD ERRORS
+========================================================= */
+
+.field-error {
+    color: #DC2626;
+
+    font-size: 12px;
+
+    margin-top: 4px;
+
+    display: block;
+}
+
+
+/* =========================================================
+   DJANGO MESSAGES
 ========================================================= */
 
 .message-container {
@@ -915,17 +1010,6 @@
 }
 
 
-.field-error {
-    color: #DC2626;
-
-    font-size: 12px;
-
-    margin-top: 4px;
-
-    display: block;
-}
-
-
 /* =========================================================
    REMOVE VARIANT
 ========================================================= */
@@ -939,6 +1023,8 @@
 
     padding: 8px 12px;
 
+    margin-bottom: 20px;
+
     border: 1px solid #FECACA;
 
     background: #FEF2F2;
@@ -947,17 +1033,15 @@
 
     border-radius: 8px;
 
+    font-family: 'Plus Jakarta Sans', sans-serif;
+
     font-size: 12px;
 
     font-weight: 600;
 
-    font-family: var(--font-primary);
-
     cursor: pointer;
 
-    transition: all .2s ease;
-
-    margin-bottom: 20px;
+    transition: all 0.2s ease;
 }
 
 
@@ -972,11 +1056,6 @@
 
 .btn-remove-variant:active {
     transform: translateY(0);
-}
-
-
-.btn-remove-variant svg {
-    flex-shrink: 0;
 }
 
 
@@ -1001,6 +1080,7 @@
     position: fixed;
 
     top: 20px;
+
     right: 20px;
 
     z-index: 99999;
@@ -1022,7 +1102,7 @@
 
     border-radius: 14px;
 
-    color: #fff;
+    color: #FFFFFF;
 
     font-size: 14px;
 
@@ -1034,42 +1114,47 @@
 
     align-items: center;
 
-    box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+    gap: 16px;
 
-    animation: toastSlide .35s ease;
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.15);
+
+    animation: toastSlide 0.35s ease;
 }
 
 
 .toast.success {
-    background: #16a34a;
+    background: #16A34A;
 }
 
 
 .toast.error {
-    background: #dc2626;
+    background: #DC2626;
 }
 
 
 .toast.warning {
-    background: #f59e0b;
+    background: #F59E0B;
 }
 
 
 .toast.info {
-    background: #2563eb;
+    background: #2563EB;
 }
 
 
 .toast-close {
-    border: none;
-
-    background: none;
-
-    color: #fff;
+    color: #FFFFFF;
 
     font-size: 20px;
 
     cursor: pointer;
+
+    background: none;
+
+    border: none;
+
+    line-height: 1;
 }
 
 
@@ -1078,7 +1163,7 @@
 
     transform: translateX(120%);
 
-    transition: all .4s ease;
+    transition: all 0.4s ease;
 }
 
 
@@ -1110,7 +1195,7 @@
 
     inset: 0;
 
-    background: rgba(15, 23, 42, .75);
+    background: rgba(15, 23, 42, 0.75);
 
     backdrop-filter: blur(6px);
 
@@ -1127,14 +1212,20 @@
 .crop-modal-content {
     width: min(900px, 95vw);
 
-    background: #fff;
+    max-height: 95vh;
+
+    background: #FFFFFF;
 
     border-radius: 20px;
 
     overflow: hidden;
 
     box-shadow:
-        0 25px 50px rgba(0, 0, 0, .25);
+        0 25px 50px rgba(0, 0, 0, 0.25);
+
+    display: flex;
+
+    flex-direction: column;
 }
 
 
@@ -1147,7 +1238,7 @@
 
     padding: 18px 24px;
 
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #EEEEEE;
 }
 
 
@@ -1168,13 +1259,17 @@
     font-size: 22px;
 
     cursor: pointer;
+
+    color: #0B0F19;
 }
 
 
 .crop-body {
     padding: 20px;
 
-    background: #f8fafc;
+    background: #F8FAFC;
+
+    overflow: auto;
 }
 
 
@@ -1184,6 +1279,8 @@
     width: 100%;
 
     max-height: 65vh;
+
+    object-fit: contain;
 }
 
 
@@ -1196,14 +1293,14 @@
 
     gap: 12px;
 
-    border-top: 1px solid #eee;
+    border-top: 1px solid #EEEEEE;
 }
 
 
 .btn-cancel {
     border: none;
 
-    background: #e5e7eb;
+    background: #E5E7EB;
 
     color: #111827;
 
@@ -1217,31 +1314,8 @@
 }
 
 
-/*
-    Kept exactly as the existing design uses
-    .btn-save for both the bottom save button
-    and crop save button.
-*/
-
-.btn-save {
-    border: none;
-
-    background: #111827;
-
-    color: white;
-
-    padding: 12px 20px;
-
-    border-radius: 10px;
-
-    cursor: pointer;
-
-    font-weight: 600;
-}
-
-
-.btn-save:hover {
-    opacity: .9;
+.btn-cancel:hover {
+    background: #D1D5DB;
 }
 
 
@@ -1258,33 +1332,10 @@
 }
 
 
-@media (min-width: 1024px) {
-
-    .layout-grid {
-        display: grid;
-
-        grid-template-columns: 1fr 340px;
-
-        gap: 24px;
-
-        align-items: start;
-    }
-
-
-    .primary-column {
-        margin-bottom: 0;
-    }
-
-
-    .secondary-column {
-        position: sticky;
-
-        top: 24px;
-    }
-
+@media (min-width: 1025px) {
 
     .product-page-content {
-        padding: 40px 24px 120px 24px;
+        padding: 40px 24px 120px;
     }
 
 
@@ -1306,12 +1357,30 @@
         font-size: 18px;
     }
 
+
+    .layout-grid {
+        display: grid;
+
+        grid-template-columns: minmax(0, 1fr) 340px;
+
+        gap: 24px;
+
+        align-items: start;
+    }
+
+
+    .primary-column {
+        margin-bottom: 0;
+    }
+
+
+    .secondary-column {
+        position: sticky;
+
+        top: 24px;
+    }
 }
 
-
-/* =========================================================
-   SMALL MOBILE
-========================================================= */
 
 @media (max-width: 767px) {
 
@@ -1342,6 +1411,8 @@
     .btn-back,
     .btn-save {
         flex: 1;
+
+        min-width: 0;
     }
 
 
@@ -1362,7 +1433,6 @@
 
         left: 20px;
     }
-
 }
 
 
@@ -1382,11 +1452,6 @@
     }
 
 
-    .variant-grid {
-        padding: 18px;
-    }
-
-
     .page-title {
         font-size: 24px;
     }
@@ -1397,6 +1462,4 @@
 
         height: 100px;
     }
-
 }
-

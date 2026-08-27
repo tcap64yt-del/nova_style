@@ -10,13 +10,31 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static "css/home.css" %}?v=3">
+    <link rel="stylesheet" href="{% static "css/user/home.css" %}?v=3">
 </head>
 <body>
     <header class="site-header">
         <div class="header-container">
+            
             <div class="logo-wrapper">
                 <a href="#" class="logo" id="header-logo">NOVA STYLE</a>
+               
+            </div>
+            
+            <nav class="main-nav" aria-label="Main Navigation">
+                <ul class="nav-links">
+                {% for category in categories %}
+<li>
+    <a href="{% url 'product_list' %}?category={{ category.id }}" class="nav-link">
+        {{ category.name }}
+    </a>
+</li>
+{% endfor %}
+                </ul>
+                
+            </nav>
+            
+            <div class="header-actions">
                 <div class="auth-menu" tabindex="0">
   <div class="auth-dropdown">
     {% if user.is_authenticated %}
@@ -26,24 +44,6 @@
     {% endif %}
   </div>
 </div>
-            </div>
-            
-            <nav class="main-nav" aria-label="Main Navigation">
-                <ul class="nav-links">
-                    {% for category in categories %}
-                    <li><a href="#" class="nav-link" id="nav-women">{{ category.name }}</a></li>
-                    {% endfor %}
-                </ul>
-                
-            </nav>
-            
-            <div class="header-actions">
-                <button class="action-btn" id="action-search" aria-label="Search Catalog">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                </button>
               <a href="{% url "wishlist" %}" class="action-btn" aria-label="Favorites Wishlist">
     <svg viewBox="0 0 24 24"
          width="20"
@@ -101,7 +101,7 @@
 
         <div class="categories-grid">
             {% for category in categories %}
-            <a href="#" class="category-card">
+            <a href="{% url 'product_list' %}?category={{ category.id }}" class="category-card">
                 <div class="card-image-wrapper">
                     <img src="{{ category.image_url.url }}" alt="{{ category.name }}" class="card-img">
                 </div>

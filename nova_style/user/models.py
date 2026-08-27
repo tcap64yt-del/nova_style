@@ -49,9 +49,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     class Meta:
         db_table = "users"
 
-    def __str__(self):
-        return self.email
-         
+    
 class EmailOTP(models.Model):
     email = models.EmailField()
     otp_code = models.CharField(max_length=6)
@@ -63,9 +61,7 @@ class EmailOTP(models.Model):
 
     def is_expired(self):
         return timezone.now() > self.expires_at
-    
-    def __str__(self):
-        return self.email
+
     
     class Meta:
         db_table ="email_otp"
@@ -135,3 +131,11 @@ class WishlistItem(models.Model):
                 name="unique_wishlist_variant"
             )
         ]
+
+class Wallet(models.Model):
+    user=models.OneToOneField(Users,on_delete=models.CASCADE,related_name='wallet')
+    balance=models.DecimalField(max_digits=12,decimal_places=2,default=0)
+
+    class Meta:
+        db_table='wallet'
+

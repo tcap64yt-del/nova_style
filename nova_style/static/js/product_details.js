@@ -185,18 +185,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-document.querySelectorAll(".size-options a").forEach(link => {
-    link.addEventListener("click", function () {
-        localStorage.setItem("selectedSize", this.href);
-    });
-});
 
-window.addEventListener("DOMContentLoaded", () => {
-    const selected = localStorage.getItem("selectedSize");
 
-    document.querySelectorAll(".size-options a").forEach(link => {
-        if (link.href === selected) {
-            link.querySelector(".size-btn").classList.add("active");
-        }
-    });
-});

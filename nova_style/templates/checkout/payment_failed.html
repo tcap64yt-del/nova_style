@@ -1,0 +1,566 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Payment Failed | Nova Style</title>
+
+    <meta
+        name="description"
+        content="Your payment could not be completed. Retry your payment or view your orders."
+    >
+
+    <!-- Same font as checkout -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/user/checkout/payment_failed.css' %}?v=1"
+    >
+</head>
+
+
+<body>
+
+<div class="failed-page">
+
+
+
+
+    <main class="failed-main">
+
+
+    
+        <section class="payment-failed-card">
+
+
+            <!-- Failed Icon -->
+
+            <div class="failed-icon-wrapper">
+
+                <div class="failed-icon">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        width="34"
+                        height="34"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+
+                        <line
+                            x1="18"
+                            y1="6"
+                            x2="6"
+                            y2="18"
+                        />
+
+                        <line
+                            x1="6"
+                            y1="6"
+                            x2="18"
+                            y2="18"
+                        />
+
+                    </svg>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- Text -->
+
+            <div class="failed-content">
+
+                <span class="eyebrow">
+                    PAYMENT UNSUCCESSFUL
+                </span>
+
+                <h1>
+                    We couldn't complete your payment
+                </h1>
+
+                <p class="failed-description">
+                    Your payment was not completed.
+                    Don't worry, your order is still available.
+                    You can retry the payment .
+                </p>
+
+
+                {% if order %}
+
+                <div class="order-reference">
+
+                    <span>
+                        ORDER
+                    </span>
+
+                    <strong>
+                        #{{ order.order_id }}
+                    </strong>
+
+                </div>
+
+                {% endif %}
+
+
+                <!-- Actions -->
+
+                <div class="failed-actions">
+
+                    <!-- Retry -->
+
+                    <button
+                        type="button"
+                        class="btn btn-primary"
+                        id="retryPaymentButton"
+                    >
+
+                        <span>
+                            Retry Payment
+                        </span>
+
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <polyline points="23 4 23 10 17 10"/>
+                            <path d="M20.49 15a9 9 0 1 1 2.13-9.36"/>
+                        </svg>
+
+                    </button>
+
+
+                    <!-- Orders -->
+
+                    <a
+                        href="{% url 'orders' %}"
+                        class="btn btn-secondary"
+                    >
+
+                        <span>
+                            Go to Order List
+                        </span>
+
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.8"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                            <polyline points="12 5 19 12 12 19"/>
+                        </svg>
+
+                    </a>
+
+                </div>
+
+
+                <!-- Help -->
+
+                <div class="payment-help">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        width="17"
+                        height="17"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 2-3 4"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+
+                    <span>
+                        Having trouble?
+                        Please try again or choose another payment method.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ======================================
+             SECURITY NOTE
+        ======================================= -->
+
+        <div class="security-note">
+
+            <div class="security-icon">
+
+                <svg
+                    viewBox="0 0 24 24"
+                    width="17"
+                    height="17"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <rect
+                        x="3"
+                        y="11"
+                        width="18"
+                        height="10"
+                        rx="2"
+                    />
+
+                    <path
+                        d="M7 11V7a5 5 0 0 1 10 0v4"
+                    />
+
+                </svg>
+
+            </div>
+
+            <div>
+
+                <strong>
+                    Your payment is secure
+                </strong>
+
+                <p>
+                    Payment information is securely processed by Razorpay.
+                </p>
+
+            </div>
+
+        </div>
+
+
+    </main>
+
+
+
+    <!-- ==========================================
+         FOOTER
+    =========================================== -->
+
+    <footer class="footer">
+
+        <div class="footer-links">
+
+            <a href="#">
+                PRIVACY
+            </a>
+
+            <a href="#">
+                TERMS
+            </a>
+
+            <a href="#">
+                SHIPPING
+            </a>
+
+            <a href="#">
+                CONTACT
+            </a>
+
+        </div>
+
+
+        <p>
+            © 2026 NOVA STYLE. ALL RIGHTS RESERVED.
+        </p>
+
+    </footer>
+
+
+</div>
+
+
+
+<!-- ==========================================
+     RAZORPAY
+=========================================== -->
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+<script>
+
+const retryButton =
+    document.getElementById("retryPaymentButton");
+
+
+retryButton.addEventListener("click", async function () {
+
+    /*
+     * Prevent multiple clicks
+     */
+
+    if (retryButton.classList.contains("loading")) {
+        return;
+    }
+
+
+    retryButton.classList.add("loading");
+
+    retryButton.disabled = true;
+
+
+    retryButton.innerHTML = `
+        <span class="button-spinner"></span>
+        <span>Preparing payment...</span>
+    `;
+
+
+    try {
+
+        const response = await fetch(
+            "{% url 'retry_payment' order.id %}",
+            {
+                method: "GET",
+
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            }
+        );
+
+
+        const data = await response.json();
+
+
+        if (data.status !== "razorpay") {
+
+            throw new Error(
+                data.message || "Unable to start payment."
+            );
+
+        }
+
+
+        /*
+         * Open Razorpay again
+         */
+
+        const options = {
+
+            key: data.razorpay_key,
+
+            amount: data.amount,
+
+            currency: "INR",
+
+            name: "NOVA STYLE",
+
+            description: "Order Payment",
+
+            order_id: data.razorpay_order_id,
+
+
+            handler: function (response) {
+
+                /*
+                 * IMPORTANT:
+                 * Send Razorpay response to your
+                 * existing verification endpoint.
+                 */
+
+                fetch(
+                    "{% url 'verify_razorpay_payment' %}",
+                    {
+                        method: "POST",
+
+                        headers: {
+    "Content-Type": "application/json",
+    "X-CSRFToken": getCookie("csrftoken")
+},
+
+                     body: JSON.stringify({
+    razorpay_payment_id:
+        response.razorpay_payment_id,
+
+    razorpay_order_id:
+        response.razorpay_order_id,
+
+    razorpay_signature:
+        response.razorpay_signature,
+
+    order_id:
+        data.order_id
+})
+
+                    }
+                )
+                .then(response => response.json())
+                .then(result => {
+
+                    if (result.status === "success") {
+
+                        window.location.href =
+                            result.redirect_url ||
+                            "{% url 'success' order.id %}";
+
+                    } else {
+
+                        window.location.reload();
+
+                    }
+
+                })
+                .catch(() => {
+
+                    window.location.reload();
+
+                });
+
+            },
+
+
+            modal: {
+
+                ondismiss: function () {
+
+                    resetRetryButton();
+
+                }
+
+            }
+
+        };
+
+
+        const razorpay =
+            new Razorpay(options);
+
+
+        razorpay.on(
+            "payment.failed",
+            function () {
+
+                window.location.reload();
+
+            }
+        );
+
+
+        razorpay.open();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Unable to start payment. Please try again."
+        );
+
+        resetRetryButton();
+
+    }
+
+});
+
+
+
+function resetRetryButton() {
+
+    retryButton.classList.remove("loading");
+
+    retryButton.disabled = false;
+
+    retryButton.innerHTML = `
+        <span>Retry Payment</span>
+
+        <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+        >
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1 2.13-9.36"/>
+        </svg>
+    `;
+
+}
+
+
+
+/*
+ * CSRF helper
+ */
+
+function getCookie(name) {
+
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+
+        const cookies =
+            document.cookie.split(";");
+
+        for (let cookie of cookies) {
+
+            cookie = cookie.trim();
+
+            if (
+                cookie.substring(
+                    0,
+                    name.length + 1
+                ) === name + "="
+            ) {
+
+                cookieValue =
+                    decodeURIComponent(
+                        cookie.substring(
+                            name.length + 1
+                        )
+                    );
+
+                break;
+
+            }
+
+        }
+
+    }
+
+    return cookieValue;
+}
+
+</script>
+
+</body>
+</html>

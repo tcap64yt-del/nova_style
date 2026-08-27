@@ -2482,3 +2482,70 @@
     }
 
 }
+/* ==========================================================================
+   PAYMENT METHOD / STATUS
+   ========================================================================== */
+
+.payment-method-value {
+
+    text-transform: uppercase;
+
+    letter-spacing: .03em;
+
+}
+
+
+.payment-status-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 72px;
+
+    padding: 6px 12px;
+
+    border-radius: 9999px;
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: .05em;
+
+    text-transform: uppercase;
+
+    background-color: #f1f5f9;
+
+    color: #475569;
+
+}
+
+
+.payment-status-paid {
+
+    background-color: #ecfdf5;
+
+    color: #059669;
+
+}
+
+
+.payment-status-pending {
+
+    background-color: #fff7ed;
+
+    color: #c2410c;
+
+}
+
+
+.payment-status-failed {
+
+    background-color: #fef2f2;
+
+    color: #dc2626;
+
+}

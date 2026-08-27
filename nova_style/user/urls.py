@@ -12,6 +12,7 @@ urlpatterns = [
    path("logout/", views.logout, name="logout"),
 
    path("profile/addresses/", views.address_list, name="addresses"),   
+   path("profile/wallet/", views.wallet, name="wallet"),   
    path("profile/wishlist/", views.wishlist, name="wishlist"),   
    path("profile/wishlist/add/<int:variant_id>/", views.add_to_wishlist, name="add_to_wishlist"),   
    path("profile/orders/",views.orders, name="orders"),   

@@ -1,80 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova Style</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/product/product_list.css' %}?v=5">
-    <script src="https://unpkg.com/lucide@latest"></script>
-</head>
-<body>
-       <header class="site-header">
-        <div class="header-container">
-            <div class="logo-wrapper">
-                <a href="{% url "home" %}" class="logo" id="header-logo">NOVA STYLE</a>
-                <div class="auth-menu" tabindex="0">
+{% extends "base/user/base_product_list.html" %}
+{% load static %}
 
-</div>
-            </div>
-            
-         
+{% block title %}
+<title>Nova Style</title>
+{% endblock %}
 
-            
-            <div class="header-actions">
-                <button class="action-btn" id="action-search" aria-label="Search Catalog">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                </button>
-                        <button class="action-btn" id="action-wishlist" aria-label="Favorites Wishlist">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                </button>
-               <a href="{% url 'cart' %}" class="action-btn" aria-label="Shopping Bag">
-    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <path d="M16 10a4 4 0 0 1-8 0"></path>
-    </svg>
-</a>
-                <div class="user-profile" id="user-profile-menu">
-                       <a href='{% url "profile" %}'>
-                        {% if details.avatar_url %}
-                        <img src="{{ details.avatar_url.url }}" alt="User Avatar" class="header-avatar-img">
-                        {% else %}
-                        <img src="{% static 'images/default.png' %}" alt="User Avatar" class="header-avatar-img">
-                        {% endif %}                       </a>
-                </div>
-            </div>
-        </div>
-      <form
-    method="GET"
-    action="{% url 'product_list' %}"
-    class="search-overlay"
-    id="searchOverlay"
->
-    <div class="search-box">
-        <input
-            type="search"
-            name="search"
-            id="searchInput"
-            placeholder="Search products..."
-            value="{{ request.GET.search }}"
-        >
+{% block css %}
 
-        <button type="button" id="clearSearch">
-            ✕
-        </button>
-    </div>
-</form>
-</div>
-    </header>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"rel="stylesheet">
+
+<link rel="stylesheet" href="{% static 'css/user/product/product_list.css' %}?v=22">
+
+<script src="https://unpkg.com/lucide@latest"></script>
+
+{% endblock %}
+
+{% block content %}
+
+
     <div class="shop-container">
         <button class="mobile-filter-trigger" id="mobileFilterTrigger">
             <i data-lucide="sliders-horizontal"></i>
@@ -83,6 +30,7 @@
 
         <aside class="filters-sidebar" id="filtersSidebar">
         <form method="GET" id="filterForm">
+            <input type="hidden" name="search" value="{{ request.GET.search }}">
                      <input type="hidden" name="sort" id="sortField" value="{{ request.GET.sort }}">
                 <div class="sidebar-header">
                 <div class="filters-title-group">
@@ -100,19 +48,18 @@
             <div class="filter-group">
                 <button class="filter-group-header" aria-expanded="true">
                     <span><i data-lucide="layers" class="filter-icon"></i> CATEGORY</span>
-                    <i data-lucide="chevron-down" class="chevron"></i>
                 </button>
                 <div class="filter-group-content">
                   <ul class="category-list">
 {% for category in categories %}
 <li>
-    <input
-        type="radio"
-        name="category"
-        value="{{ category.id }}"
-        id="cat{{ category.id }}"
-    >
-
+   <input
+    type="radio"
+    name="category"
+    value="{{ category.id }}"
+    id="cat{{ category.id }}"
+    {% if request.GET.category == category.id|stringformat:"s" %}checked{% endif %}
+>
     <label for="cat{{ category.id }}">
         {{ category.name }}
     </label>
@@ -125,7 +72,6 @@
             <div class="filter-group">
                 <button class="filter-group-header" aria-expanded="true">
                     <span><i data-lucide="wallet" class="filter-icon"></i> PRICE</span>
-                    <i data-lucide="chevron-down" class="chevron"></i>
                 </button>
                 <div class="filter-group-content">
                     <div class="price-slider-container">
@@ -133,7 +79,7 @@
 <input
     type="range"
     min="0"
-    max="3000"
+    max="25000"
     name="min_price"
     value="{{ request.GET.min_price|default:'0' }}"
     class="range-input"
@@ -142,14 +88,14 @@
 <input
     type="range"
     min="0"
-    max="3000"
+    max="25000"
     name="max_price"
-    value="{{ request.GET.max_price|default:'3000' }}"
+    value="{{ request.GET.max_price|default:'25000' }}"
     class="range-input"
     id="priceMax"> 
                      <div class="price-values">
                             <span class="price-val" id="priceMinVal">₹0</span>
-                            <span class="price-val" id="priceMaxVal">₹3000</span>
+                            <span class="price-val" id="priceMaxVal">₹25000</span>
                         </div>
                     </div>
                 </div>
@@ -159,7 +105,7 @@
             <div class="filter-group">
                 <button class="filter-group-header" aria-expanded="true">
                     <span><i data-lucide="maximize-2" class="filter-icon"></i> SIZE</span>
-                    <i data-lucide="chevron-down" class="chevron"></i>
+
                 </button>
                 <div class="filter-group-content">
                    <div class="size-selector">
@@ -223,16 +169,16 @@
     <span>/</span>
     <span>Products</span>
 
-    {% if request.GET.category %}
-        <span>/</span>
-        <span>
-            {% for cat in categories %}
-                {% if request.GET.category == cat.id|stringformat:'s' %}
-                    {{ cat.name }}
-                {% endif %}
-            {% endfor %}
-        </span>
-    {% endif %}
+   {% if request.GET.category %}
+    <span>/</span>
+    {% for cat in categories %}
+        {% if request.GET.category == cat.id|stringformat:'s' %}
+            <a href="{% url 'product_list' %}?category={{ cat.id }}">
+                {{ cat.name }}
+            </a>
+        {% endif %}
+    {% endfor %}
+{% endif %}
 </div>
             <div class="products-header">
                 <div class="sort-dropdown">
@@ -276,6 +222,7 @@ NEW PRODUCTS
 
                   <form method="POST" action="{% url 'add_to_wishlist' variant.id %}">
     {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
     <button
         type="submit"
         class="wishlist-btn {% if variant.id in wishlist_variant_ids %}active{% endif %}">
@@ -287,16 +234,37 @@ NEW PRODUCTS
                         <span class="product-category">{{ variant.product.category.name }}</span>
                         <h3 class="product-title">{{ variant.product.name }}</h3>
                         <div class="product-price-row">
-                            <div class="price-group">
-                                <span class="price-original">₹{{variant.orginal_price  }}</span>
-                                <span class="price-current">₹{{ variant.discounted_price }}</span>
-                            </div>
+                          <div class="price-group">
+
+    {% if variant.total_offer %}
+
+        <!-- Offer exists: show original + discounted price -->
+        <span class="price-original">
+            ₹{{ variant.orginal_price }}
+        </span>
+
+        <span class="price-current">
+            ₹{{ variant.discounted_price }}
+        </span>
+
+    {% else %}
+
+        <!-- No offer: show only original price -->
+        <span class="price-current">
+            ₹{{ variant.orginal_price }}
+        </span>
+
+    {% endif %}
+
+</div>
 
 {% if variant.total_offer %}
     <span class="discount-badge">
         {{ variant.total_offer }}% OFF
     </span>
 {% endif %}
+
+
                         </div>
                     </div>
                 </article>
@@ -308,26 +276,121 @@ NEW PRODUCTS
         </main>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-links">
-            <a href="#" class="footer-link">PRIVACY</a>
-            <a href="#" class="footer-link">TERMS</a>
-            <a href="#" class="footer-link">SHIPPING</a>
-            <a href="#" class="footer-link">CONTACT</a>
+{% if messages %}
+<div id="toast-container">
+    {% for message in messages %}
+        <div class="toast {{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="toast-close">&times;</button>
         </div>
-        <p class="copyright">© 2024 NOVA STYLE. ALL RIGHTS RESERVED.</p>
-    </footer>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+
+{% block js %}
+
 <script>
 document.querySelectorAll(".wishlist-btn").forEach(button => {
-    button.addEventListener("click", function(e) {
+
+    button.addEventListener("click", function(e){
+
         e.preventDefault();
+
         e.stopPropagation();
 
         this.closest("form").submit();
+
     });
+
+});
+
+
+document.querySelectorAll(".sort-option").forEach(option => {
+
+    option.addEventListener("click", function(){
+
+        document.getElementById("sortField").value =
+            this.dataset.sort;
+
+        document.getElementById("filterForm").submit();
+
+    });
+
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    document.querySelectorAll(".toast").forEach(toast => {
+
+        const closeBtn = toast.querySelector(".toast-close");
+
+        if(closeBtn){
+
+            closeBtn.onclick = () => {
+
+                toast.classList.add("hide");
+
+                setTimeout(() => toast.remove(),350);
+
+            };
+
+        }
+
+        setTimeout(() => {
+
+            toast.classList.add("hide");
+
+            setTimeout(() => toast.remove(),350);
+
+        },3000);
+
+    });
+
+});
+document.addEventListener("DOMContentLoaded", function () {
+
+    const searchBtn = document.getElementById("action-search");
+    const searchOverlay = document.getElementById("searchOverlay");
+    const searchInput = document.getElementById("searchInput");
+    const clearSearch = document.getElementById("clearSearch");
+
+    if (searchBtn && searchOverlay) {
+
+        searchBtn.addEventListener("click", function (e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            searchOverlay.classList.toggle("active");
+
+            if (searchOverlay.classList.contains("active") && searchInput) {
+                searchInput.focus();
+            }
+
+        });
+
+    }
+
+    if (clearSearch && searchInput) {
+
+        clearSearch.addEventListener("click", function (e) {
+
+            e.preventDefault();
+
+            searchInput.value = "";
+            searchInput.focus();
+
+        });
+
+    }
+
 });
 </script>
-    <script src="{% static 'js/product_list.js' %}?v=5"></script>
-</body>
-</html>
+
+<script src="{% static 'js/product_list.js' %}?v=10"></script>
+
+{% endblock %}

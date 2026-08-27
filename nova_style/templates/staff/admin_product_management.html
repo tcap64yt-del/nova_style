@@ -1,285 +1,313 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nova Style - Product Inventory Admin Console</title>
-  <meta name="description" content="Manage products, track variants, categories, and perform administrative operations in the Nova Style Admin Console.">
-  <link rel="stylesheet" href="{% static 'css/staff/admin_product_management.css' %}?v=6">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-  <div class="admin-layout">
-    
-    <!-- Mobile Header -->
-    <header class="mobile-header">
-      <div class="mobile-logo-group">
-        <span class="mobile-logo-title">NOVA STYLE</span>
-        <span class="mobile-logo-subtitle">ADMIN CONSOLE</span>
-      </div>
-      <button class="mobile-menu-toggle" id="menuToggle" aria-label="Toggle Navigation Menu">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="4" x2="20" y1="12" y2="12"/>
-          <line x1="4" x2="20" y1="6" y2="6"/>
-          <line x1="4" x2="20" y1="18" y2="18"/>
-        </svg>
-      </button>
-    </header>
+{% extends "base/staff/base.html" %}
+{% load static %}
 
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-brand">
-        <h1 class="brand-title">NOVA STYLE</h1>
-        <p class="brand-subtitle">ADMIN CONSOLE</p>
-      </div>
+{% block title %}
+Nova Style - Product Inventory Admin Console
+{% endblock %}
 
-      <nav class="sidebar-nav">
-        <ul>
-          <li>
-            <a href="#" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="9" rx="1"></rect>
-                <rect x="14" y="3" width="7" height="5" rx="1"></rect>
-                <rect x="14" y="12" width="7" height="9" rx="1"></rect>
-                <rect x="3" y="16" width="7" height="5" rx="1"></rect>
-              </svg>
-              <span>Dashboard</span>
-            </a>
-          </li>
+{% block extra_css %}
+<link rel="stylesheet"
+      href="{% static 'css/staff/admin_product_management.css' %}?v=6">
+{% endblock %}
 
-          <li>
-            <a href="{% url "user_management" %}" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              <span>Users</span>
-            </a>
-          </li>
+{% block content %}
 
-          <li>
-            <a href="{% url "category_management" %}" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-              </svg>
-              <span>Category</span>
-            </a>
-          </li>
+<!-- Top Search Bar -->
+<section class="top-bar">
 
-          <li>
-            <a href="{% url "order_management" %}" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="8" cy="21" r="1"></circle>
-                <circle cx="19" cy="21" r="1"></circle>
-                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
-              </svg>
-              <span>Order</span>
-            </a>
-          </li>
+    <form
+        class="search-form"
+        id="searchForm"
+        method="GET">
 
-          <li>
-            <a href="{% url "product_management" %}" class="nav-link active">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                <line x1="12" y1="22.08" x2="12" y2="12"></line>
-              </svg>
-              <span>Product</span>
-            </a>
-          </li>
+        <div class="search-input-wrapper">
 
-          <li>
-            <a href="#" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-                <line x1="8" y1="14" x2="8" y2="14.01"></line>
-                <line x1="12" y1="14" x2="12" y2="14.01"></line>
-                <line x1="16" y1="14" x2="16" y2="14.01"></line>
-                <line x1="8" y1="17" x2="8" y2="17.01"></line>
-                <line x1="12" y1="17" x2="12" y2="17.01"></line>
-                <line x1="16" y1="17" x2="16" y2="17.01"></line>
-              </svg>
-              <span>Coupon</span>
-            </a>
-          </li>
+            <svg class="search-icon"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2.2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
 
-          <li>
-            <a href="#" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="20" x2="18" y2="10"></line>
-                <line x1="12" y1="20" x2="12" y2="4"></line>
-                <line x1="6" y1="20" x2="6" y2="14"></line>
-              </svg>
-              <span>Report</span>
-            </a>
-          </li>
+                <circle cx="11" cy="11" r="8"></circle>
 
-          <li class="logout-item">
-             <form action="{% url 'admin_logout' %}" method="post" class="logout-form">
-              {% csrf_token %}
-            <button type="submit" class="nav-link logout-link" id="logoutBtn">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 17l5-5-5-5"></path>
-                <path d="M15 12H3"></path>
-                <path d="M21 5v14a2 2 0 0 1-2 2h-4"></path>
-                <path d="M15 5h4a2 2 0 0 1 2 2"></path>
-              </svg>
-              <span>Log out</span>
-            </button>
-            </form>
+                <line
+                    x1="21"
+                    y1="21"
+                    x2="16.65"
+                    y2="16.65">
+                </line>
 
-          </li>
-        </ul>
-      </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-      
-      <!-- Top Search Bar -->
-      <section class="top-bar">
-        <form class="search-form" id="searchForm" method="GET">
-          <div class="search-input-wrapper">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
+
             <input
-              type="text"
-              id="searchInput"
-              name="search"
-              value="{{search}}"
-              placeholder="Search products or categories..."
-              class="search-input"
-              aria-label="Search products, SKUs, or categories">
-          </div>
-          <div class="search-actions">
-            <button type="submit" class="search-button" id="searchButton">Search</button>
-            <button type="button" class="search-button" id="clearButton">Clear</button>
-          </div>
-        </form>
-      </section>
-
-      <!-- Dashboard Header -->
-      <section class="dashboard-header">
-        <h2 class="page-title">Product Inventory</h2>
-
-        <div class="header-actions">
-          <a href="{% url "add_product" %}">
-              <button class="btn-add-product" id="addProductBtn">
-                  <svg class="action-btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                  <span>Add Product</span>
-              </button>
-          </a>
+                type="text"
+                id="searchInput"
+                name="search"
+                value="{{ search }}"
+                placeholder="Search products or categories..."
+                class="search-input"
+                aria-label="Search products, SKUs, or categories">
 
         </div>
-      </section>
 
-      <!-- Product Table Card -->
-      <section class="table-container-card">
-      <div class="table-top-actions">
-    <div class="sort-container">
-        <span class="sort-label">SORT BY:</span>
+        <div class="search-actions">
 
-        <div class="sort-dropdown" id="sortDropdown">
-            <span class="sort-current">
-                {{ sort|default:"All"|upper}}
+            <button
+                type="submit"
+                class="search-button"
+                id="searchButton">
+
+                Search
+
+            </button>
+
+            <button
+                type="button"
+                class="search-button"
+                id="clearButton">
+
+                Clear
+
+            </button>
+
+        </div>
+
+    </form>
+
+</section>
+
+<!-- Dashboard Header -->
+<section class="dashboard-header">
+
+    <h2 class="page-title">
+        Product Inventory
+    </h2>
+
+    <div class="header-actions">
+
+        <a href="{% url 'add_product' %}">
+
+            <button class="btn-add-product"
+                    id="addProductBtn">
+
+                <svg class="action-btn-icon"
+                     width="20"
+                     height="20"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2.5"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <line x1="12"
+                          y1="5"
+                          x2="12"
+                          y2="19"></line>
+
+                    <line x1="5"
+                          y1="12"
+                          x2="19"
+                          y2="12"></line>
+
+                </svg>
+
+                <span>Add Product</span>
+
+            </button>
+
+        </a>
+
+    </div>
+
+</section>
+
+
+<!-- Product Table -->
+<section class="table-container-card">
+
+    <div class="table-top-actions">
+
+        <div class="sort-container">
+
+            <span class="sort-label">
+                SORT BY:
             </span>
 
-            <div class="sort-menu">
-                <a href="?sort=all{% if search %}&search={{ search }}{% endif %}">
-                    ALL
-                </a>
-                <a href="?sort=active{% if search %}&search={{ search }}{% endif %}">
-                    ACTIVE
-                </a>
-                <a href="?sort=inactive{% if search %}&search={{ search }}{% endif %}">
-                    INACTIVE
-                </a>
+            <div class="sort-dropdown"
+                 id="sortDropdown">
+
+                <span class="sort-current">
+
+                    {{ sort|default:"All"|upper }}
+
+                </span>
+
+                <div class="sort-menu">
+
+                    <a href="?sort=all{% if search %}&search={{ search }}{% endif %}">
+                        ALL
+                    </a>
+
+                    <a href="?sort=active{% if search %}&search={{ search }}{% endif %}">
+                        ACTIVE
+                    </a>
+
+                    <a href="?sort=inactive{% if search %}&search={{ search }}{% endif %}">
+                        INACTIVE
+                    </a>
+
+                </div>
+
             </div>
+
         </div>
+
     </div>
-</div>
-        <div class="table-wrapper">
-          
-          <table class="products-table">
+
+    <div class="table-wrapper">
+
+        <table class="products-table">
+
             <thead>
-              <tr>
-                <th class="col-product-details">PRODUCT NAME</th>
-                <th class="col-category">CATEGORY</th>
-                <th class="col-status">STATUS</th>
-                <th class="col-variants">VARIANTS</th>
-                <th class="col-actions">ACTIONS</th>
-                      
-              </tr>
+
+                <tr>
+
+                    <th class="col-product-details">
+                        PRODUCT NAME
+                    </th>
+
+                    <th class="col-category">
+                        CATEGORY
+                    </th>
+
+                    <th class="col-status">
+                        STATUS
+                    </th>
+
+                    <th class="col-variants">
+                        VARIANTS
+                    </th>
+
+                    <th class="col-actions">
+                        ACTIONS
+                    </th>
+
+                </tr>
+
             </thead>
 
             <tbody>
+
               {% for product in products %}
-              
-              <tr data-product-id="{{ product.id }}">
-                <td class="col-product-details">
-                  <div class="product-profile">
-                   
-                    <div class="product-info">
-                      <span class="product-name">{{ product.name }}</span>
-                      <span class="product-color"></span>
-                    </div>
-                  </div>
-                </td>
 
-                <td class="col-category">
-                  <span class="category-badge">{{product.category.name}}</span>
-                </td>
+<tr data-product-id="{{ product.id }}">
 
-                <td class="col-status">
-    <span class="status-text {% if product.is_active %}active{% else %}inactive{% endif %}">
-        {% if product.is_active %}
-            Active
-        {% else %}
-            Inactive
-        {% endif %}
-    </span>
-</td>
+    <td class="col-product-details">
 
-                <td class="col-variants">
-                  <span class="variants-count">{{ product.count }}</span>
-                </td>
+        <div class="product-profile">
 
-                <td class="col-actions">
-                  <div class="actions-wrapper">
-                    <a href="{% url 'edit_product' product.id %}" class="btn-icon btn-edit" aria-label="Edit Lhanga">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-        <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-    </svg>
-</a>
-                    <label class="switch-control" aria-label="Toggle active status">
-<input
-    type="checkbox"
-    class="status-toggle-checkbox"
-    {% if product.is_active %}checked{% endif %}
->                      <span class="switch-slider"></span>
-                    </label>
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+            <div class="product-info">
+
+                <span class="product-name">
+                    {{ product.name }}
+                </span>
+
+                <span class="product-color"></span>
+
+            </div>
+
         </div>
 
-        <!-- Table Pagination Footer -->
-           <div class="pagination pagination-ui">
+    </td>
+
+    <td class="col-category">
+
+        <span class="category-badge">
+
+            {{ product.category.name }}
+
+        </span>
+
+    </td>
+
+    <td class="col-status">
+
+        <span class="status-text {% if product.is_active %}active{% else %}inactive{% endif %}">
+
+            {% if product.is_active %}
+                Active
+            {% else %}
+                Inactive
+            {% endif %}
+
+        </span>
+
+    </td>
+
+    <td class="col-variants">
+
+        <span class="variants-count">
+
+            {{ product.count }}
+
+        </span>
+
+    </td>
+
+    <td class="col-actions">
+
+        <div class="actions-wrapper">
+
+            <a href="{% url 'edit_product' product.id %}"
+               class="btn-icon btn-edit"
+               aria-label="Edit Product">
+
+                <svg viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+
+                    <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+
+                </svg>
+
+            </a>
+
+            <label class="switch-control"
+                   aria-label="Toggle active status">
+
+                <input
+                    type="checkbox"
+                    class="status-toggle-checkbox"
+                    {% if product.is_active %}checked{% endif %}>
+
+                <span class="switch-slider"></span>
+
+            </label>
+
+        </div>
+
+    </td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+<!-- Pagination -->
+<div class="pagination pagination-ui">
 
     {% if page_obj.has_previous %}
         <a href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}&search={{ search }}"
@@ -287,73 +315,166 @@
     {% endif %}
 
     {% for num in page_obj.paginator.page_range %}
+
         {% if page_obj.number == num %}
-            <span class="pagination-page active">{{ num }}</span>
+
+            <span class="pagination-page active">
+                {{ num }}
+            </span>
+
         {% else %}
+
             <a href="?page={{ num }}&sort={{ sort }}&search={{ search }}"
                class="pagination-page">
                 {{ num }}
             </a>
+
         {% endif %}
+
     {% endfor %}
 
     {% if page_obj.has_next %}
+
         <a href="?page={{ page_obj.next_page_number }}&sort={{ sort }}&search={{ search }}"
            class="pagination-arrow">›</a>
+
     {% endif %}
 
 </div>
 
-      </section>
-    </main>
-  </div>
+</section>
 
-  <!-- Action Modals -->
-  <!-- Delete Confirmation Modal -->
-  <div id="deleteModal" class="confirm-modal" aria-hidden="true" role="dialog">
-    <div class="confirm-modal__overlay"></div>
-    <div class="confirm-modal__card">
-      <div class="confirm-modal__icon">!</div>
-      <h3 id="deleteModalTitle">Delete Product</h3>
-      <p id="deleteModalText">Are you sure you want to delete this product? This action cannot be undone.</p>
-      <div class="confirm-modal__actions">
-        <button type="button" class="confirm-btn confirm-btn--secondary cancel-modal" id="cancelDeleteBtn">
-          Cancel
-        </button>
-        <button type="button" class="confirm-btn confirm-btn--danger" id="confirmDeleteBtn">
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
+<!-- Delete Modal -->
 
-  <!-- Status Change Modal -->
-  <div id="statusModal" class="confirm-modal" aria-hidden="true" role="dialog">
+<div id="deleteModal"
+     class="confirm-modal"
+     aria-hidden="true"
+     role="dialog">
+
     <div class="confirm-modal__overlay"></div>
+
     <div class="confirm-modal__card">
-      <div class="confirm-modal__icon" style="background:#eff6ff; color:#1d52d9;">?</div>
-      <h3 id="statusModalTitle">Change Product Status</h3>
-      <p id="statusModalText">Are you sure you want to change this product's status?</p>
-      <div class="confirm-modal__actions">
-        <button type="button" class="confirm-btn confirm-btn--secondary cancel-modal" id="cancelStatusBtn">
-          Cancel
-        </button>
-        <button type="button" class="confirm-btn confirm-btn--danger" style="background:#1d52d9;" id="confirmStatusBtn">
-          Confirm
-        </button>
-      </div>
-    </div>
-  </div>
-{% if messages %}
-<div id="toast-container">
-    {% for message in messages %}
-        <div class="toast {{ message.tags }}">
-            {{ message }}
+
+        <div class="confirm-modal__icon">!</div>
+
+        <h3 id="deleteModalTitle">
+            Delete Product
+        </h3>
+
+        <p id="deleteModalText">
+
+            Are you sure you want to delete this product?
+            This action cannot be undone.
+
+        </p>
+
+        <div class="confirm-modal__actions">
+
+            <button
+                type="button"
+                class="confirm-btn confirm-btn--secondary"
+                id="cancelDeleteBtn">
+
+                Cancel
+
+            </button>
+
+            <button
+                type="button"
+                class="confirm-btn confirm-btn--danger"
+                id="confirmDeleteBtn">
+
+                Delete
+
+            </button>
+
         </div>
-    {% endfor %}
+
+    </div>
+
 </div>
+
+<!-- Status Modal -->
+
+<div id="statusModal"
+     class="confirm-modal"
+     aria-hidden="true"
+     role="dialog">
+
+    <div class="confirm-modal__overlay"></div>
+
+    <div class="confirm-modal__card">
+
+        <div class="confirm-modal__icon"
+             style="background:#eff6ff;color:#1d52d9;">
+
+            ?
+
+        </div>
+
+        <h3 id="statusModalTitle">
+
+            Change Product Status
+
+        </h3>
+
+        <p id="statusModalText">
+
+            Are you sure you want to change this product's status?
+
+        </p>
+
+        <div class="confirm-modal__actions">
+
+            <button
+                type="button"
+                class="confirm-btn confirm-btn--secondary"
+                id="cancelStatusBtn">
+
+                Cancel
+
+            </button>
+
+            <button
+                type="button"
+                class="confirm-btn confirm-btn--danger"
+                style="background:#1d52d9;"
+                id="confirmStatusBtn">
+
+                Confirm
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Toast -->
+
+{% if messages %}
+
+<div id="toast-container">
+
+    {% for message in messages %}
+
+        <div class="toast {{ message.tags }}">
+
+            {{ message }}
+
+        </div>
+
+    {% endfor %}
+
+</div>
+
 {% endif %}
 
-  <script src="{% static 'js/admin_product_management.js' %}?v=5"></script>
-</body>
-</html>
+{% endblock %}
+
+{% block extra_js %}
+
+<script src="{% static 'js/admin_product_management.js' %}?v=6"></script>
+
+{% endblock %}

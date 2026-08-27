@@ -1,4 +1,6 @@
-import random
+import random,re
+from django.apps import apps
+
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib import messages
@@ -7,14 +9,16 @@ from django.contrib.auth import logout as auth_logout
 from django.shortcuts import redirect,render,get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
-from .forms import SignupForm,LoginForm,OTPForm,ProfileForm
+from .forms import SignupForm,LoginForm,OTPForm,ProfileForm,AvatarForm
 from .models import EmailOTP,Users,Addresses,Wishlist,WishlistItem
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from product.models import Category
 from order.models import OrderItems,Orders
+from django.db.models import Q
 
 
+ProductVariant = apps.get_model("product", "ProductVariant")
 MAX_ATTEMPTS = 5
 MAX_RESENDS = 3
 OTP_SECONDS = 120
@@ -212,71 +216,85 @@ def home(request):
 def profile(request):
     details = request.user
     categories=Category.objects.all()
+    form = ProfileForm(initial={"name": details.name,"email": details.email})
+    avatar_form = AvatarForm()
     if request.method == "POST":
-        avatar = request.FILES.get("avatar_url")
-        if avatar:
-            details.avatar_url = avatar
+        if "save_avatar" in request.POST:
 
-            details.save()  
-            messages.success(request,"updated profile") 
-            return redirect('profile')
-        
+                avatar_form = AvatarForm(request.POST, request.FILES)
 
-        form=ProfileForm(request.POST)
+                if avatar_form.is_valid():
+                    avatar = avatar_form.cleaned_data["avatar_url"]
 
-        if form.is_valid():
-            new_name = form.cleaned_data["name"].strip()
-            new_email = form.cleaned_data["email"].strip().lower()
-            current_name = (details.name or "").strip()
-            current_email = (details.email or "").strip().lower()
+                    if avatar:
+                        details.avatar_url = avatar
+                        details.save(update_fields=["avatar_url", "updated_at"])
+                        messages.success(request,"Profile image updated successfully.")
+                    else:
+                        messages.success(request,"Profile image unchanged.")
 
-            name_changed=new_name!= current_name
-            email_changed =new_email !=current_email
+                    return redirect("profile")
+                else:
+                    form = ProfileForm(initial={"name": details.name,"email": details.email})
+                    return render(request,"profile.html",{"details": details,"form": form,"avatar_form": avatar_form,"categories": categories,"active_page": "profile","show_search": False,"show_sidebar": True,})
 
-            if not name_changed and not email_changed:
-                messages.error(request, "No changes made.")
-                return redirect('profile')
+                        
+        if "save_profile" in request.POST:
+            form=ProfileForm(request.POST)
 
-            if name_changed and not email_changed:
-                details.name = new_name
-                details.save(update_fields=["name"])
-                messages.success(request, "Name updated successfully.")
-                return redirect("profile")
+            if form.is_valid():
+                new_name = form.cleaned_data["name"].strip()
+                new_email = form.cleaned_data["email"].strip().lower()
+                current_name = (details.name or "").strip()
+                current_email = (details.email or "").strip().lower()
+
+                name_changed=new_name!= current_name
+                email_changed =new_email !=current_email
+
+                if not name_changed and not email_changed:
+                    messages.error(request, "No changes made.")
+                    return redirect('profile')
+
+                if name_changed and not email_changed:
+                    details.name = new_name
+                    details.save(update_fields=["name"])
+                    messages.success(request, "Name updated successfully.")
+                    return redirect("profile")
+                
+                if email_changed:
+                    if Users.objects.filter(email=new_email).exclude(id=details.id).exists():
+                            messages.error(request, "This email is already taken.")
+                            return redirect("profile")
+                
+                
+                EmailOTP.objects.filter(email=new_email,is_verified=False).delete()
+
+                otp=generate_otp()
+                EmailOTP.objects.update_or_create(
+                    email=new_email,
+                    defaults={
+                        "otp_code": otp,
+                        "expires_at": timezone.now() + timedelta(seconds=OTP_SECONDS),
+                        "attempts": 0,
+                        "resend_count": 0,
+                        "is_verified": False,
+                    },
+                )
+                send_mail(
+                    subject="Your email verification OTP",
+                    message=f"Your OTP is {otp}. It expires in 1 minute.",
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[new_email],
+                )
+                request.session["pending_email_change_user_id"] = details.id
+                request.session["pending_email_change_email"] = new_email
+                request.session["pending_email_change_name"] = new_name           
+                messages.success(request, "OTP sent to your email.")
+                return redirect("verify_email_otp")
+        else:
+            form=ProfileForm(initial={"name": details.name, "email": details.email})
             
-            if email_changed:
-                if Users.objects.filter(email=new_email).exclude(id=details.id).exists():
-                        messages.error(request, "This email is already taken.")
-                        return redirect("profile")
-            
-            
-            EmailOTP.objects.filter(email=new_email,is_verified=False).delete()
-
-            otp=generate_otp()
-            EmailOTP.objects.update_or_create(
-                email=new_email,
-                defaults={
-                    "otp_code": otp,
-                    "expires_at": timezone.now() + timedelta(seconds=OTP_SECONDS),
-                    "attempts": 0,
-                    "resend_count": 0,
-                    "is_verified": False,
-                },
-            )
-            send_mail(
-                subject="Your email verification OTP",
-                message=f"Your OTP is {otp}. It expires in 1 minute.",
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[new_email],
-            )
-            request.session["pending_email_change_user_id"] = details.id
-            request.session["pending_email_change_email"] = new_email
-            request.session["pending_email_change_name"] = new_name           
-            messages.success(request, "OTP sent to your email.")
-            return redirect("verify_email_otp")
-    else:
-        form=ProfileForm(initial={"name": details.name, "email": details.email})
-        
-    return render(request,'profile.html',{"details":details,"form":form,"categories":categories})
+    return render(request,'profile.html',{"details":details,"form":form,"categories":categories,  "form":form,"active_page":"profile","show_search":False,"show_sidebar": True})
 
 
 @login_required(login_url='login')
@@ -340,18 +358,28 @@ def change_password(request):
         current_password=request.POST.get('current_password')
         new_password=request.POST.get('new_password')
         confirm_password=request.POST.get('confirm_password')
+        errors = {}
 
-        if not details.check_password(current_password):
-            messages.error(request, "Current password is incorrect")
-            return redirect("change_password")
-        if new_password!=confirm_password:
-            messages.error(request,"passwords dont match")
-            return redirect('user_change_password')
-        
-        if len(new_password) < 8:
-            messages.error(request, "Password must be at least 8 characters")
-            return redirect("change_password")
-        
+        if not current_password:
+            errors["current_password"] = "Current password is required"
+
+        elif not details.check_password(current_password):
+            errors["current_password"] = "Current password is incorrect"
+
+        if not new_password:
+            errors["new_password"] = "New password is required"
+        elif len(new_password) < 8:
+            errors["new_password"] = "Password must be at least 8 characters"
+        elif not re.search(r'[A-Za-z]', new_password) or not re.search(r'\d', new_password) or not re.search(r'[^A-Za-z0-9\s]', new_password):
+            errors["new_password"] = "Password must contain at least one letter, number, and special character."
+
+        if not confirm_password:
+            errors["confirm_password"] = "Please confirm your password"
+        elif new_password != confirm_password:
+            errors["confirm_password"] = "Passwords do not match"
+
+        if errors:
+            return render(request, "change_password.html", {"details": details,"errors": errors,})
         details.set_password(new_password)
         details.save()
         update_session_auth_hash(request,details)
@@ -364,18 +392,30 @@ def change_password(request):
 @login_required(login_url='login')
 def address_list(request):
     details=request.user
-    all_address=Addresses.objects.filter(user_id=details.id).order_by('-created_at')
-    paginator=Paginator(all_address,5)
+    search = request.GET.get("search", "").strip()
+
+    all_address = Addresses.objects.filter(
+        user=request.user
+    )
+
+    if search:
+        all_address = all_address.filter(
+            name__icontains=search
+           
+        )
+
+    all_address = all_address.order_by("-created_at")
+    paginator=Paginator(all_address,1)
     page_number=request.GET.get('page')
     page_obj=paginator.get_page(page_number)
 
-    return render(request,'addresses.html',{'page_obj':page_obj,'details':details})
+    return render(request,'addresses.html',{'page_obj':page_obj,'details':details,"active_page": "addresses","show_search": True,"show_sidebar": True})
 
 
 @login_required(login_url='login')
 def new_address(request):
     details=request.user
-
+    
     if request.method =="POST":
         name=request.POST.get('name')
         phone=request.POST.get('phone')
@@ -385,54 +425,109 @@ def new_address(request):
         postal_code=request.POST.get('postal_code')
         address=request.POST.get('address')
         is_default=request.POST.get("is_default")=="on"
-        
-        try:
-            Addresses.objects.create(
-                user=request.user,
-                name=name,
-                address=address,
-                phone=phone,
-                district=district,
-                state=state,
-                country=country,
-                postal_code=postal_code,
-                is_default=is_default
-            )
-            return redirect("addresses")
-        except ValueError as e:
-            return render(request, "new_address.html", {"details":details,"error": str(e),"form_data": request.POST})
-    return render(request,'new_address.html ',{'details': details})
+        errors={}
+        if not name:
+            errors["name"] = "Name is required"
+        elif len(name) < 3:
+            errors["name"] = "Name must be at least 3 characters"
+        elif not name.replace(" ", "").isalpha():
+            errors["name"] = "Name should contain only letters"
+
+        if not phone:
+            errors["phone"] = "Phone number is required"
+        elif not phone.isdigit() or len(phone) != 10:
+            errors["phone"] = "Enter a valid 10-digit phone number"
+
+        if not postal_code:
+            errors["postal_code"] = "PIN code is required"
+        elif not postal_code.isdigit() or len(postal_code) != 6:
+            errors["postal_code"] = "Enter a valid 6-digit PIN code"
+
+        if not address:
+            errors["address"] = "Address is required"
+
+        if not state:
+            errors["state"] = "State is required"
+
+        if not district:
+            errors["district"] = "District is required"
+
+        if not country:
+            errors["country"] = "Country is required"
+
+        if errors:
+            return render(request,"new_address.html",{"details": details,"errors": errors,"form_data": request.POST,},)
+        Addresses.objects.create(user=request.user,name=name,phone=phone,state=state,district=district,country=country,postal_code=postal_code,address=address,is_default=is_default,)
+        messages.success(request, "Address added successfully.")
+        return redirect("addresses")
+    return render(request,'new_address.html ',{'details': details,"show_sidebar": True})
 
 
 @login_required(login_url='login')
 def edit_address(request,pk):
     details = request.user
 
-    addresses=Addresses.objects.filter(id=pk)
-    address=Addresses.objects.get(id=pk)
+    address=get_object_or_404(Addresses,id=pk,user=request.user)
     if request.method == "POST":
-        address.name = request.POST.get("name")
-        address.phone = request.POST.get("phone")
-        address.state = request.POST.get("state")
-        address.district = request.POST.get("district")
-        address.country = request.POST.get("country")
-        address.postal_code = request.POST.get("postal_code")
-        address.address = request.POST.get("address")
-        address.is_default = request.POST.get("is_default") == "on"
+        name = request.POST.get("name")
+        phone = request.POST.get("phone")
+        state = request.POST.get("state")
+        district = request.POST.get("district")
+        country = request.POST.get("country")
+        postal_code = request.POST.get("postal_code")
+        full_address = request.POST.get("address")
+        is_default = request.POST.get("is_default") == "on"
 
-        try:
-            address.save()
-            return redirect("addresses")
-        except ValueError as e:
-            return render(request, "edit_address.html", {
-                "address": address,
-                "details": details,
-                "error": str(e),
-                "form_data": request.POST
-            })
+        errors = {}
 
-    return render(request,'edit_address.html',{"addresses":addresses,"details":details})
+        if not name:
+            errors["name"] = "Name is required"
+        elif len(name) < 2:
+            errors["name"] = "Name  at least 2 characters"
+        elif not name.replace(" ", "").isalpha():
+            errors["name"] = "Name should contain only letters"
 
+        
+        if not phone:
+            errors["phone"] = "Phone number is required"
+        elif not phone.isdigit() or len(phone) != 10:
+            errors["phone"] = "Enter a valid 10-digit phone number"
+
+        if not postal_code:
+            errors["postal_code"] = "PIN code is required"
+        elif not postal_code.isdigit() or len(postal_code) != 6:
+            errors["postal_code"] = "Enter a valid 6-digit PIN code"
+
+        if not full_address:
+            errors["address"] = "Address is required"
+
+        
+        if not state:
+            errors["state"] = "State is required"
+
+        if not district:
+            errors["district"] = "District is required"
+
+        if not country:
+            errors["country"] = "Country is required"
+
+        if errors:
+            return render(request,"edit_address.html",{"address": address,"details": details,"errors": errors,"form_data": request.POST,"show_sidebar": True},)
+
+        address.name = name
+        address.phone = phone
+        address.state = state
+        address.district = district
+        address.country = country
+        address.postal_code = postal_code
+        address.address = full_address
+
+        address.save()
+        messages.success(request, "Address updated successfully.")
+        return redirect("addresses")
+
+    return render(request,"edit_address.html",{"address": address,"details": details,"show_sidebar": True},)
+   
 
 @login_required(login_url='login')
 def set_default_address(request,pk):
@@ -457,24 +552,72 @@ def delete_address(request,pk):
 
 @login_required(login_url='login')
 def wishlist(request):
+
     profile=request.user
+    search = request.GET.get("search", "").strip()
+
     wishlist=Wishlist.objects.filter(user=profile).first()
+
     items=[]
     if wishlist:
-        items=WishlistItem.objects.filter(wishlist=wishlist).select_related("variant","variant__product").prefetch_related("variant__images")
+        WishlistItem.objects.filter(wishlist=wishlist).filter(Q(variant__is_active=False) | Q(variant__product__is_active=False) |Q(variant__product__category__is_active=False)).delete()
 
-    return render(request,"wishlist/wishlist.html",{ "details":profile,"items":items})
+        items=WishlistItem.objects.filter(wishlist=wishlist,variant__is_active=True,variant__product__is_active=True,variant__product__category__is_active=True).select_related("variant","variant__product").prefetch_related("variant__images")
+        if search:
+            items = items.filter(variant__product__name__icontains=search)
+    return render(request,"wishlist/wishlist.html",{ "details":profile,"items":items,"serach":search,"active_page": "wishlist","show_search": True,"show_sidebar": True})
 
 @login_required(login_url="login")
 def add_to_wishlist(request,variant_id):
-    wishlist,_=Wishlist.objects.get_or_create(user=request.user)
-    item,created=WishlistItem.objects.get_or_create(wishlist=wishlist,variant_id=variant_id)
-    if not created:
-        item.delete()
-    
+    if request.method =="POST":
+        variant = ProductVariant.objects.filter(id=variant_id).first()
+
+        if not variant:
+            messages.error(request, "Product variant not found.")
+        elif not variant.is_active:
+            messages.error(request, "This variant is inactive.")
+        elif not variant.product.is_active:
+            messages.error(request, "This product is inactive.")
+        elif not variant.product.category.is_active:
+            messages.error(request, "This category is inactive.")
+        else:
+            wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
+
+            item, created = WishlistItem.objects.get_or_create(
+                wishlist=wishlist,
+                variant=variant
+            )
+
+            if created:
+                messages.success(request, "Added to wishlist.")
+            else:
+                item.delete()
+                messages.success(request, "Removed from wishlist.")
+        next_url = request.POST.get("next")
+        if next_url:
+            return redirect(next_url)
     return redirect("product_list")
+
+
 @login_required(login_url='login')
 def orders(request):
-    orders=Orders.objects.select_related("user").prefetch_related("addresses","items__variant__product","items__variant__images",)
-    
-    return render(request,"orders.html",{"orders":orders})
+    profile=request.user
+
+    orders=Orders.objects.filter(user=request.user).select_related("user").prefetch_related("addresses","items__variant__product","items__variant__images",).order_by("-created_at")
+
+    search = request.GET.get("search", "").strip()
+    if search:
+        orders = orders.filter(items__variant__product__name__icontains=search)
+
+    paginator = Paginator(orders, 5 ) 
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request,"orders.html",{"page_obj": page_obj,"details":profile,    "orders": orders,"active_page": "orders","show_search": True,"show_sidebar": True})
+
+
+@login_required(login_url='login')
+def wallet(request):
+    profile=request.user
+
+    return render(request,"wallet/wallet.html",{"show_sidebar": True,"active_page": "wallet","details":profile})

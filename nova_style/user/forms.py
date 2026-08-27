@@ -15,7 +15,7 @@ class CustomPasswordResetForm(PasswordResetForm):
         )
 
 class SignupForm(forms.ModelForm):
-    name = forms.CharField(min_length=5, max_length=255)
+    name = forms.CharField(min_length=2, max_length=255)
     email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput(), min_length=8)
     confirm_password = forms.CharField(widget=forms.PasswordInput(), min_length=8)
@@ -32,8 +32,8 @@ class SignupForm(forms.ModelForm):
         name = self.cleaned_data.get("name", "")
         if not name.replace(" ", "").isalpha():
             raise forms.ValidationError("Name must contain only letters.")
-        if len(name.strip()) < 5:
-            raise forms.ValidationError("Name must be at least 5 characters.")
+        if len(name.strip()) < 2:
+            raise forms.ValidationError("Name must be at least 2 characters.")
         return name
 
     def clean_email(self):
@@ -80,22 +80,28 @@ class LoginForm(forms.Form):
 
 
 class ProfileForm(forms.Form):
-    name = forms.CharField(min_length=5, max_length=255)
+    name = forms.CharField(min_length=2, max_length=255)
     email = forms.EmailField()
 
     def clean_name(self):
         name = self.cleaned_data["name"].strip()
         if not re.fullmatch(r"[A-Za-z ]+", name):
             raise forms.ValidationError("Name must contain only letters and spaces.")
-        if len(name) < 5:
-            raise forms.ValidationError("Name must be at least 5 characters.")
+        if len(name) < 2:
+            raise forms.ValidationError("Name must be at least 2 characters.")
         return name
 
-    def clean_email(self):
-        email = self.cleaned_data["email"].lower().strip()
-        if not email.endswith("@gmail.com"):
-            raise forms.ValidationError("Only Gmail addresses are allowed.")
-        return email
-    
 
 
+class AvatarForm(forms.Form):
+    avatar_url=forms.ImageField(required=False)
+    def clean_avatar_url(self):
+        image = self.cleaned_data.get("avatar_url")
+
+        if image:
+            if image.size > 5 * 1024 * 1024:
+                raise forms.ValidationError(
+                    "Image size must be less than 5 MB."
+                )
+
+        return image

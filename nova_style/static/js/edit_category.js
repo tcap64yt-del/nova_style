@@ -1,6 +1,6 @@
 const uploadZone = document.getElementById('uploadZone');
 const fileInput = document.getElementById('fileInput');
-
+fileInput.value = "";
 const previewImage =
     document.getElementById('previewImage');
 
@@ -17,7 +17,7 @@ const cancelCrop =
     document.getElementById('cancelCrop');
 
 let cropper = null;
-
+let newImageSelected = false;
 /* Show existing category image */
 
 if (
@@ -50,6 +50,7 @@ fileInput.addEventListener('change', function (e) {
     const file = e.target.files[0];
 
     if (!file) return;
+    newImageSelected = true;
 
     const reader = new FileReader();
 
@@ -103,25 +104,26 @@ applyCrop.addEventListener('click', function () {
 
     uploadZone.classList.add('has-image');
 
-    canvas.toBlob(function (blob) {
+  canvas.toBlob(function (blob) {
 
-        const croppedFile = new File(
-            [blob],
-            'category.jpg',
-            {
-                type: 'image/jpeg'
-            }
-        );
+    const croppedFile = new File(
+        [blob],
+        'category.jpg',
+        {
+            type: 'image/jpeg'
+        }
+    );
 
-        const dataTransfer =
-            new DataTransfer();
+    const dataTransfer = new DataTransfer();
 
-        dataTransfer.items.add(croppedFile);
+    dataTransfer.items.add(croppedFile);
 
-        fileInput.files =
-            dataTransfer.files;
+    fileInput.files = dataTransfer.files;
 
-    }, 'image/jpeg', 0.9);
+    console.log("FILE COUNT:", fileInput.files.length);
+    console.log("FILE:", fileInput.files[0]);
+
+}, 'image/jpeg', 0.9);
 
     cropModal.style.display = 'none';
 
@@ -220,6 +222,7 @@ const offerInput = document.getElementById("offer");
 
 
 form.addEventListener("submit", async function (e) {
+   
     // Clear old errors
     document.getElementById("nameError").textContent = "";
     document.getElementById("offerError").textContent = "";
@@ -278,23 +281,8 @@ form.addEventListener("submit", async function (e) {
     return;
 }
 
-e.preventDefault();
 
-const response = await fetch(
-    `${CHECK_CATEGORY_URL}?name=${encodeURIComponent(name)}&category_id=${CATEGORY_ID}`
-);
 
-const data = await response.json();
-
-if (data.exists) {
-
-    document.getElementById("nameError").textContent =
-        "Category already exists";
-
-    return;
-}
-
-this.submit();
 });
 
 

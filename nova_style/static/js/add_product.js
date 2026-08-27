@@ -353,7 +353,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         removeBtn.style.display = "inline-flex";
 
-        container.appendChild(newVariant);
+container.prepend(newVariant);
         updateRemoveButtons();
 
     });
@@ -586,33 +586,8 @@ document.getElementById("product-form").addEventListener("submit", async functio
     return;
 }
 
-e.preventDefault();
 
-console.log(CHECK_PRODUCT_URL);
 
-const response = await fetch(
-    `${CHECK_PRODUCT_URL}?name=${encodeURIComponent(productValue)}`
-);
-
-console.log(response.status);
-
-const data = await response.json();
-
-console.log(data);
-
-if (data.exists) {
-
-    showError(
-        productName,
-        "Product name already exists."
-    );
-
-    showToast("Failed", "error");
-
-    return;
-}
-
-this.submit();
 
 });
 

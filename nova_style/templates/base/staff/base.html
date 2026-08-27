@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        Nova Style Admin
+        {% endblock %}
+    </title>
+
+    <meta
+        name="description"
+        content="{% block description %}Nova Style Admin{% endblock %}">
+
+    <!-- Google Font -->
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Base CSS -->
+    <link rel="stylesheet"
+          href="{% static 'css/staff/base.css' %}">
+
+    <!-- Sidebar CSS -->
+    <link rel="stylesheet"
+          href="{% static 'css/staff/sidebar.css' %}">
+
+    <!-- Page CSS -->
+    {% block extra_css %}
+    {% endblock %}
+
+</head>
+
+<body>
+<div class="admin-layout">
+
+    {% include "base/staff/sidebar.html" %}
+
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+
+        <div class="mobile-logo-group">
+
+            <span class="mobile-logo-title">
+                NOVA STYLE
+            </span>
+
+            <span class="mobile-logo-subtitle">
+                ADMIN CONSOLE
+            </span>
+
+        </div>
+
+        <button
+            id="menuToggle"
+            class="mobile-menu-toggle"
+            aria-label="Toggle Menu">
+
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="24"
+                 height="24"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+
+                <line x1="4" y1="6" x2="20" y2="6"></line>
+                <line x1="4" y1="12" x2="20" y2="12"></line>
+                <line x1="4" y1="18" x2="20" y2="18"></line>
+
+            </svg>
+
+        </button>
+
+    </header>
+
+    <main class="main-content">
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+</div>
+
+<script src="{% static 'js/sidebar.js' %}"></script>
+
+{% block extra_js %}
+{% endblock %}
+
+</body>
+</html>

@@ -1,12 +1,12 @@
-import re
+import razorpay
+import json
 from django.shortcuts import render,get_object_or_404,redirect
 from product.models import ProductVariant
 from cart.models import CartItem
 from user.models import Addresses
-from .models import OrderAddress,OrderItems,Orders,OrderTrack,OrderCancellation,OrderItemCancellation,OrderReturns,OrderItemReturn
+from .models import OrderAddress,OrderItems,Orders,OrderTrack,OrderCancellation,OrderItemCancellation,OrderReturns,OrderItemReturn,Payment
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
-from reportlab.pdfgen import canvas
 from reportlab.lib.colors import black
 from reportlab.lib.units import inch
 from django.http import HttpResponse
@@ -23,9 +23,12 @@ from reportlab.platypus import (
     TableStyle,
     HRFlowable,
 )
+from django.urls import reverse
 
 from xml.sax.saxutils import escape
-
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 
 
@@ -53,6 +56,9 @@ def checkout (request,variant_id=None):
 
     if request.method=="POST":
         checkout_errors = []
+
+        payment_method = request.POST.get("payment_method")
+        
 
         if not buy_now:
             for item in items:
@@ -288,17 +294,73 @@ def checkout (request,variant_id=None):
             final_amount = variant.discounted_price
         else:
             final_amount = subtotal
-
+        
         order = Orders.objects.create(user=request.user,final_amount=final_amount)
         OrderTrack.objects.create(order=order,status="pending",)
         OrderAddress.objects.create(order=order,address_type="shipping",name=shipping_name, phone=shipping_phone,address=shipping_address,state=shipping_state,district=shipping_district,country=shipping_country,postal_code=shipping_postal,)
-
         if billing_same:
             OrderAddress.objects.create(order=order,address_type="billing",name=shipping_name,phone=shipping_phone, address=shipping_address,state=shipping_state,district=shipping_district,country=shipping_country,postal_code=shipping_postal)
 
         else:
             OrderAddress.objects.create(order=order,address_type="billing",name=billing_name,phone=billing_phone,address=billing_address,state=billing_state,district=billing_district,country=billing_country,postal_code=billing_postal)
         
+        if payment_method == "cod":
+            Payment.objects.create(order=order,payment_method="cod",amount=final_amount,currency="INR",status="pending",)
+            if buy_now:
+                OrderItems.objects.create(order=order,variant=variant,quantity=1,unit_amount=variant.discounted_price)
+                variant.stock-=1
+                variant.save()
+            else:
+                for item in items:
+                    variant=item.variant
+                    OrderItems.objects.create(order=order,variant=item.variant,quantity=item.quantity,unit_amount=item.variant.discounted_price)
+                    variant.stock-=item.quantity
+                    variant.save()
+                items.delete()
+
+            order.payment_status='pending'
+            order.save(update_fields=['payment_status'])
+            return redirect('success',order_id=order.id)
+        elif payment_method == "wallet":
+            Payment.objects.create(order=order,payment_method="wallet",amount=final_amount,currency="INR",status="paid",)
+            order.payment_status = "paid"
+            order.save(update_fields=["payment_status"])
+            if buy_now:
+                OrderItems.objects.create(order=order,variant=variant,quantity=1,unit_amount=variant.discounted_price)
+                variant.stock-=1
+                variant.save()
+            else:
+                for item in items:
+                    variant=item.variant
+                    OrderItems.objects.create(order=order,variant=item.variant,quantity=item.quantity,unit_amount=item.variant.discounted_price)
+                    variant.stock-=item.quantity
+                    variant.save()
+                items.delete()
+
+            order.payment_status='pending'
+            order.save(update_fields=['payment_status'])
+            return redirect('success',order_id=order.id)
+        elif payment_method == "razorpay":
+            if buy_now:
+                OrderItems.objects.create(order=order,variant=variant,quantity=1,unit_amount=variant.discounted_price)
+                
+            else:
+                for item in items:
+                    variant=item.variant
+                    OrderItems.objects.create(order=order,variant=item.variant,quantity=item.quantity,unit_amount=item.variant.discounted_price)
+                   
+            client = razorpay.Client(
+                    auth=(settings.RAZORPAY_KEY_ID,settings.RAZORPAY_KEY_SECRET))
+            
+            razorpay_order = client.order.create({"amount": int(final_amount * 100),"currency": "INR","payment_capture": 1,})
+
+            Payment.objects.create(order=order,payment_method="razorpay",amount=final_amount,currency="INR",status="pending",razorpay_order_id=razorpay_order["id"],)
+           
+            order.payment_status = "pending"
+            order.save(update_fields=["payment_status"])
+            return JsonResponse({"status": "razorpay","razorpay_key": settings.RAZORPAY_KEY_ID,"razorpay_order_id": razorpay_order["id"],"amount": int(final_amount * 100),"order_id": order.id,})
+
+
         if buy_now:
             OrderItems.objects.create(order=order,variant=variant,quantity=1,unit_amount=variant.discounted_price)
             variant.stock-=1
@@ -313,8 +375,6 @@ def checkout (request,variant_id=None):
         if buy_now:
             request.session.pop("buy_now_variant", None)
 
-        
-            
         return redirect("success",order_id=order.id)
     return render(request,"checkout/checkout.html",{"details":profile,"items":items,"buy_now":bool(buy_now),"subtotal":subtotal,"default_address":default_address,"addresses":addersses})
 
@@ -325,6 +385,7 @@ def success(request,order_id):
     for item in order_items:
         item.line_total = item.quantity * item.unit_amount
     return render(request,"checkout/success.html",{"order_items":order_items,"order":order,})
+
 @login_required(login_url='login')
 def order_details(request,order_id):
     STATUSS = ["pending","order placed","shipped","out for delivery","delivered","return pending","approved","rejected"]
@@ -431,7 +492,6 @@ def cancel_order(request,order_id):
         reason=request.POST.get("reason")
         description=request.POST.get("description")
 
-        print(reason,description)
         
         OrderCancellation.objects.create(order=order,reason=reason,description=description)
         order.status="cancelled"
@@ -624,10 +684,6 @@ def download_invoice(request, order_id):
         textColor=colors.HexColor("#666666"),
     )
 
-    # ---------------------------------------------------------
-    # BOLD
-    # ---------------------------------------------------------
-
     bold_style = ParagraphStyle(
         "BoldInvoice",
         parent=normal_style,
@@ -635,14 +691,7 @@ def download_invoice(request, order_id):
         textColor=colors.HexColor("#111111"),
     )
 
-    # ---------------------------------------------------------
-    # TABLE HEADER
-    # ---------------------------------------------------------
-    #
-    # IMPORTANT:
-    # White text is explicitly defined here because Paragraph
-    # colors do not get overridden reliably by TableStyle.
-    #
+    
 
     table_header_style = ParagraphStyle(
         "TableHeader",
@@ -666,9 +715,6 @@ def download_invoice(request, order_id):
         alignment=2,
     )
 
-    # ---------------------------------------------------------
-    # PRODUCT
-    # ---------------------------------------------------------
 
     product_name_style = ParagraphStyle(
         "ProductName",
@@ -688,10 +734,7 @@ def download_invoice(request, order_id):
         textColor=colors.HexColor("#777777"),
     )
 
-    # ---------------------------------------------------------
-    # TOTAL
-    # ---------------------------------------------------------
-
+ 
     total_label_style = ParagraphStyle(
         "TotalLabel",
         parent=styles["Normal"],
@@ -712,10 +755,7 @@ def download_invoice(request, order_id):
         alignment=2,
     )
 
-    # =========================================================
-    # HELPER
-    # =========================================================
-
+ 
     def money(value):
         """
         Currency formatting.
@@ -724,10 +764,6 @@ def download_invoice(request, order_id):
         does not reliably support the rupee character.
         """
         return f"Rs. {value:,.2f}"
-
-    # =========================================================
-    # ADDRESS HELPER
-    # =========================================================
 
     def create_address(address):
 
@@ -758,16 +794,10 @@ def download_invoice(request, order_id):
             normal_style
         )
 
-    # =========================================================
-    # STORY
-    # =========================================================
 
     story = []
 
-    # =========================================================
-    # HEADER
-    # =========================================================
-
+  
     header_left = [
         Paragraph(
             "NOVA STYLE",
@@ -979,9 +1009,6 @@ def download_invoice(request, order_id):
         Spacer(1, 11)
     )
 
-    # =========================================================
-    # BILLING + SHIPPING
-    # =========================================================
 
     billing_box = [
         Paragraph(
@@ -1621,3 +1648,180 @@ def download_invoice(request, order_id):
     doc.build(story)
 
     return response
+
+@login_required(login_url="login")
+def verify_razorpay_payment(request):
+
+    try:
+        data = json.loads(request.body)
+
+        order_id = data.get("order_id")
+        razorpay_order_id = data.get("razorpay_order_id")
+        razorpay_payment_id = data.get("razorpay_payment_id")
+        razorpay_signature = data.get("razorpay_signature")
+
+        if not all([
+            order_id,
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature
+        ]):
+            return JsonResponse({
+                "status": "failed",
+                "message": "Missing payment information."
+            }, status=400)
+
+        order = get_object_or_404(
+            Orders,
+            id=order_id,
+            user=request.user
+        )
+
+        payment = get_object_or_404(Payment,order=order,razorpay_order_id=razorpay_order_id)
+      
+        client = razorpay.Client(
+            auth=(
+                settings.RAZORPAY_KEY_ID,
+                settings.RAZORPAY_KEY_SECRET
+            )
+        )
+
+        client.utility.verify_payment_signature({
+            "razorpay_order_id": razorpay_order_id,
+            "razorpay_payment_id": razorpay_payment_id,
+            "razorpay_signature": razorpay_signature
+        })
+
+        payment.status = "paid"
+
+        payment.save(
+            update_fields=[
+                "status"
+            ]
+        )
+
+        order.payment_status = "paid"
+
+        order.save(
+            update_fields=[
+                "payment_status"
+            ]
+        )
+
+        return JsonResponse({
+            "status": "success",
+            "redirect_url": reverse(
+                "success",
+                args=[order.id]
+            )
+        })
+
+    except razorpay.errors.SignatureVerificationError:
+
+        return JsonResponse({
+            "status": "failed",
+            "message": "Payment verification failed."
+        }, status=400)
+
+    except Exception as e:
+
+        print("VERIFY PAYMENT ERROR:", e)
+
+        return JsonResponse({
+            "status": "failed",
+            "message": "Unable to verify payment."
+        }, status=500)
+@login_required(login_url="login")
+def razorpay_payment_failed(request):
+
+    try:
+        data = json.loads(request.body)
+
+        order_id = data.get("order_id")
+
+        if not order_id:
+            return JsonResponse({
+                "status": "failed",
+                "message": "Order ID is required."
+            }, status=400)
+
+        order = get_object_or_404(
+            Orders,
+            id=order_id,
+            user=request.user
+        )
+
+        payment = get_object_or_404(
+            Payment,
+            order=order
+        )
+
+        payment.status = "failed"
+
+        payment.save(
+            update_fields=["status"]
+        )
+
+        order.payment_status = "failed"
+
+        order.save(
+            update_fields=["payment_status"]
+        )
+
+       
+        return JsonResponse({
+            "status": "failed",
+            "message": "Payment failed.",
+            "redirect_url": reverse(
+                "payment_failed",
+                args=[order.id]
+            )
+        })
+
+    except Exception as e:
+
+        print("PAYMENT FAILED ERROR:", e)
+
+        return JsonResponse({
+            "status": "failed",
+            "message": "Unable to process failed payment."
+        }, status=500)
+    
+@login_required(login_url="login")
+def payment_failed(request, order_id):
+
+    order = get_object_or_404(
+        Orders,
+        id=order_id,
+        user=request.user
+    )
+
+    return render(
+        request,
+        "checkout/payment_failed.html",
+        {
+            "order": order,
+        })
+
+@login_required(login_url="login")
+def retry_payment(request, order_id):
+
+    order = get_object_or_404(
+        Orders,
+        id=order_id,
+        user=request.user)
+
+    if order.payment_status == "paid":
+        return JsonResponse({
+            "status": "already_paid",
+            "message": "This order is already paid."
+        })
+
+    amount = order.final_amount
+
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID,settings.RAZORPAY_KEY_SECRET))
+    razorpay_order = client.order.create({"amount": int(amount * 100),"currency": "INR","payment_capture": 1,})
+    Payment.objects.create(order=order,payment_method="razorpay",amount=amount,currency="INR",status="pending",razorpay_order_id=razorpay_order["id"],)
+    order.payment_status = "pending"
+    order.save(update_fields=["payment_status"])
+    return JsonResponse({"status": "razorpay","razorpay_key":settings.RAZORPAY_KEY_ID,"razorpay_order_id":razorpay_order["id"],"amount":int(amount * 100),"order_id":order.id,})

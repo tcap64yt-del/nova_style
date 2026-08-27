@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/order/order_details.css' %}?v=12">
+  <link rel="stylesheet" href="{% static 'css/user/order/order_details.css' %}?v=13">
 </head>
 <body class="order-details-body">
   <div class="page-wrapper">
@@ -61,14 +61,34 @@
           <div class="order-meta-info">
             <div class="meta-group">
               <span class="meta-label">Order ID:</span>
-              <span class="meta-value order-id-value">#{{ order.id }}</span>
+              <span class="meta-value order-id-value">#{{ order.order_id }}</span>
             </div>
             <div class="meta-group">
               <span class="meta-label">Date:</span>
               <span class="meta-value">{{ order.created_at |date:"d M Y"}}</span>
             </div>
+             <div class="meta-group">
+        <span class="meta-label">Payment:</span>
+
+        <span class="meta-value
+            {% if order.payment_status == 'paid' %}
+                payment-paid
+            {% elif order.payment_status == 'failed' %}
+                payment-failed
+            {% elif order.payment_status == 'refunded' %}
+                payment-refunded
+            {% else %}
+                payment-pending
+            {% endif %}
+        ">
+            {{ order.get_payment_status_display }}
+        </span>
+    </div>
           </div>
-          <button class="btn-download-invoice" id="downloadInvoiceBtn">Download Invoice</button>
+         <button class="btn-download-invoice"
+        onclick="window.location.href='{% url 'download_invoice' order.id %}'">
+    Download Invoice
+</button>
         </div>
 
         <div class="tracking-stepper-wrapper">
@@ -122,7 +142,6 @@
 
     </div>
 
-    <!-- Order Placed -->
     <div class="stepper-step
         {% if order.status == 'cancelled' and cancel_index == 1 %}
             cancelled-step
@@ -302,24 +321,36 @@
 
 
 
-        <!-- Addresses block -->
-        <div class="addresses-container">
-          <div class="address-block">
-            <h3 class="address-header">BILLING DETAILS</h3>
-            <div class="address-content">
-              {{ billing.address }}
-            </div>
-          </div>
-          
-          <div class="address-block">
-            <h3 class="address-header">SHIPPING ADDRESS</h3>
-            <div class="address-content">
-              {{ shipping.address }}
-            </div>
-          </div>
-        </div>
+   <div class="addresses-container">
 
-        <!-- Order Items Section -->
+    <div class="address-block">
+        <h3 class="address-header">BILLING DETAILS</h3>
+        <div class="address-content">
+            <strong>Name :{{ billing.name }}</strong><br>
+            Phone :{{ billing.phone }}<br>
+            Address :{{ billing.address }}<br>
+            District :{{ billing.district }}<br>
+            State :{{ billing.state }} <br>
+            Country :{{ billing.country }}<br>
+            PIN: {{ billing.postal_code }}
+        </div>
+    </div>
+
+    <div class="address-block">
+        <h3 class="address-header">SHIPPING ADDRESS</h3>
+        <div class="address-content">
+            <strong>Name: {{ shipping.name }}</strong><br>
+            Phone :{{ shipping.phone }}<br>
+            Address :{{ shipping.address }}<br>
+             District:{{ shipping.district }}<br>
+            State :{{ shipping.state }}<br>
+            Country: {{ shipping.country }}<br>
+            PIN: {{ shipping.postal_code }}
+        </div>
+    </div>
+
+</div>
+
         <div class="order-items-table">
           <div class="table-header">
             <div class="header-col col-item-img">ITEM</div>
@@ -343,33 +374,56 @@
             <div class="row-col col-item-desc">
               <h4 class="product-title">{{ item.variant.product.name }}</h4>
               <p class="product-subtitle">Size {{ item.variant.size }}</p>
-              <p class="product-subtitle">Price ₹{{ item.variant.discounted_price }}</p>
-{% if order.status == "delivered" or order.status == "return pending" or order.status == "approved" or order.status == "rejected"  %}
 
-  
+              <p class="product-subtitle">Price ₹{{ item.variant.discounted_price }}</p>
+{% if order.status == "return pending" or order.status == "approved" or order.status == "rejected" %}
+
 
 {% elif item.cancelled_quantity >= item.quantity or item.status == "cancelled" %}
-    <span class="cancelled-product">Cancelled Product</span>
+
+    <span class="cancelled-product">
+        Cancelled Product
+    </span>
+{% elif order.status == "delivered" %}
+
+    {% if item.approved_return %}
+        <span class="cancelled-product">
+            Returned ({{ item.approved_return }})
+        </span><br>
+    {% endif %}
+
+    {% if item.pending_return %}
+        <span class="cancelled-product">
+            Return Pending ({{ item.pending_return }})
+        </span><br>
+    {% endif %}
+
+    {% if item.available_return > 0 %}
+        <a href="#"
+           class="btn-return-product"
+           data-url="{% url 'return_product' item.id %}"
+           data-name="{{ item.variant.product.name }}"
+           data-qty="{{ item.available_return }}"
+           data-price="{{ item.variant.discounted_price }}">
+            Return
+        </a>
+    {% endif %}
 
 {% else %}
+
     <a href="#"
        class="btn-cancel-product"
        data-url="{% url 'cancel_product' item.id %}"
        data-quantity="{{ item.available_quantity }}">
         Cancel This Product
     </a>
-{% endif %}
-            </div>
-           <div class="row-col col-item-qty" data-label="QTY">
-    <div>{{ item.quantity }}</div>
 
-    {% if item.cancelled_quantity > 0 %}
-        <small class="cancelled-qty">
-            Cancelled: {{ item.cancelled_quantity }}
-        </small>
-    {% endif %}
+{% endif %}
 </div>
             
+<div class="row-col col-item-qty" data-label="QTY">
+    {{ item.quantity }}
+</div>
             <div class="row-col col-item-price" data-label="PRICE">₹{{ item.line_total }}</div>
           </div>
     {% endfor %}
@@ -534,6 +588,62 @@
 
     </div>
 </div>
+<div id="returnProductModal" class="cancel-modal">
+    <div class="cancel-modal-box">
+
+        <div class="modal-header">
+            <span class="modal-subtitle">ORDER MANAGEMENT</span>
+            <h2>Return Product</h2>
+        </div>
+
+        <form id="returnProductForm" method="POST">
+
+            {% csrf_token %}
+
+            <!-- Product Details -->
+            <div class="product-info">
+                <p><strong>Product:</strong> <span id="returnProductName"></span></p>
+                <p><strong>Ordered Qty:</strong> <span id="returnProductQty"></span></p>
+                <p><strong>Price:</strong> ₹<span id="returnProductPrice"></span></p>
+            </div>
+
+            <div class="form-group">
+                <label>Quantity to Return</label>
+                <select class="form-select" id="returnQuantity" name="quantity">
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Reason</label>
+                <select class="form-select" name="reason" required>
+                    <option value="" selected disabled>Select a reason</option>
+                    <option value="wrong_product">Wrong Product Received</option>
+                    <option value="damaged_product">Damaged Product</option>
+                    <option value="size_issue">Size/Fit Issue</option>
+                    <option value="changed_mind">Changed My Mind</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea class="form-textarea"
+                          name="description"
+                          placeholder="Describe your reason..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+               <a href="{% url "order_details" order.id %}" class="btn-secondary close-return-product-modal">
+    Keep Product
+</a>
+                <button type="submit" class="btn-primary">
+                    Confirm Return
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
 
 <div id="returnOrderModal" class="cancel-modal">
     <div class="cancel-modal-box">
@@ -583,6 +693,6 @@
 
     </div>
 </div>
- <script src="{% static 'js/order/order_details.js' %}?v=18"></script>
+ <script src="{% static 'js/order/order_details.js' %}?v=19"></script>
 </body>
 </html>
