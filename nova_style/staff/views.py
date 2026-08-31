@@ -8,12 +8,107 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout 
 from django.core.paginator import Paginator
 import re
+from decimal import Decimal,InvalidOperation
+from django.utils import timezone
 from itertools import chain
 from operator import attrgetter
 from django.db.models import F
 from django.db.models import Count,Prefetch
 from order.models import Orders,OrderItems,OrderAddress,OrderTrack,OrderReturns,OrderItemReturn,Payment
 from django.db.models import Sum
+from coupon.models import Coupon
+
+
+def validate_coupon(data,coupon_id=None):
+    errors={}
+
+    code=data.get("code","").strip().upper()
+    discount_type=data.get("discount_type","").strip()
+    discount_value=data.get("discount_value","").strip()
+    min_order_amount=data.get("min_order_amount","").strip()
+    max_discount=data.get("max_discount","").strip()
+    max_usage = data.get("max_usage", "").strip()
+    start_date = data.get("start_date", "").strip()
+    end_date = data.get("end_date", "").strip()
+
+    if not code:
+        errors['code']="Coupon code is required"
+    elif not re.match(r"^[A-Z0-9_-]{3,20}$", code):
+        errors["code"] = (
+            "Coupon code must contain only uppercase letters, ""numbers, underscore or hyphen.")
+
+    else :
+        coupon_query=Coupon.objects.filter(code__iexact=code)
+        if  coupon_id:
+            coupon_query=coupon_query.exclude(id=coupon_id)
+        if coupon_query.exists():
+            errors['code']='This coupon code already exists.'
+    if discount_type not in ['percentage','fixed']:
+            errors['discount_type']='Please select a valid discount type'
+
+    try:
+        discount_value=Decimal(discount_value)
+        if discount_value<=0:
+            errors['discount_value']=('Discount value must greate than zero')
+        if (discount_type =="percentage") and discount_value >Decimal("100"):
+            errors['discount_value']=('Percentage discount cannot exceed 100%.')
+    except (InvalidOperation,ValueError):
+        errors['discount_value']=("Enter a valid discount value.")
+
+    try :
+        if max_discount:
+            max_discount=Decimal(max_discount)
+            if max_discount<=0:
+                errors['max_discount']=("maximum discount must greater than zero")
+        else:
+            max_discount=None
+    except(InvalidOperation,ValueError):
+        errors['max_discount']=("enter a valid maximum discount amount")
+
+    if not max_usage:
+        errors['max_usage']="Maximum usage is required."
+    elif not re.fullmatch(r"^[1-9]\d*$",max_usage):
+        errors["max_usage"]=("Maximum usage must positive number.")
+    else:
+        max_usage=int(max_usage)
+    try:
+        if start_date:
+            start_date=timezone.datetime.strptime(start_date,"%Y-%m-%d").date()
+        else:
+            start_date = None
+    except ValueError:
+        errors['start_date']="invalid start date"
+
+    try:
+
+        if end_date:
+            end_date = timezone.datetime.strptime(end_date,"%Y-%m-%d").date()
+        else:
+            end_date = None
+
+    except ValueError:
+        errors["end_date"] = "Invalid end date."
+
+
+    if start_date and end_date:
+        if end_date < start_date:
+
+            errors["end_date"] = ("End date cannot be before start date.")
+
+
+    cleaned_data = {
+        "code": code,
+        "discount_type": discount_type,
+        "discount_value": discount_value if isinstance(discount_value, Decimal) else None,
+        "min_order_amount": min_order_amount,
+        "max_discount": max_discount,
+        "max_usage": max_usage if isinstance(max_usage, int) else None,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+
+    return errors, cleaned_data
+
 
 def admin_login(request):
     if request.user.is_authenticated:
@@ -162,7 +257,6 @@ def edit_category(request, category_id):
                     errors["offer"]="offer must be between 0 and 100."
         
         uploaded_image = request.FILES.get('image')
-        print(uploaded_image)
         if not uploaded_image and not category.image_url:
             errors["image"] = "Category image is required."
             return render(request, 'staff/edit_category.html', {"category": category})
@@ -441,15 +535,7 @@ def edit_product(request,product_id):
                         variant["errors"]["start_date"] = ("Start date cannot be after end date.")
                         variant["errors"]["end_date"] = ("End date must be after start date.")
             variant_images = request.FILES.getlist(f"images_{i}[]")
-            print(
-                "VARIANT:",
-                i,
-                "IMAGE COUNT:",
-                len(variant_images)
-            )
-
-            for image in variant_images:
-                print("IMAGE:", image.name, image.content_type, image.size)
+          
             existing_count=0
 
             if  i < len(variant_ids) and variant_ids[i]:
@@ -468,7 +554,6 @@ def edit_product(request,product_id):
         variant_has_errors=any(variant["errors"] for variant in variants)
         
         if errors or variant_has_errors:
-            print(errors,variant_has_errors)
             messages.error(request,"Failed")
             products.name=product_name
             products.description = description
@@ -607,7 +692,10 @@ def order_status(request,order_id):
         if order.status != new_status:
             order.status =new_status
             if new_status =="delivered":
-                payment=get_object_or_404(Payment,order=order)
+                payment = Payment.objects.filter(
+    order=order
+).order_by('-created_at').first()
+
                 if payment:
                     payment.status='paid'
                     payment.save(update_fields=['status'])
@@ -632,7 +720,7 @@ def order_status(request,order_id):
         return redirect('admin_order_detail',order_id=order.id)
     return redirect("admin_order_detail",order_id=order.id)
 
-
+@login_required(login_url="admin_login")
 def admin_order_returns(request):
 
     search = request.GET.get("search", "")
@@ -648,9 +736,9 @@ def admin_order_returns(request):
         item_returns = item_returns.filter(status="pending")
 
 
-    elif status == "approved":
-        order_returns = order_returns.filter(status="approved")
-        item_returns = item_returns.filter(status="approved")
+    elif status == "returned":
+        order_returns = order_returns.filter(status="returned")
+        item_returns = item_returns.filter(status="returned")
 
 
     elif status == "rejected":
@@ -675,6 +763,8 @@ def admin_order_returns(request):
 
     return render(request,"staff/admin_order_returns.html",{"returns":returns,"search": search,"status": status,"start_date": start_date,"end_date": end_date,"active_page": "admin_order_management"})
 
+
+@login_required(login_url="admin_login")
 def return_details(request,return_type,return_id):
 
     if return_type =="order":
@@ -688,6 +778,7 @@ def return_details(request,return_type,return_id):
 
     return render(request,"staff/return_details.html",{"return_type": return_type,"return_obj": return_obj, "order": return_obj.order if return_type == "order" else return_obj.order_item.order,  "items": items,"refund_amount": refund_amount,"active_page": "admin_order_management"},)
 
+@login_required(login_url="admin_login")
 def update_return_status(request,return_id,return_type):
     if return_type == "order":
         return_order = get_object_or_404(OrderReturns, id=return_id)
@@ -699,27 +790,27 @@ def update_return_status(request,return_id,return_type):
     if request.method =="POST":
         status=request.POST.get("status")
 
-        if status == "approved":
+        if status == "returned":
             if return_order.status == "pending":
                 if return_type == "order":
 
                     for item in order.items.select_related("variant"):
-                        if OrderItemReturn.objects.filter(order_item=item,status="approved").exists():
+                        if OrderItemReturn.objects.filter(order_item=item,status="returned").exists():
                             continue
 
                         ProductVariant.objects.filter(id=item.variant.id).update(stock=F("stock") + item.quantity)
-                    order.status = "approved"
+                    order.status = "returned"
                     order.save(update_fields=["status"])
-                    OrderTrack.objects.create(order=order,status="approved")
+                    OrderTrack.objects.create(order=order,status="returned")
 
                 else:
 
                     ProductVariant.objects.filter(id=return_order.order_item.variant.id).update(stock=F("stock") + return_order.quantity)
 
-                    return_order.order_item.status = "approved"
+                    return_order.order_item.status = "returned"
                     return_order.order_item.save(update_fields=["status"])
 
-                return_order.status = "approved"
+                return_order.status = "returned"
                 return_order.save(update_fields=["status"])
 
         else:
@@ -736,3 +827,54 @@ def update_return_status(request,return_id,return_type):
                 return_order.order_item.save(update_fields=["status"])
 
     return redirect("admin_order_returns")
+
+@login_required(login_url="admin_login")
+def admin_coupon_management(request):
+    return render(request,"staff/admin_coupon_management.html",{"active_page": "admin_coupon_management"})
+
+@login_required(login_url="admin_login")
+def add_coupon(request):
+
+    if request.method == "POST":
+
+        errors, cleaned_data = validate_coupon(
+            request.POST
+        )
+
+        if not errors:
+
+            Coupon.objects.create(
+
+                code=cleaned_data["code"],
+
+                discount_type=cleaned_data["discount_type"],
+
+                discount_value=cleaned_data["discount_value"],
+
+                min_order_amount=cleaned_data[
+                    "min_order_amount"
+                ],
+
+                max_discount=cleaned_data[
+                    "max_discount"
+                ],
+
+                max_usage=cleaned_data["max_usage"],
+
+                start_date=cleaned_data["start_date"],
+
+                end_date=cleaned_data["end_date"],
+
+                is_active=(
+                    request.POST.get("is_active") == "on"
+                )
+            )
+
+            messages.success(
+                request,
+                "Coupon created successfully."
+            )
+            redirect("admin_coupon_management")
+        return render(request,"staff/add_coupon.html",{"errors": errors,"data": request.POST,"active_page":"admin_coupon_management"})
+
+    return render(request,"staff/add_coupon.html",{"active_page":"admin_coupon_management"})
