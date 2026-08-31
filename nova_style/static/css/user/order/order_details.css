@@ -1928,3 +1928,17 @@ button {
 .btn-return-product:hover{
     text-decoration:underline;
 }
+
+
+/* Invoice and Pay Again buttons */
+.order-header-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 180px;
+}
+
+.order-header-actions .btn-download-invoice,
+.order-header-actions .btn-pay-again {
+    width: 100%;
+}
