@@ -139,3 +139,21 @@ class Wallet(models.Model):
     class Meta:
         db_table='wallet'
 
+class WalletTransaction(models.Model):
+
+    TRANSACTION_TYPE_CHOICES = [
+        ("credit", "Credit"),
+        ("debit", "Debit"),
+    ]
+
+    wallet = models.ForeignKey(
+        Wallet,
+        on_delete=models.CASCADE,
+        related_name="transactions")
+
+    amount = models.DecimalField(max_digits=12,decimal_places=2)
+
+    type = models.CharField(max_length=10,choices=TRANSACTION_TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        db_table="wallet_transactions"
