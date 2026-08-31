@@ -2549,3 +2549,32 @@
     color: #dc2626;
 
 }
+.col-details-status {
+    text-align: center;
+}
+
+.item-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.item-status-pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.item-status-cancelled {
+    background: #fde2e2;
+    color: #c62828;
+}
+
+.item-status-returned {
+    background: #e3f2fd;
+    color: #1565c0;
+}
