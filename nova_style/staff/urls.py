@@ -28,4 +28,6 @@ urlpatterns = [
    path('admin-order-returns/details/<str:return_type>/<int:return_id>/',views.return_details,name="return_details"),
    path('admin-order-returns/details/<str:return_type>/<int:return_id>/status/',views.update_return_status,name="update_return_status"),
 
+   path('coupon-management/',views.admin_coupon_management,name='coupon_management'),
+   path('coupon-management/add-coupon/',views.add_coupon,name='add_coupon'),
 ]
