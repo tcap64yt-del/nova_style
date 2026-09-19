@@ -1,0 +1,303 @@
+{% extends "base/staff/base.html" %}
+{% load static %}
+
+{% block title %}New Coupon | Nova Style{% endblock %}
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{% static 'css/staff/add_coupon.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="add-coupon-container">
+    <div class="coupon-card">
+
+    <!-- Header -->
+    <div class="coupon-card-header">
+        <h2 class="coupon-card-title">New Coupon</h2>
+
+ 
+    </div>
+
+
+    <!-- Form -->
+    <form class="coupon-form" method="POST">
+
+        {% csrf_token %}
+
+
+        <!-- Coupon Code -->
+        <div class="form-group full-width">
+
+            <label class="form-label">
+                COUPON CODE
+            </label>
+
+            <input type="text"
+                   name="code"
+                   class="form-input"
+                   placeholder="e.g. SUMMER2026"
+                   value="{{ data.code|default:'' }}">
+
+            {% if errors.code %}
+                <small class="text-danger">
+                    {{ errors.code }}
+                </small>
+            {% endif %}
+
+        </div>
+
+
+        <!-- Discount Type + Value -->
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    DISCOUNT TYPE
+                </label>
+
+                <div class="select-wrapper">
+
+                    <select name="discount_type"
+                            class="form-input">
+
+                        <option value="">
+                            Select Type
+                        </option>
+
+                        <option value="percentage"
+                            {% if data.discount_type == "percentage" %}
+                                selected
+                            {% endif %}>
+                            Percentage (%)
+                        </option>
+
+                        <option value="fixed"
+                            {% if data.discount_type == "fixed" %}
+                                selected
+                            {% endif %}>
+                            Fixed Amount (₹)
+                        </option>
+
+                    </select>
+
+                    <svg class="select-icon"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+
+                        <polyline points="6 9 12 15 18 9"></polyline>
+
+                    </svg>
+
+                </div>
+
+                {% if errors.discount_type %}
+                    <small class="text-danger">
+                        {{ errors.discount_type }}
+                    </small>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    DISCOUNT VALUE
+                </label>
+
+                <input type="number"
+                       name="discount_value"
+                       class="form-input"
+                       placeholder="e.g. 20"
+                       step="0.01"
+                       min="0"
+                       value="{{ data.discount_value|default:'' }}">
+
+                {% if errors.discount_value %}
+                    <small class="text-danger">
+                        {{ errors.discount_value }}
+                    </small>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- Minimum Order + Maximum Discount -->
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    MINIMUM ORDER AMOUNT
+                </label>
+
+                <input type="number"
+                       name="min_order_amount"
+                       class="form-input"
+                       placeholder="e.g. 1000"
+                       step="0.01"
+                       min="0"
+                       value="{{ data.min_order_amount|default:'' }}">
+
+                {% if errors.min_order_amount %}
+                    <small class="text-danger">
+                        {{ errors.min_order_amount }}
+                    </small>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    MAXIMUM DISCOUNT
+                </label>
+
+                <input type="number"
+                       name="max_discount"
+                       class="form-input"
+                       placeholder="Optional"
+                       step="0.01"
+                       min="0"
+                       value="{{ data.max_discount|default:'' }}">
+
+                {% if errors.max_discount %}
+                    <small class="text-danger">
+                        {{ errors.max_discount }}
+                    </small>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- Maximum Usage -->
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    MAXIMUM USAGE
+                </label>
+
+                <input type="number"
+                       name="max_usage"
+                       class="form-input"
+                       placeholder="e.g. 100"
+                       min="1"
+                       value="{{ data.max_usage|default:'' }}">
+
+                {% if errors.max_usage %}
+                    <small class="text-danger">
+                        {{ errors.max_usage }}
+                    </small>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- Start Date + End Date -->
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    START DATE
+                </label>
+
+                <input type="date"
+                       name="start_date"
+                       class="form-input"
+                       value="{{ data.start_date|default:'' }}">
+
+                {% if errors.start_date %}
+                    <small class="text-danger">
+                        {{ errors.start_date }}
+                    </small>
+                {% endif %}
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label class="form-label">
+                    END DATE
+                </label>
+
+                <input type="date"
+                       name="end_date"
+                       class="form-input"
+                       value="{{ data.end_date|default:'' }}">
+
+                {% if errors.end_date %}
+                    <small class="text-danger">
+                        {{ errors.end_date }}
+                    </small>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <!-- Active Status -->
+        <div class="form-group full-width">
+
+            <label class="checkbox-label">
+
+                <input type="checkbox"
+                       name="is_active"
+                       {% if data.is_active == "on" %}
+                           checked
+                       {% endif %}>
+
+                <span>
+                    Active Coupon
+                </span>
+
+            </label>
+
+        </div>
+
+
+        <!-- Actions -->
+        <div class="form-actions">
+
+            <button type="button"
+                    class="btn-discard"
+                    onclick="history.back()">
+
+                Discard
+
+            </button>
+
+
+            <button type="submit"
+                    class="btn-create">
+
+                Create Coupon
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+</div>
+
+{% endblock %}
