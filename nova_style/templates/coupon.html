@@ -1,0 +1,218 @@
+{% extends 'base/user/base.html' %}
+{% load static %}
+
+{% block title %}
+<title>Coupons - NOVA STYLE</title>
+{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/user/coupon.css' %}?v=2">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-header">
+    <span class="curated-label">REWARDS PROGRAM</span>
+    <h1 class="page-title">Active Coupons</h1>
+</div>
+
+<div class="coupons-grid">
+
+    <!-- REFERRAL COUPON - ONLY FOR THIS USER -->
+    {% for user_coupon in user_coupons %}
+
+        <div class="coupon-card alt-bg">
+
+            <div class="coupon-amount">
+
+                {% if user_coupon.coupon.discount_type == "percentage" %}
+                    {{ user_coupon.coupon.discount_value }}%
+                {% else %}
+                    ₹ {{ user_coupon.coupon.discount_value }}
+                {% endif %}
+
+            </div>
+
+            <div class="coupon-details">
+
+                <div class="detail-row">
+                    <span class="detail-label">
+                        Min Purchase
+                    </span>
+
+                    <span class="detail-value">
+                        ₹ {{ user_coupon.coupon.min_order_amount }}
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">
+                        Exp Date
+                    </span>
+
+                    <span class="detail-value">
+                        {{ user_coupon.coupon.end_date }}
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="coupon-footer">
+
+                <span class="coupon-code">
+                    {{ user_coupon.coupon.code }}
+                </span>
+
+                <button
+                    type="button"
+                    class="copy-btn"
+                    data-code="{{ user_coupon.coupon.code }}"
+                >
+                    Copy Code
+                </button>
+
+            </div>
+
+        </div>
+
+    {% endfor %}
+
+
+    <!-- NORMAL COUPONS - AVAILABLE TO EVERYONE -->
+    {% for coupon in page_obj %}
+
+        <div class="coupon-card alt-bg">
+
+            <div class="coupon-amount">
+
+                {% if coupon.discount_type == "percentage" %}
+                    {{ coupon.discount_value }}%
+                {% else %}
+                    ₹ {{ coupon.discount_value }}
+                {% endif %}
+
+            </div>
+
+            <div class="coupon-details">
+
+                <div class="detail-row">
+                    <span class="detail-label">
+                        Min Purchase
+                    </span>
+
+                    <span class="detail-value">
+                        ₹ {{ coupon.min_order_amount }}
+                    </span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">
+                        Exp Date
+                    </span>
+
+                    <span class="detail-value">
+                        {{ coupon.end_date }}
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="coupon-footer">
+
+                <span class="coupon-code">
+                    {{ coupon.code }}
+                </span>
+
+                <button
+                    type="button"
+                    class="copy-btn"
+                    data-code="{{ coupon.code }}"
+                >
+                    Copy Code
+                </button>
+
+            </div>
+
+        </div>
+
+    {% empty %}
+
+        {% if not user_coupons %}
+            <div class="empty-coupons">
+                <h3>No Active Coupons</h3>
+                <p>There are currently no coupons available.</p>
+            </div>
+        {% endif %}
+
+    {% endfor %}
+
+</div>
+
+<!-- ==========================================
+     PAGINATION
+========================================== -->
+
+{% if page_obj.paginator.num_pages > 1 %}
+
+<div class="pagination">
+
+    {% if page_obj.has_previous %}
+
+        <a href="?page={{ page_obj.previous_page_number }}">
+            Previous
+        </a>
+
+    {% endif %}
+
+
+    <span>
+        Page {{ page_obj.number }}
+        of
+        {{ page_obj.paginator.num_pages }}
+    </span>
+
+
+    {% if page_obj.has_next %}
+
+        <a href="?page={{ page_obj.next_page_number }}">
+            Next
+        </a>
+
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+
+<script>
+
+document.querySelectorAll('.copy-btn').forEach(button => {
+
+    button.addEventListener('click', function () {
+
+        const code = this.dataset.code;
+
+        navigator.clipboard.writeText(code).then(() => {
+
+            const originalText = this.textContent;
+
+            this.textContent = 'Copied!';
+
+            setTimeout(() => {
+                this.textContent = originalText;
+            }, 1500);
+
+        }).catch(err => {
+
+            console.error('Failed to copy:', err);
+
+        });
+
+    });
+
+});
+
+</script>
+
+{% endblock %}
