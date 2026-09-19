@@ -181,3 +181,17 @@ function showToast(message, type = "success") {
         setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
+
+
+const checkoutErrors = JSON.parse(
+    document.getElementById("checkout-errors").textContent
+);
+
+document.getElementById("checkout-link").addEventListener("click", function(e) {
+
+    if (checkoutErrors.length > 0) {
+        e.preventDefault();
+
+        document.getElementById("checkout-error").style.display = "block";
+    }
+});

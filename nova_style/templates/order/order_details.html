@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/order/order_details.css' %}?v=12">
+  <link rel="stylesheet" href="{% static 'css/user/order/order_details.css' %}?v=20">
 </head>
 <body class="order-details-body">
   <div class="page-wrapper">
@@ -56,20 +56,97 @@
     <main class="order-details-container">
       <div class="order-details-card">
         
-        <!-- Order Header Block -->
-        <div class="order-card-header">
-          <div class="order-meta-info">
-            <div class="meta-group">
-              <span class="meta-label">Order ID:</span>
-              <span class="meta-value order-id-value">#{{ order.id }}</span>
-            </div>
-            <div class="meta-group">
-              <span class="meta-label">Date:</span>
-              <span class="meta-value">{{ order.created_at |date:"d M Y"}}</span>
-            </div>
-          </div>
-          <button class="btn-download-invoice" id="downloadInvoiceBtn">Download Invoice</button>
+     <!-- Order Header Block -->
+<div class="order-card-header">
+
+    <!-- Order Information -->
+    <div class="order-meta-info">
+
+        <!-- Order ID -->
+        <div class="meta-group">
+            <span class="meta-label">Order ID</span>
+            <span class="meta-value order-id-value">
+                #{{ order.order_id }}
+            </span>
         </div>
+
+        <!-- Date -->
+        <div class="meta-group">
+            <span class="meta-label">Order Date</span>
+            <span class="meta-value">
+                {{ order.created_at|date:"d M Y" }}
+            </span>
+        </div>
+
+        <!-- Payment Status - EXISTING LOGIC -->
+        <div class="meta-group">
+            <span class="meta-label">Payment Status</span>
+
+            <span class="meta-value
+                {% if order.payment_status == 'paid' %}
+                    payment-paid
+                {% elif order.payment_status == 'failed' %}
+                    payment-failed
+                {% elif order.payment_status == 'refunded' %}
+                    payment-refunded
+                {% else %}
+                    payment-pending
+                {% endif %}
+            ">
+                {{ order.get_payment_status_display }}
+            </span>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="meta-group">
+            <span class="meta-label">Payment Method</span>
+
+            {% with payment=order.payments.first %}
+                {% if payment %}
+                    <span class="meta-value payment-method">
+                        {{ payment.get_payment_method_display }}
+                    </span>
+                {% else %}
+                    <span class="meta-value payment-method">
+                        -
+                    </span>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+    </div>
+
+
+    <!-- Actions -->
+    <div class="order-header-actions">
+
+        <!-- Download Invoice -->
+        <button
+            class="btn-download-invoice"
+            onclick="window.location.href='{% url 'download_invoice' order.id %}'"
+        >
+            Download Invoice
+        </button>
+
+
+        {% if order.payment_status == "failed" %}
+        <button
+            type="button"
+            class="btn-pay-again"
+            id="payAgainButton"
+            data-retry-url="{% url 'retry_payment' order.id %}"
+            data-verify-url="{% url 'verify_razorpay_payment' %}"
+            data-failed-url="{% url 'razorpay_payment_failed' %}"
+            data-success-url="{% url 'success' order.id %}"
+            data-failed-page-url="{% url 'payment_failed' order.id %}"
+        >
+            Pay Again
+        </button>
+        {% endif %}
+
+    </div>
+
+</div>
 
         <div class="tracking-stepper-wrapper">
     <div class="tracking-stepper">
@@ -122,7 +199,6 @@
 
     </div>
 
-    <!-- Order Placed -->
     <div class="stepper-step
         {% if order.status == 'cancelled' and cancel_index == 1 %}
             cancelled-step
@@ -302,24 +378,36 @@
 
 
 
-        <!-- Addresses block -->
-        <div class="addresses-container">
-          <div class="address-block">
-            <h3 class="address-header">BILLING DETAILS</h3>
-            <div class="address-content">
-              {{ billing.address }}
-            </div>
-          </div>
-          
-          <div class="address-block">
-            <h3 class="address-header">SHIPPING ADDRESS</h3>
-            <div class="address-content">
-              {{ shipping.address }}
-            </div>
-          </div>
-        </div>
+   <div class="addresses-container">
 
-        <!-- Order Items Section -->
+    <div class="address-block">
+        <h3 class="address-header">BILLING DETAILS</h3>
+        <div class="address-content">
+            <strong>Name :{{ billing.name }}</strong><br>
+            Phone :{{ billing.phone }}<br>
+            Address :{{ billing.address }}<br>
+            District :{{ billing.district }}<br>
+            State :{{ billing.state }} <br>
+            Country :{{ billing.country }}<br>
+            PIN: {{ billing.postal_code }}
+        </div>
+    </div>
+
+    <div class="address-block">
+        <h3 class="address-header">SHIPPING ADDRESS</h3>
+        <div class="address-content">
+            <strong>Name: {{ shipping.name }}</strong><br>
+            Phone :{{ shipping.phone }}<br>
+            Address :{{ shipping.address }}<br>
+             District:{{ shipping.district }}<br>
+            State :{{ shipping.state }}<br>
+            Country: {{ shipping.country }}<br>
+            PIN: {{ shipping.postal_code }}
+        </div>
+    </div>
+
+</div>
+
         <div class="order-items-table">
           <div class="table-header">
             <div class="header-col col-item-img">ITEM</div>
@@ -343,34 +431,71 @@
             <div class="row-col col-item-desc">
               <h4 class="product-title">{{ item.variant.product.name }}</h4>
               <p class="product-subtitle">Size {{ item.variant.size }}</p>
-              <p class="product-subtitle">Price ₹{{ item.variant.discounted_price }}</p>
-{% if order.status == "delivered" or order.status == "return pending" or order.status == "approved" or order.status == "rejected"  %}
 
-  
+<p class="product-subtitle">Price ₹{{ item.unit_price }}</p>
+{% if order.status == "return pending" or order.status == "returned" or order.status == "rejected" %}
 
-{% elif item.cancelled_quantity >= item.quantity or item.status == "cancelled" %}
-    <span class="cancelled-product">Cancelled Product</span>
+
+{% elif item.cancelled_quantity > 0 %}
+
+    {% if item.available_quantity > 0 %}
+        <a href="#"
+           class="btn-cancel-product"
+           data-url="{% url 'cancel_product' item.id %}"
+           data-quantity="{{ item.available_quantity }}">
+
+            Cancel This Product
+        </a>
+    {% endif %}
+
+    <br>
+
+    <span class="cancelled-qty">
+        Cancelled {{ item.cancelled_quantity }}
+    </span>
+{% elif order.status == "delivered" %}
+
+    {% if item.returned_return %}
+        <span class="cancelled-product">
+            Returned ({{ item.returned_return }})
+        </span><br>
+    {% endif %}
+
+    {% if item.pending_return %}
+        <span class="cancelled-product">
+            Return Pending ({{ item.pending_return }})
+        </span><br>
+    {% endif %}
+
+    {% if item.available_return > 0 %}
+        <a href="#"
+           class="btn-return-product"
+           data-url="{% url 'return_product' item.id %}"
+           data-name="{{ item.variant.product.name }}"
+           data-qty="{{ item.available_return }}"
+           data-price="{{ item.variant.discounted_price }}">
+            Return
+        </a>
+    {% endif %}
 
 {% else %}
+
     <a href="#"
        class="btn-cancel-product"
        data-url="{% url 'cancel_product' item.id %}"
        data-quantity="{{ item.available_quantity }}">
         Cancel This Product
     </a>
-{% endif %}
-            </div>
-           <div class="row-col col-item-qty" data-label="QTY">
-    <div>{{ item.quantity }}</div>
 
-    {% if item.cancelled_quantity > 0 %}
-        <small class="cancelled-qty">
-            Cancelled: {{ item.cancelled_quantity }}
-        </small>
-    {% endif %}
+{% endif %}
 </div>
             
-            <div class="row-col col-item-price" data-label="PRICE">₹{{ item.line_total }}</div>
+<div class="row-col col-item-qty" data-label="QTY">
+    {{ item.quantity }}
+</div>
+            <div class="row-col col-item-price" data-label="PRICE">
+    ₹{{ item.unit_price }}
+</div>
           </div>
     {% endfor %}
         <!-- Costs Breakdown -->
@@ -378,10 +503,49 @@
           <div class="costs-breakdown">
           
             <div class="breakdown-divider"></div>
-            <div class="breakdown-line total-line">
-              <span class="breakdown-label total-label">Total</span>
-              <span class="breakdown-val total-val">₹ {{ total }}</span>
-            </div>
+<!-- Costs Breakdown -->
+<div class="costs-breakdown-wrapper">
+    <div class="costs-breakdown">
+
+        <div class="breakdown-divider"></div>
+
+        <!-- Subtotal -->
+        <div class="breakdown-line">
+            <span class="breakdown-label">Subtotal</span>
+            <span class="breakdown-val">
+                ₹ {{ total }}
+            </span>
+        </div>
+
+        <!-- Coupon Discount -->
+        {% if order.discount_amount and order.discount_amount > 0 %}
+        <div class="breakdown-line coupon-discount-line">
+            <span class="breakdown-label">
+                Coupon Discount
+                {% if order.coupon_code %}
+                    <small>({{ order.coupon_code }})</small>
+                {% endif %}
+            </span>
+
+            <span class="breakdown-val coupon-discount-value">
+                -₹ {{ order.discount_amount }}
+            </span>
+        </div>
+        {% endif %}
+
+        <div class="breakdown-divider"></div>
+
+        <!-- Final Total -->
+        <div class="breakdown-line total-line">
+            <span class="breakdown-label total-label">Total</span>
+            <span class="breakdown-val total-val">
+                ₹ {{ order.final_amount }}
+            </span>
+        </div>
+
+    </div>
+</div>
+
           </div>
         </div>
 
@@ -393,9 +557,9 @@
         Rejected
     </span>
 
-{% elif order.status == "approved" %}
+{% elif order.status == "returned" %}
     <span class="btn-order-cancel disabled-btn returned-btn">
-        approved
+        returned
     </span>
 
 {% elif order.status == "return pending" %}
@@ -534,6 +698,62 @@
 
     </div>
 </div>
+<div id="returnProductModal" class="cancel-modal">
+    <div class="cancel-modal-box">
+
+        <div class="modal-header">
+            <span class="modal-subtitle">ORDER MANAGEMENT</span>
+            <h2>Return Product</h2>
+        </div>
+
+        <form id="returnProductForm" method="POST">
+
+            {% csrf_token %}
+
+            <!-- Product Details -->
+            <div class="product-info">
+                <p><strong>Product:</strong> <span id="returnProductName"></span></p>
+                <p><strong>Ordered Qty:</strong> <span id="returnProductQty"></span></p>
+                <p><strong>Price:</strong> ₹<span id="returnProductPrice"></span></p>
+            </div>
+
+            <div class="form-group">
+                <label>Quantity to Return</label>
+                <select class="form-select" id="returnQuantity" name="quantity">
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Reason</label>
+                <select class="form-select" name="reason" required>
+                    <option value="" selected disabled>Select a reason</option>
+                    <option value="wrong_product">Wrong Product Received</option>
+                    <option value="damaged_product">Damaged Product</option>
+                    <option value="size_issue">Size/Fit Issue</option>
+                    <option value="changed_mind">Changed My Mind</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea class="form-textarea"
+                          name="description"
+                          placeholder="Describe your reason..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+               <a href="{% url "order_details" order.id %}" class="btn-secondary close-return-product-modal">
+    Keep Product
+</a>
+                <button type="submit" class="btn-primary">
+                    Confirm Return
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
 
 <div id="returnOrderModal" class="cancel-modal">
     <div class="cancel-modal-box">
@@ -583,6 +803,8 @@
 
     </div>
 </div>
- <script src="{% static 'js/order/order_details.js' %}?v=18"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+ <script src="{% static 'js/order/order_details.js' %}?v=30"></script>
 </body>
 </html>

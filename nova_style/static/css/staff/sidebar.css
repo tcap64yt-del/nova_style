@@ -1,0 +1,416 @@
+/* ==========================================
+   SIDEBAR VARIABLES
+========================================== */
+
+:root {
+
+    --sidebar-width: 260px;
+
+    --color-sidebar-bg: #0f1622;
+
+    --color-sidebar-text-muted: #748094;
+
+    --color-sidebar-text-hover: #ffffff;
+
+    --color-sidebar-active-bg: #dee9fc;
+
+    --color-sidebar-active-text: #1d52d9;
+
+    --transition-speed: .25s;
+
+    --border-radius-md: 16px;
+
+}
+
+/* ==========================================
+   SIDEBAR
+========================================== */
+
+.sidebar {
+
+    position: fixed;
+
+    top: 0;
+
+    left: -280px;
+
+    width: var(--sidebar-width);
+
+    height: 100vh;
+
+    background: var(--color-sidebar-bg);
+
+    color: #fff;
+
+    z-index: 200;
+
+    display: flex;
+
+    flex-direction: column;
+
+    padding: 32px 0;
+
+    transition: left var(--transition-speed)
+                cubic-bezier(.4,0,.2,1);
+
+}
+
+.sidebar.mobile-open {
+
+    left: 0;
+
+}
+
+/* ==========================================
+   BRAND
+========================================== */
+
+.sidebar-brand {
+
+    padding: 0 32px;
+
+    margin-bottom: 40px;
+
+}
+
+.brand-title {
+
+    font-size: 22px;
+
+    font-weight: 700;
+
+    letter-spacing: .05em;
+
+    color: #fff;
+
+}
+
+.brand-subtitle {
+
+    margin-top: 4px;
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+    color: var(--color-sidebar-text-muted);
+
+    letter-spacing: .1em;
+
+}
+
+/* ==========================================
+   NAVIGATION
+========================================== */
+
+.sidebar-nav {
+
+    flex: 1;
+
+    overflow-y: auto;
+
+    display: flex;
+
+}
+
+.sidebar-nav ul {
+
+    list-style: none;
+
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    padding: 0 16px;
+
+    min-height: 100%;
+
+}
+
+.sidebar-nav li {
+
+    margin-bottom: 6px;
+
+}
+
+/* ==========================================
+   NAV LINK
+========================================== */
+
+.nav-link {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+    padding: 14px 20px;
+
+    border-radius: var(--border-radius-md);
+
+    color: var(--color-sidebar-text-muted);
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    transition: all .25s ease;
+
+}
+
+.nav-link:hover {
+
+    background: rgba(255,255,255,.03);
+
+    color: var(--color-sidebar-text-hover);
+
+}
+
+.nav-link.active {
+
+    background: var(--color-sidebar-active-bg);
+
+    color: var(--color-sidebar-active-text);
+
+}
+
+/* ==========================================
+   ICON
+========================================== */
+
+.nav-icon {
+
+    width: 20px;
+
+    height: 20px;
+
+    flex-shrink: 0;
+
+}
+
+/* ==========================================
+   LOGOUT
+========================================== */
+
+.logout-item {
+
+    margin-top: auto;
+
+    padding-top: 16px;
+
+    padding-bottom: 8px;
+
+}
+
+.logout-form {
+
+    width: 100%;
+
+}
+
+.logout-link {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 16px;
+
+    padding: 14px 20px;
+
+    border: none;
+
+    background: transparent;
+
+    border-radius: var(--border-radius-md);
+
+    color: var(--color-sidebar-text-muted);
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    text-align: left;
+
+    transition: all .25s ease;
+
+}
+
+.logout-link:hover {
+
+    background: rgba(255,255,255,.03);
+
+    color: var(--color-sidebar-text-hover);
+
+}
+
+/* ==========================================
+   SCROLLBAR
+========================================== */
+
+.sidebar-nav::-webkit-scrollbar {
+
+    width: 6px;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+
+    background: transparent;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+
+    background: rgba(255,255,255,.15);
+
+    border-radius: 20px;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+
+    background: rgba(255,255,255,.25);
+
+}
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width:1024px){
+
+    .sidebar{
+
+        left:-280px;
+
+        box-shadow:0 15px 40px rgba(0,0,0,.25);
+
+    }
+
+    .sidebar.mobile-open{
+
+        left:0;
+
+    }
+
+    .sidebar-nav{
+
+        overflow-y:auto;
+
+    }
+
+    .sidebar-nav ul{
+
+        min-height:calc(100vh - 120px);
+
+    }
+
+}
+
+/* ==========================================
+   DESKTOP
+========================================== */
+
+@media (min-width:1025px){
+
+    .sidebar{
+
+        position:sticky;
+
+        top:0;
+
+        left:0;
+
+        flex-shrink:0;
+
+        box-shadow:none;
+
+    }
+
+}
+/* ==========================================
+   SIDEBAR TRANSITIONS
+========================================== */
+
+.sidebar,
+.nav-link,
+.logout-link{
+
+    transition:all .25s ease;
+
+}
+
+/* ==========================================
+   FOCUS STATES
+========================================== */
+
+.nav-link:focus-visible,
+.logout-link:focus-visible{
+
+    outline:2px solid #ffffff;
+
+    outline-offset:2px;
+
+}
+
+/* ==========================================
+   BUTTON RESET
+========================================== */
+
+.logout-link{
+
+    appearance:none;
+
+    -webkit-appearance:none;
+
+    font-family:inherit;
+
+}
+
+/* ==========================================
+   SVG
+========================================== */
+
+.nav-icon{
+
+    stroke:currentColor;
+
+}
+
+/* ==========================================
+   LARGE DESKTOP
+========================================== */
+
+@media (min-width:1400px){
+
+    .sidebar{
+
+        width:260px;
+
+    }
+
+}
+
+/* ==========================================
+   SMALL MOBILE
+========================================== */
+
+@media (max-width:480px){
+
+    .sidebar{
+
+        width:260px;
+
+    }
+
+}
+
+/* ==========================================
+   END OF SIDEBAR CSS
+========================================== */

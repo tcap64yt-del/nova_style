@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {% block title %}
+    <title>NOVA STYLE</title>
+    {% endblock %}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/user/navbar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/user/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/user/footer.css' %}">
+
+    {% block css %}{% endblock %}
+
+</head>
+
+<body>
+
+    {% include "base/user/navbar.html" %}
+
+    <div class="dashboard-wrapper">
+
+      <div class="dashboard-container {% if not show_sidebar %}no-sidebar{% endif %}">
+
+    {% if show_sidebar %}
+        {% include "base/user/sidebar.html" %}
+    {% endif %}
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+</div>
+
+    </div>
+
+    {% include "base/user/footer.html" %}
+
+    <script src="{% static 'js/user/navbar.js' %}"></script>
+    <script src="{% static 'js/user/sidebar.js' %}"></script>
+
+    {% block js %}{% endblock %}
+
+</body>
+</html>

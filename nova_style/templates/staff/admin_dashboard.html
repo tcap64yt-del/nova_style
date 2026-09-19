@@ -1,0 +1,558 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}
+            Dashboard | Nova Style Admin
+        {% endblock %}
+    </title>
+
+    <meta
+        name="description"
+        content="{% block description %}Nova Style Admin Dashboard{% endblock %}"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/staff/base.css' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/staff/admin_dashboard.css' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/staff/sidebar.css' %}"
+    >
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    {% block extra_css %}
+    {% endblock %}
+</head>
+
+<body>
+
+<div class="admin-layout">
+
+    {% include "base/staff/sidebar.html" %}
+
+    <header class="mobile-header">
+
+        <div class="mobile-logo-group">
+            <span class="mobile-logo-title">
+                NOVA STYLE
+            </span>
+
+            <span class="mobile-logo-subtitle">
+                ADMIN CONSOLE
+            </span>
+        </div>
+
+        <button
+            id="menuToggle"
+            class="mobile-menu-toggle"
+            aria-label="Toggle Menu"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <line
+                    x1="4"
+                    y1="6"
+                    x2="20"
+                    y2="6"
+                ></line>
+
+                <line
+                    x1="4"
+                    y1="12"
+                    x2="20"
+                    y2="12"
+                ></line>
+
+                <line
+                    x1="4"
+                    y1="18"
+                    x2="20"
+                    y2="18"
+                ></line>
+            </svg>
+        </button>
+
+    </header>
+
+    <main class="main-content">
+
+        <div class="dashboard-header">
+
+            <div>
+                <h1 class="dashboard-title">
+                    Dashboard Overview
+                </h1>
+
+                <p class="dashboard-subtitle">
+                    Monitor your store performance
+                </p>
+            </div>
+
+            <div class="header-actions">
+
+                <div class="toggle-group">
+
+                    <a
+                        href="?chart=daily"
+                        class="toggle-btn {% if chart_type == 'daily' %}active-blue{% endif %}"
+                    >
+                        Daily
+                    </a>
+
+                    <a
+                        href="?chart=monthly"
+                        class="toggle-btn {% if chart_type == 'monthly' %}active-blue{% endif %}"
+                    >
+                        Monthly
+                    </a>
+
+                    <a
+                        href="?chart=yearly"
+                        class="toggle-btn {% if chart_type == 'yearly' %}active-blue{% endif %}"
+                    >
+                        Yearly
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="dash-stats-grid">
+
+            <div class="dash-stat-card">
+
+                <div class="dash-stat-info">
+
+                    <span class="dash-stat-title">
+                        Total Revenue
+                    </span>
+
+                    <span class="dash-stat-value">
+                        ₹{{ total_revenue|floatformat:2 }}
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="dash-stat-card">
+
+                <div class="dash-stat-info">
+
+                    <span class="dash-stat-title">
+                        Total Orders
+                    </span>
+
+                    <span class="dash-stat-value">
+                        {{ total_orders }}
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="dash-stat-card">
+
+                <div class="dash-stat-info">
+
+                    <span class="dash-stat-title">
+                        Active Users
+                    </span>
+
+                    <span class="dash-stat-value">
+                        {{ active_users }}
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="dashboard-chart-section">
+
+            <div class="dashboard-section-header">
+
+                <div>
+
+                    <h2 class="dashboard-section-title">
+                        Sales Overview
+                    </h2>
+
+                    <p class="dashboard-section-subtitle">
+                        Revenue performance
+                    </p>
+
+                </div>
+
+                <span class="chart-period">
+                    {{ chart_type|title }}
+                </span>
+
+            </div>
+
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="dashboard-two-column">
+
+            <div class="dash-table-section">
+
+                <div class="dash-table-header">
+
+                    <div>
+
+                        <h2 class="dash-table-title">
+                            Best Selling Products
+                        </h2>
+
+                        <p class="dashboard-section-subtitle">
+                            Top 5 products
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="dash-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    PRODUCT
+                                </th>
+
+                                <th class="text-center">
+                                    SALES
+                                </th>
+
+                                <th class="text-right">
+                                    PRICE
+                                </th>
+
+                                <th class="text-right">
+                                    REVENUE
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for product in best_selling_products %}
+
+                            <tr>
+
+                                <td>
+
+                                    <div class="product-cell">
+
+                                        <span class="product-name">
+                                            {{ product.variant__product__name }}
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    <span class="sales-number">
+                                        {{ product.total_sales }}
+                                    </span>
+
+                                </td>
+
+                                <td class="text-right">
+
+                                    <span class="product-price">
+                                        ₹{{ product.price }}
+                                    </span>
+
+                                </td>
+
+                                <td class="text-right">
+
+                                    <span class="revenue-number">
+                                        ₹{{ product.total_revenue|floatformat:2 }}
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+
+                                <td
+                                    colspan="4"
+                                    class="empty-state"
+                                >
+                                    No product sales found.
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="dash-table-section">
+
+                <div class="dash-table-header">
+
+                    <div>
+
+                        <h2 class="dash-table-title">
+                            Best Selling Categories
+                        </h2>
+
+                        <p class="dashboard-section-subtitle">
+                            Top 5 categories by revenue
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="table-responsive">
+
+                    <table class="dash-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    CATEGORY
+                                </th>
+
+                                <th class="text-center">
+                                    SALES
+                                </th>
+
+                                <th class="text-right">
+                                    REVENUE
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {% for category in best_selling_categories %}
+
+                            <tr>
+
+                                <td>
+
+                                    <div class="product-cell">
+
+                                        <span class="product-name">
+                                            {{ category.variant__product__category__name }}
+                                        </span>
+
+                                    </div>
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    <span class="sales-number">
+                                        {{ category.total_sales }}
+                                    </span>
+
+                                </td>
+
+                                <td class="text-right">
+
+                                    <span class="revenue-number">
+                                        ₹{{ category.total_revenue|floatformat:2 }}
+                                    </span>
+
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+
+                                <td
+                                    colspan="3"
+                                    class="empty-state"
+                                >
+                                    No category sales found.
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<script src="{% static 'js/sidebar.js' %}"></script>
+
+<script>
+    const chartLabels = {{ chart_labels|safe }};
+    const chartValues = {{ chart_values|safe }};
+    const chartCanvas = document.getElementById("salesChart");
+
+    if (chartCanvas) {
+        const highestRevenue = Math.max(...chartValues, 0);
+
+        let chartMax = Math.ceil(highestRevenue / 5000) * 5000;
+
+        if (chartMax === highestRevenue) {
+            chartMax += 5000;
+        }
+
+        if (chartMax === 0) {
+            chartMax = 5000;
+        }
+
+        new Chart(chartCanvas, {
+            type: "bar",
+
+            data: {
+                labels: chartLabels,
+
+                datasets: [{
+                    label: "Revenue",
+                    data: chartValues,
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    barThickness: 35
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return "₹" +
+                                    Number(context.raw).toLocaleString("en-IN");
+                            }
+                        }
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: chartMax,
+
+                        ticks: {
+                            stepSize: 1000,
+
+                            callback: function(value) {
+                                return "₹" +
+                                    Number(value).toLocaleString("en-IN");
+                            }
+                        },
+
+                        title: {
+                            display: true,
+                            text: "Revenue"
+                        }
+                    },
+
+                    x: {
+                        title: {
+                            display: true,
+                            text: "{{ chart_type|title }}"
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+{% block extra_js %}
+{% endblock %}
+
+</body>
+</html>

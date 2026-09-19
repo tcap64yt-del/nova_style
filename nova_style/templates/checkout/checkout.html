@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/checkout/checkout.css' %}?v=8">
+  <link rel="stylesheet" href="{% static 'css/user/checkout/checkout.css' %}?v=11">
 </head>
 <body>
   <div class="page-wrapper">
@@ -192,88 +192,124 @@
                 <h2 class="section-title">Payment Method</h2>
               </div>
 
-              <div class="payment-methods-list">
-                <!-- Option 1: Credit / Debit Card -->
-                <div class="payment-method-card active" data-method="card">
-                  <div class="payment-card-header">
-                    <div class="payment-card-left">
-                      <div class="payment-radio checked">
-                        <span class="radio-inner-dot"></span>
-                      </div>
-                      <div class="payment-card-info">
-                        <span class="payment-card-title">Credit / Debit Card</span>
-                        <span class="payment-card-subtext">Stripe Secure Payment</span>
-                      </div>
-                    </div>
-                    <div class="payment-card-right">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                        <line x1="1" y1="10" x2="23" y2="10"></line>
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  <!-- Nested credit card inputs -->
-                  <div class="payment-card-details">
-                    <div class="card-inputs-grid">
-                      <div class="form-group col-full">
-                        <label for="card-number">CARD NUMBER</label>
-                        <div class="card-number-input-wrapper">
-                          <input type="text" id="card-number" name="cardNumber"  placeholder="0000 0000 0000 0000" >
-                          <svg class="input-card-icon-hint" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                            <line x1="1" y1="10" x2="23" y2="10"></line>
-                          </svg>
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <label for="card-expiry">EXPIRY</label>
-                        <input type="text" id="card-expiry" name="cardExpiry"  placeholder="MM/YY" >
-                      </div>
-                      <div class="form-group">
-                        <label for="card-cvc">CVC</label>
-                        <input type="text" id="card-cvc" name="cardCvc" placeholder="***" >
-                      </div>
-                    </div>
-                  </div>
+             <div class="payment-methods-list">
+
+    <!-- Razorpay -->
+    <label class="payment-method-card">
+        <div class="payment-card-header">
+
+            <div class="payment-card-left">
+
+                <div class="payment-radio">
+                    <input
+                        type="radio"
+                        name="payment_method"
+                        value="razorpay"
+                        checked
+                    >
+                    <span class="radio-inner-dot"></span>
                 </div>
 
-                <!-- Option 2: Cash on Delivery -->
-                <div class="payment-method-card" data-method="cod">
-                  <div class="payment-card-header">
-                    <div class="payment-card-left">
-                      <div class="payment-radio">
-                        <span class="radio-inner-dot"></span>
-                      </div>
-                      <div class="payment-card-info">
-                        <span class="payment-card-title">Cash on Delivery</span>
-                        <span class="payment-card-subtext">Pay upon receiving your items</span>
-                      </div>
-                    </div>
-                    <div class="payment-card-right">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-                        <circle cx="12" cy="12" r="2"></circle>
-                        <path d="M6 12h.01M18 12h.01"></path>
-                      </svg>
-                    </div>
-                  </div>
+                <div class="payment-card-info">
+                    <span class="payment-card-title">Razorpay</span>
+                    <span class="payment-card-subtext">
+                        Secure payment with Razorpay
+                    </span>
                 </div>
 
-                <!-- Option 3: Wallet -->
-                <div class="payment-method-card" data-method="wallet">
-                  <div class="payment-card-header">
-                    <div class="payment-card-left">
-                      <div class="payment-radio">
-                        <span class="radio-inner-dot"></span>
-                      </div>
-                      <div class="payment-card-info">
-                        <span class="payment-card-title">Wallet (₹2400)</span>
-                      </div>
-                    </div>
-                  </div>
+            </div>
+
+            <div class="payment-card-right">
+                <!-- your existing Razorpay icon -->
+                <svg width="22" height="22" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <rect x="1" y="4" width="22" height="16"
+                          rx="2" ry="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                </svg>
+            </div>
+
+        </div>
+    </label>
+
+
+    <!-- COD -->
+    <label class="payment-method-card">
+        <div class="payment-card-header">
+
+            <div class="payment-card-left">
+
+                <div class="payment-radio">
+                    <input
+                        type="radio"
+                        name="payment_method"
+                        value="cod"
+                    >
+                    <span class="radio-inner-dot"></span>
                 </div>
-              </div>
+
+                <div class="payment-card-info">
+                    <span class="payment-card-title">
+                        Cash on Delivery
+                    </span>
+                    <span class="payment-card-subtext">
+                        Pay upon receiving your items
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="payment-card-right">
+                <!-- your existing COD icon -->
+                <svg width="22" height="22" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <rect x="2" y="6" width="20" height="12"
+                          rx="2"></rect>
+                    <circle cx="12" cy="12" r="2"></circle>
+                    <path d="M6 12h.01M18 12h.01"></path>
+                </svg>
+            </div>
+
+        </div>
+    </label>
+
+
+    <!-- Wallet -->
+    <label class="payment-method-card">
+        <div class="payment-card-header">
+
+            <div class="payment-card-left">
+
+                <div class="payment-radio">
+                    <input
+                        type="radio"
+                        name="payment_method"
+                        value="wallet"
+                    >
+                    <span class="radio-inner-dot"></span>
+                </div>
+
+                <div class="payment-card-info">
+                    <span class="payment-card-title">
+                        Wallet (₹)
+                    </span>
+                    <span class="payment-card-subtext">
+                        Pay using your wallet balance
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+    </label>
+
+</div>
             </div>
 
             <!-- Section 03: Billing Address -->
@@ -400,7 +436,31 @@
 
               </div>
             </div>
+{% if checkout_errors %}
+<div class="checkout-stock-errors">
+    {% for error in checkout_errors %}
+ <p>
+    {{ error.name }}
 
+    {% if error.message %}
+        {{ error.message }}
+    {% else %}
+        <span class="color-circle"
+              style="background: {{ error.color }};
+                     width:12px;
+                     height:12px;
+                     display:inline-block;
+                     border-radius:50%;
+                     border:1px solid #ccc;
+                     vertical-align:middle;">
+        </span>
+        Size {{ error.size }}
+        has only {{ error.stock }} item(s) available.
+    {% endif %}
+</p>
+    {% endfor %}
+</div>
+{% endif %}
             <!-- Complete Purchase Button -->
             <button type="submit" form="checkoutForm" class="btn-complete-checkout" id="completePurchaseButton">
               Complete Purchase
@@ -692,6 +752,74 @@ Save Address
 </div>
 
 </div>
+<!-- Wallet Confirmation Modal -->
+<div class="wallet-modal" id="walletModal">
+
+    <div class="wallet-modal-box">
+
+        <div class="wallet-modal-header">
+            <h2>Wallet Payment</h2>
+
+            <button type="button"
+                    class="wallet-close-btn"
+                    id="closeWalletModal">
+                &times;
+            </button>
+        </div>
+
+        <div class="wallet-modal-content">
+
+            <div class="wallet-info-row">
+                <span>Wallet Balance</span>
+                <strong>₹{{ wallet_balance }}</strong>
+            </div>
+
+            <div class="wallet-info-row">
+                <span>Order Total</span>
+                 {% if  buy_now %}
+                {% for item in items  %}
+                   <span class="totals-value total-value-bold">₹{{ item.subtotal }}</span>
+                  {% endfor %}
+                   {% else %}
+                     <span class="totals-value total-value-bold">₹{{ subtotal }}</span>
+                {% endif %}
+            </div>
+
+            <div class="wallet-divider"></div>
+
+            <div class="wallet-info-row wallet-total-row">
+                <span>Balance After Payment</span>
+                <strong>₹{{ wallet_remaining }}</strong>
+            </div>
+
+            {% if wallet_error %}
+                <p class="wallet-error">
+                    {{ wallet_error }}
+                </p>
+            {% endif %}
+
+        </div>
+
+        <div class="wallet-modal-actions">
+
+            <button type="button"
+                    class="wallet-cancel-btn"
+                    id="cancelWallet">
+                Cancel
+            </button>
+
+            <button type="button"
+                    class="wallet-confirm-btn"
+                    id="confirmWallet">
+                Okay
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 
 {% if show_add_modal %}
 
@@ -708,6 +836,9 @@ document
 </script>
 
 {% endif %}
-  <script src="{% static 'js/checkout.js' %}?v=12"></script>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <script src="{% static 'js/checkout.js' %}?v=15"></script>
 </body>
 </html>

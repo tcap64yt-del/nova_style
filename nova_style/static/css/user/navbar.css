@@ -1,0 +1,374 @@
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #fbfbfb;
+  --text-main: #111111;
+  --text-muted: #666666;
+  --text-light: #999999;
+  --active-pill: #e8e8e8;
+  --input-bg: #f1f3f6;
+  --btn-dark: #4a4a4a;
+  --btn-dark-hover: #2d2d2d;
+  --border-color: #ededed;
+  --border-color-light: #e4e4e7;
+
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont,
+                  "Segoe UI", Roboto, sans-serif;
+
+  --font-display: 'Montserrat', sans-serif;
+
+  --transition-smooth: all .25s cubic-bezier(.4,0,.2,1);
+}
+
+/* ============================
+   RESET
+============================ */
+
+*,
+*::before,
+*::after{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+
+    font-family:var(--font-primary);
+
+    background:var(--bg-primary);
+
+    color:var(--text-main);
+
+    -webkit-font-smoothing:antialiased;
+
+    -moz-osx-font-smoothing:grayscale;
+
+    line-height:1.5;
+
+    min-height:100vh;
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+button,
+a{
+
+    font-family:inherit;
+
+    color:inherit;
+
+    text-decoration:none;
+
+    cursor:pointer;
+
+    background:none;
+
+    border:none;
+
+}
+
+/* ============================
+   HEADER
+============================ */
+
+.main-header{
+
+    border-bottom:1px solid var(--border-color-light);
+
+    background:var(--bg-primary);
+
+    position:sticky;
+
+    top:0;
+
+    z-index:100;
+
+}
+
+.header-container{
+
+    max-width:1440px;
+
+    margin:0 auto;
+
+    padding:0 40px;
+
+    height:80px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+}
+
+/* ============================
+   LOGO
+============================ */
+
+.logo a{
+
+    font-family:var(--font-display);
+
+    font-weight:500;
+
+    font-size:1.25rem;
+
+    letter-spacing:.05em;
+
+    color:var(--text-main);
+
+    text-transform:uppercase;
+
+    transition:var(--transition-smooth);
+
+}
+
+.logo a:hover{
+
+    opacity:.8;
+
+}
+
+/* ============================
+   ACTIONS
+============================ */
+
+.header-actions{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:20px;
+
+}
+
+.action-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:var(--text-main);
+
+    transition:var(--transition-smooth);
+
+}
+
+.action-btn:hover{
+
+    transform:translateY(-1px);
+
+    opacity:.8;
+
+}
+
+.icon-svg{
+
+    width:22px;
+
+    height:22px;
+
+    stroke-width:1.25;
+
+}
+
+/* ============================
+   USER
+============================ */
+
+.user-avatar-header{
+
+    width:32px;
+
+    height:32px;
+
+    border-radius:50%;
+
+    overflow:hidden;
+
+    border:1.5px solid var(--border-color);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    transition:var(--transition-smooth);
+
+}
+
+.user-avatar-header:hover{
+
+    border-color:var(--text-main);
+
+}
+
+.header-avatar-img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+}
+
+/* ============================
+   SEARCH
+============================ */
+
+.search-overlay{
+
+    display:none;
+
+    position:absolute;
+
+    top:100%;
+
+    left:0;
+
+    width:100%;
+
+    background:#fff;
+
+    border-bottom:1px solid var(--border-color);
+
+    padding:20px;
+
+    z-index:99;
+
+}
+
+.search-overlay.active{
+
+    display:block;
+
+}
+
+.search-box{
+
+    max-width:700px;
+
+    margin:0 auto;
+
+    position:relative;
+
+}
+
+.search-box input{
+
+    width:100%;
+
+    height:46px;
+
+    padding:0 50px 0 18px;
+
+    border:1px solid var(--border-color-light);
+
+    border-radius:999px;
+
+    outline:none;
+
+    font-size:.9rem;
+
+    font-family:var(--font-primary);
+
+}
+
+.search-box input:focus{
+
+    border-color:#111;
+
+}
+
+#clearSearch{
+
+    position:absolute;
+
+    top:50%;
+
+    right:16px;
+
+    transform:translateY(-50%);
+
+    background:none;
+
+    border:none;
+
+    cursor:pointer;
+
+    font-size:14px;
+
+    color:#777;
+
+}
+
+/* ============================
+   MOBILE
+============================ */
+
+@media(max-width:768px){
+
+    .header-container{
+
+        padding:0 20px;
+
+        height:70px;
+
+    }
+
+    .logo a{
+
+        font-size:1.1rem;
+
+    }
+
+}
+
+.action-btn{
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.badge{
+    position: absolute;
+    top: -7px;
+    right: -8px;
+
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #e53935;
+    color: #fff;
+
+    border: 2px solid #fff;
+    border-radius: 999px;
+
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+
+    transition: transform .25s ease;
+}
+
+.action-btn:hover .badge{
+    transform: scale(1.1);
+}

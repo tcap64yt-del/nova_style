@@ -1,348 +1,410 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  {% load static %}
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Category Management | Admin Console</title>
+{% extends "base/staff/base.html" %}
+{% load static %}
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{% block title %}
+Category Management | Admin Console
+{% endblock %}
 
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link rel="stylesheet" href="{% static 'css/staff/admin_category_management.css' %}?v=12">
-</head>
-<body>
-  <div class="admin-layout">
+{% block extra_css %}
+<link rel="stylesheet"
+      href="{% static 'css/staff/admin_category_management.css' %}?v=14">
+{% endblock %}
 
-    <header class="mobile-header">
-      <div class="mobile-logo-group">
-        <span class="mobile-logo-title">NOVA STYLE</span>
-        <span class="mobile-logo-subtitle">ADMIN CONSOLE</span>
-      </div>
-      <button class="mobile-menu-toggle" id="mobileToggle" aria-label="Toggle Navigation Menu">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="4" x2="20" y1="12" y2="12"></line>
-          <line x1="4" x2="20" y1="6" y2="6"></line>
-          <line x1="4" x2="20" y1="18" y2="18"></line>
-        </svg>
-      </button>
-    </header>
+{% block content %}
 
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-brand">
-        <h1 class="brand-title">NOVA STYLE</h1>
-        <p class="brand-subtitle">ADMIN CONSOLE</p>
-      </div>
+<header class="top-bar">
 
-      <nav class="sidebar-nav">
-        <ul>
-          <li>
-            <a href="#" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="9" rx="1"></rect>
-                <rect x="14" y="3" width="7" height="5" rx="1"></rect>
-                <rect x="14" y="12" width="7" height="9" rx="1"></rect>
-                <rect x="3" y="16" width="7" height="5" rx="1"></rect>
-              </svg>
-              <span>Dashboard</span>
-            </a>
-          </li>
+    <div class="topbar-left">
 
-          <li>
-            <a href="{% url 'user_management' %}" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              <span>Users</span>
-            </a>
-          </li>
+        <form class="search-form" method="GET">
 
-          <li>
-            <a href="{% url 'category_management' %}" class="nav-link active">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-              </svg>
-              <span>Category</span>
-            </a>
-          </li>
-
-          <li>
-            <a href="{% url "order_management" %}" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="8" cy="21" r="1"></circle>
-                <circle cx="19" cy="21" r="1"></circle>
-                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
-              </svg>
-              <span>Order</span>
-            </a>
-          </li>
-
-          <li>
-            <a href="{% url "product_management" %}" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                <line x1="12" y1="22.08" x2="12" y2="12"></line>
-              </svg>
-              <span>Product</span>
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-                <line x1="8" y1="14" x2="8" y2="14.01"></line>
-                <line x1="12" y1="14" x2="12" y2="14.01"></line>
-                <line x1="16" y1="14" x2="16" y2="14.01"></line>
-                <line x1="8" y1="17" x2="8" y2="17.01"></line>
-                <line x1="12" y1="17" x2="12" y2="17.01"></line>
-                <line x1="16" y1="17" x2="16" y2="17.01"></line>
-              </svg>
-              <span>Coupon</span>
-            </a>
-          </li>
-
-          <li>
-            <a href="#" class="nav-link">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="20" x2="18" y2="10"></line>
-                <line x1="12" y1="20" x2="12" y2="4"></line>
-                <line x1="6" y1="20" x2="6" y2="14"></line>
-              </svg>
-              <span>Report</span>
-            </a>
-          </li>
-
-          <li class="logout-item">
-            <form action="{% url 'admin_logout' %}" method="post" class="logout-form">
-              {% csrf_token %}
-              <button type="submit" class="nav-link logout-link">
-                <svg class="nav-icon" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10 17l5-5-5-5"></path>
-                  <path d="M15 12H3"></path>
-                  <path d="M21 5v14a2 2 0 0 1-2 2h-4"></path>
-                  <path d="M15 5h4a2 2 0 0 1 2 2"></path>
-                </svg>
-                <span>Log out</span>
-              </button>
-            </form>
-          </li>
-        </ul>
-      </nav>
-    </aside>
-
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <main class="main-content">
-      <header class="top-bar">
-        <div class="topbar-left">
-          <form class="search-form" method="GET">
             <div class="search-input-wrapper">
-              <i data-lucide="search" class="search-icon"></i>
-              <input
-                type="text"
-                id="searchInput"
-                name="search"
-                value="{{ search }}"
-                placeholder="Search categories"
-                class="search-input"
-                aria-label="Search categories">
+
+                <i data-lucide="search"
+                   class="search-icon"></i>
+
+                <input
+                    type="text"
+                    id="searchInput"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="Search categories"
+                    class="search-input">
+
             </div>
 
             <div class="search-actions">
-              <button type="submit" class="search-button" id="searchButton">Search</button>
-              <button type="button" class="search-button" id="clearButton">Clear</button>
+
+                <button
+                    type="submit"
+                    class="search-button">
+
+                    Search
+
+                </button>
+
+                <button
+                    type="button"
+                    id="clearButton"
+                    class="search-button">
+
+                    Clear
+
+                </button>
+
             </div>
-          </form>
-        </div>
 
-        <div class="topbar-right">
-          <a href="{% url 'new_category' %}" class="btn-add-category">
-            <i data-lucide="plus" class="plus-icon"></i>
-            <span>Add Category</span>
-          </a>
-        </div>
-      </header>
+        </form>
 
-      <section class="content">
-        <h1 class="page-title">Category Management</h1>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">TOTAL CATEGORIES</div>
-            <div class="stat-value">{{ total_categories }}</div>
-          </div>
-        </div>
-        
-<div class="table-card">
-  <div class="table-card-header">
-    <h2 class="table-title">Active Categories</h2>
-
-    <div class="sort-container">
-      <span class="sort-label">SORT BY:</span>
-
-      <div class="sort-dropdown" id="sortDropdown">
-        <span class="sort-current">
-          {{ sort|default:"ALL"|upper }}
-        </span>
-        <i data-lucide="chevron-down" class="sort-icon"></i>
-
-        <div class="sort-menu">
-          <a href="?sort=all{% if search %}&search={{ search }}{% endif %}">
-            ALL
-          </a>
-          <a href="?sort=newest{% if search %}&search={{ search }}{% endif %}">
-            NEWEST
-          </a>
-          <a href="?sort=oldest{% if search %}&search={{ search }}{% endif %}">
-            OLDEST
-          </a>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <div class="table-responsive">
+    <div class="topbar-right">
 
+        <a href="{% url 'new_category' %}"
+           class="btn-add-category">
 
-          <div class="table-responsive">
-            <div class="custom-table">
-              <div class="table-head">
-                <div class="col-name">CATEGORY NAME</div>
-                <div class="col-status">STATUS</div>
-                <div class="col-count">PRODUCT COUNT</div>
-                <div class="col-actions">ACTIONS</div>
-              </div>
+            <i data-lucide="plus"
+               class="plus-icon"></i>
 
-              <div class="table-body">
-                {% for category in categories %}
-                <div class="table-row">
-                  <div class="col-name">
-                    <div class="category-info">
-                      <div class="category-avatar man-avatar">
-                            <img src="{{ category.image_url.url }}" alt="{{ category.name }}">
-                      </div>
-                      <span class="category-title">{{ category.name }}</span>
-                    </div>
-                  </div>
+            <span>Add Category</span>
 
-                  <div class="col-status">
-                    <span class="status-badge active">
-                      <span class="status-dot"></span>
-                      {% if category.is_active  %}
-                            Active
-                      {% else %}
-                           Inactive
-                      {% endif %}
-                      </span>
-                  </div>
-                  <div class="col-count">{{ category.product_count }} Items</div>
-
-<div class="col-actions">
-    <div class="actions-wrapper">
-
-        <a href="{% url 'edit_category' category.id %}" class="btn-edit">
-            <i data-lucide="pencil" class="action-icon"></i>
         </a>
 
-        <label class="switch-control">
-            <input
-                type="checkbox"
-                class="status-toggle-checkbox"
-                data-url="{% url 'category_status' category.id %}"
-                data-status="{% if category.is_active %}active{% else %}inactive{% endif %}"
-                {% if category.is_active %}checked{% endif %}
-            >
-            <span class="switch-slider"></span>
-        </label>
-
     </div>
-</div>
-                </div>
-                {% empty %}
-                <div class="table-row">
-                  <div class="col-name">No categories found</div>
-                  <div class="col-status"></div>
-                  <div class="col-count"></div>
-                  <div class="col-actions"></div>
-                </div>
-                {% endfor %}
-              </div>
+
+</header>
+
+
+<section class="content">
+
+    <h1 class="page-title">
+
+        Category Management
+
+    </h1>
+
+    <div class="stats-grid">
+
+        <div class="stat-card">
+
+            <div class="stat-label">
+
+                TOTAL CATEGORIES
+
             </div>
 
-           <div class="pagination pagination-ui">
-    {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}" class="pagination-arrow">‹</a>
-    {% endif %}
+            <div class="stat-value">
 
-    {% for num in page_obj.paginator.page_range %}
-        {% if num == page_obj.number %}
-            <span class="pagination-page active">{{ num }}</span>
-        {% else %}
-            <a href="?page={{ num }}" class="pagination-page">{{ num }}</a>
-        {% endif %}
-    {% endfor %}
+                {{ total_categories }}
 
-    {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}" class="pagination-arrow">›</a>
-    {% endif %}
-</div>
-          </div>
+            </div>
+
         </div>
-      </section>
-    </main>
-  </div>
+
+    </div>
 
 
-<div id="statusModal" class="confirm-modal" aria-hidden="true">
+    <div class="table-card">
+
+        <div class="table-card-header">
+
+            <h2 class="table-title">
+
+                Active Categories
+
+            </h2>
+
+            <div class="sort-container">
+
+                <span class="sort-label">
+
+                    SORT BY:
+
+                </span>
+
+                <div
+                    class="sort-dropdown"
+                    id="sortDropdown">
+
+                    <span class="sort-current">
+
+                        {{ sort|default:"ALL"|upper }}
+
+                    </span>
+
+                    <i
+                        data-lucide="chevron-down"
+                        class="sort-icon"></i>
+
+                    <div class="sort-menu">
+
+                        <a href="?sort=all{% if search %}&search={{ search }}{% endif %}">
+
+                            ALL
+
+                        </a>
+
+                        <a href="?sort=newest{% if search %}&search={{ search }}{% endif %}">
+
+                            NEWEST
+
+                        </a>
+
+                        <a href="?sort=oldest{% if search %}&search={{ search }}{% endif %}">
+
+                            OLDEST
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <div class="custom-table">
+
+                              <div class="table-body">
+
+                    {% for category in categories %}
+
+                    <div class="table-row">
+
+                        <div class="col-name">
+
+                            <div class="category-info">
+
+                                <div class="category-avatar">
+
+                                    <img src="{{ category.image_url.url }}"
+                                         alt="{{ category.name }}">
+
+                                </div>
+
+                                <span class="category-title">
+
+                                    {{ category.name }}
+
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                        <div class="col-status">
+
+                            <span class="status-badge active">
+
+                                <span class="status-dot"></span>
+
+                                {% if category.is_active %}
+                                    Active
+                                {% else %}
+                                    Inactive
+                                {% endif %}
+
+                            </span>
+
+                        </div>
+
+                        <div class="col-count">
+
+                            {{ category.product_count }} Items
+
+                        </div>
+
+                        <div class="col-actions">
+
+                            <div class="actions-wrapper">
+
+                              <a href="{% url 'edit_category' category.id %}" class="btn-edit" title="Edit">
+    ✎
+</a>
+
+                                <label class="switch-control">
+
+                                    <input
+                                        type="checkbox"
+                                        class="status-toggle-checkbox"
+                                        data-url="{% url 'category_status' category.id %}"
+                                        {% if category.is_active %}checked{% endif %}>
+
+                                    <span class="switch-slider"></span>
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% empty %}
+
+                    <div class="table-row">
+
+                        <div class="col-name">
+
+                            No categories found
+
+                        </div>
+
+                        <div class="col-status"></div>
+
+                        <div class="col-count"></div>
+
+                        <div class="col-actions"></div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="pagination pagination-ui">
+
+            {% if page_obj.has_previous %}
+
+                <a href="?page={{ page_obj.previous_page_number }}"
+                   class="pagination-arrow">
+
+                    ‹
+
+                </a>
+
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+
+                {% if num == page_obj.number %}
+
+                    <span class="pagination-page active">
+
+                        {{ num }}
+
+                    </span>
+
+                {% else %}
+
+                    <a href="?page={{ num }}"
+                       class="pagination-page">
+
+                        {{ num }}
+
+                    </a>
+
+                {% endif %}
+
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+
+                <a href="?page={{ page_obj.next_page_number }}"
+                   class="pagination-arrow">
+
+                    ›
+
+                </a>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- Status Modal -->
+
+<div id="statusModal"
+     class="confirm-modal"
+     aria-hidden="true">
+
     <div class="confirm-modal__overlay"></div>
 
     <div class="confirm-modal__card">
-        <div class="confirm-modal__icon">!</div>
 
-        <h3 id="statusModalTitle">Change Category Status</h3>
+        <div class="confirm-modal__icon">
+
+            !
+
+        </div>
+
+        <h3 id="statusModalTitle">
+
+            Change Category Status
+
+        </h3>
 
         <p id="statusModalText">
+
             Are you sure you want to change this category status?
+
         </p>
 
         <div class="confirm-modal__actions">
+
             <button
                 type="button"
                 class="confirm-btn confirm-btn--secondary"
                 id="cancelStatusBtn">
+
                 Cancel
+
             </button>
 
             <button
                 type="button"
                 class="confirm-btn confirm-btn--danger"
                 id="confirmStatusBtn">
+
                 Confirm
+
             </button>
+
         </div>
+
     </div>
+
 </div>
 
+
 {% if messages %}
+
 <div id="toast-container">
+
     {% for message in messages %}
+
         <div class="toast {{ message.tags }}">
+
             {{ message }}
+
         </div>
+
     {% endfor %}
+
 </div>
+
 {% endif %}
-  <script src="{% static 'js/admin_category_management.js' %}?v=4">
-   
-  </script>
-</body>
-</html>
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script>
+    lucide.createIcons();
+</script>
+
+<script src="{% static 'js/admin_category_management.js' %}?v=5"></script>
+
+{% endblock %}

@@ -1,0 +1,372 @@
+/* ==========================================
+   MAIN CONTENT
+========================================== */
+
+.main-content{
+    flex:1;
+    max-width:850px;
+}
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.content-header{
+    margin-bottom:40px;
+}
+
+.main-title{
+    font-size:2.25rem;
+    font-weight:500;
+    color:#111;
+    margin-bottom:8px;
+    letter-spacing:-0.02em;
+}
+
+.main-subtitle{
+    font-size:.95rem;
+    color:#666;
+    font-weight:400;
+}
+
+/* ==========================================
+   ADDRESS CARD
+========================================== */
+
+.address-form-card{
+
+    background:#fff;
+
+    border:1px solid #f0f0f0;
+
+    border-radius:16px;
+
+    padding:30px;
+
+    box-shadow:0 2px 8px rgba(0,0,0,.02);
+
+}
+
+/* ==========================================
+   FORM
+========================================== */
+
+.address-form{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:20px;
+
+}
+
+.form-row{
+
+    display:grid;
+
+    gap:20px;
+
+}
+
+.form-row.full-width{
+
+    grid-template-columns:1fr;
+
+}
+
+.form-row.two-col{
+
+    grid-template-columns:repeat(2,1fr);
+
+}
+
+.form-row.three-col{
+
+    grid-template-columns:repeat(3,1fr);
+
+}
+
+/* ==========================================
+   FORM GROUP
+========================================== */
+
+.form-group{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+}
+
+.form-group label{
+
+    font-size:.72rem;
+
+    font-weight:600;
+
+    letter-spacing:.08em;
+
+    text-transform:uppercase;
+
+    color:#666;
+
+}
+
+.form-group input,
+.form-group textarea{
+
+    width:100%;
+
+    border:1px solid transparent;
+
+    background:#f6f7f9;
+
+    border-radius:10px;
+
+    padding:14px 16px;
+
+    font-size:.92rem;
+
+    transition:.25s;
+
+    color:#111;
+
+}
+
+.form-group input{
+
+    height:48px;
+
+}
+
+.form-group textarea{
+
+    min-height:120px;
+
+    resize:vertical;
+
+}
+
+.form-group input:focus,
+.form-group textarea:focus{
+
+    outline:none;
+
+    background:#fff;
+
+    border-color:#cfd3da;
+
+    box-shadow:0 0 0 3px rgba(17,17,17,.04);
+
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder{
+
+    color:#999;
+
+}
+
+.error-text{
+
+    color:#d62828;
+
+    font-size:.82rem;
+
+    margin-top:4px;
+
+}
+/* ==========================================
+   FORM ACTIONS
+========================================== */
+
+.form-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:14px;
+
+    margin-top:10px;
+    padding-top:22px;
+
+    border-top:1px solid #ededed;
+}
+
+/* ==========================================
+   BUTTONS
+========================================== */
+
+.btn-cancel,
+.btn-save{
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    height:46px;
+
+    padding:0 22px;
+
+    border-radius:10px;
+
+    font-size:.9rem;
+    font-weight:500;
+
+    transition:.25s;
+
+    cursor:pointer;
+}
+
+/* Cancel */
+
+.btn-cancel{
+
+    background:#fff;
+
+    color:#666;
+
+    border:1px solid #ddd;
+
+    text-decoration:none;
+
+}
+
+.btn-cancel:hover{
+
+    background:#f5f5f5;
+
+    color:#111;
+
+}
+
+/* Save */
+
+.btn-save{
+
+    border:none;
+
+    background:#4a4a4a;
+
+    color:#fff;
+
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+
+}
+
+.btn-save:hover{
+
+    background:#2d2d2d;
+
+    transform:translateY(-1px);
+
+    box-shadow:0 6px 20px rgba(0,0,0,.15);
+
+}
+
+.btn-save:active{
+
+    transform:translateY(0);
+
+}
+
+/* ==========================================
+   ERROR BOX (OPTIONAL)
+========================================== */
+
+.error-message{
+
+    background:#ffe5e5;
+
+    color:#d8000c;
+
+    padding:12px 14px;
+
+    margin-bottom:20px;
+
+    border-radius:8px;
+
+    font-size:.9rem;
+
+}
+
+/* ==========================================
+   TABLET
+========================================== */
+
+@media (max-width:992px){
+
+    .main-title{
+        font-size:2rem;
+    }
+
+    .address-form-card{
+        padding:24px;
+    }
+
+}
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width:768px){
+
+    .main-content{
+        width:100%;
+        max-width:none;
+    }
+
+    .content-header{
+        margin-bottom:30px;
+    }
+
+    .main-title{
+        font-size:1.8rem;
+    }
+
+    .form-row.two-col,
+    .form-row.three-col{
+        grid-template-columns:1fr;
+    }
+
+    .address-form-card{
+        padding:20px;
+    }
+
+    .form-actions{
+        flex-direction:column;
+    }
+
+    .btn-save,
+    .btn-cancel{
+        width:100%;
+    }
+
+}
+
+/* ==========================================
+   SMALL MOBILE
+========================================== */
+
+@media (max-width:480px){
+
+    .main-title{
+        font-size:1.6rem;
+    }
+
+    .main-subtitle{
+        font-size:.9rem;
+    }
+
+    .address-form-card{
+        padding:18px;
+    }
+
+    .form-group input,
+    .form-group textarea{
+        padding:12px 14px;
+    }
+
+}

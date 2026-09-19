@@ -1,0 +1,132 @@
+{% load static %}
+
+<header class="main-header">
+
+    <div class="header-container">
+
+        <div class="logo">
+            <a href="{% url 'home' %}">
+                NOVA STYLE
+                
+            </a>
+        </div>
+
+        <div class="header-actions">
+
+            {% if show_search %}
+            <button
+                class="action-btn"
+                id="action-search"
+                aria-label="Search">
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="20"
+                     height="20"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <circle cx="11"
+                            cy="11"
+                            r="8">
+                    </circle>
+
+                    <line x1="21"
+                          y1="21"
+                          x2="16.65"
+                          y2="16.65">
+                    </line>
+
+                </svg>
+
+            </button>
+            {% endif %}
+
+       <a href="{% url 'wishlist' %}" class="action-btn" aria-label="Wishlist">
+
+    <svg xmlns="http://www.w3.org/2000/svg"
+         fill="none"
+         viewBox="0 0 24 24"
+         stroke-width="1.5"
+         stroke="currentColor"
+         class="icon-svg">
+        <path stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/>
+    </svg>
+
+    {% if wishlist_count %}
+        <span class="badge">{{ wishlist_count }}</span>
+    {% endif %}
+
+</a>
+      <a href="{% url 'cart' %}" class="action-btn" aria-label="Shopping Bag">
+
+    <svg xmlns="http://www.w3.org/2000/svg"
+         fill="none"
+         viewBox="0 0 24 24"
+         stroke-width="1.5"
+         stroke="currentColor"
+         class="icon-svg">
+        <path stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
+    </svg>
+
+    {% if cart_count %}
+        <span class="badge">{{ cart_count }}</span>
+    {% endif %}
+
+</a>
+
+            <div class="user-avatar-header">
+
+              <a href="{% url 'profile' %}" class="user-avatar-header" aria-label="Profile">
+
+    {% if details.avatar_url %}
+        <img src="{{ details.avatar_url.url }}"
+             alt="User Avatar"
+             class="header-avatar-img">
+    {% else %}
+        <img src="{% static 'images/default.png' %}"
+             alt="User Avatar"
+             class="header-avatar-img">
+    {% endif %}
+
+</a>
+            </div>
+
+        </div>
+
+    </div>
+
+    {% if show_search %}
+
+    <div class="search-overlay"
+         id="searchOverlay">
+
+<form method="GET"
+      action="{{ request.path }}"
+      class="search-box">
+
+    <input type="search"
+           id="searchInput"
+           name="search"
+           placeholder="{{ search_placeholder|default:'Search...' }}"
+           value="{{ request.GET.search }}">
+
+    <button type="button"
+            id="clearSearch">
+        ✕
+    </button>
+
+</form>
+
+    </div>
+
+    {% endif %}
+
+</header>

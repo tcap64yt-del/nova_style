@@ -1,167 +1,185 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ product.name }}-details </title>
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/product/product_details.css' %}?v=11">
-  <link rel="stylesheet"href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-</head>
-<body>
+{% extends "base/user/base.html" %}
+{% load static %}
 
-  <!-- Header -->
-  <header class="site-header">
-        <div class="header-container">
-            <div class="logo-wrapper">
-                <a href="{% url "home" %}" class="logo" id="header-logo">NOVA STYLE</a>
-                <div class="auth-menu" tabindex="0">
+{% block title %}
+<title>{{ product.name }} | NOVA STYLE</title>
+{% endblock %}
 
-</div>
-            </div>
-            
-         
+{% block css %}
+<link rel="stylesheet"
+      href="{% static 'css/user/product/product_details.css' %}?v=13">
 
-            
-            <div class="header-actions">
-                
-                        <button class="action-btn" id="action-wishlist" aria-label="Favorites Wishlist">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                </button>
-                <a href="{% url 'cart' %}" class="action-btn" aria-label="Shopping Bag">
-    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <path d="M16 10a4 4 0 0 1-8 0"></path>
-    </svg>
-</a>
-                <div class="user-profile" id="user-profile-menu">
-                       <a href='{% url "profile" %}'>
-                        {% if details.avatar_url %}
-                        <img src="{{ details.avatar_url.url }}" alt="User Avatar" class="header-avatar-img">
-                        {% else %}
-                        <img src="{% static 'images/default.png' %}" alt="User Avatar" class="header-avatar-img">
-                        {% endif %}                       </a>
-                </div>
-            </div>
-        </div>
-    
-</div>
-    </header>
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+{% endblock %}
 
-  <!-- Main Content -->
-  <main class="main-content">
-    <div class="breadcrumbs">
+{% block content %}
+
+<div class="breadcrumbs">
+
     <a href="{% url 'home' %}">Home</a>
 
     <span>/</span>
 
-    <a href="{% url 'product_list' %}">Products</a>
+    <a href="{% url 'product_list' %}">
+        Products
+    </a>
 
     <span>/</span>
 
-    <span>{{ product.category.name }}</span>
+    <a href="{% url 'product_list' %}?category={{ product.category.id }}">
+        {{ product.category.name }}
+    </a>
 
     <span>/</span>
 
-    <span class="current">{{ product.name }}</span>
+    <span class="current">
+        {{ product.name }}
+    </span>
+
 </div>
-    <!-- Product Detail Section -->
-    <section class="product-section">
-      <div class="product-gallery">
+
+
+<section class="product-section">
+
+    <div class="product-gallery">
+
         <div class="thumbnails-container">
-          <div class="thumbnails-container">
 
-{% for image in variant.images.all %}
+            {% for image in variant.images.all %}
 
-<button class="thumbnail-btn {% if image.is_primary %}active{% endif %}">
-    <img src="{{ image.image.url }}" alt="">
-</button>
+            <button class="thumbnail-btn {% if image.is_primary %}active{% endif %}">
 
-{% endfor %}
+                <img src="{{ image.image.url }}" alt="">
 
-</div>
+            </button>
+
+            {% endfor %}
 
         </div>
+
+
         <div class="main-image-container">
-{% for image in variant.images.all %}
-    {% if image.is_primary %}
-        <img
-    id="mainProductImage"
-    src="{{ image.image.url }}"
-    class="main-product-image">
-    {% endif %}
-{% endfor %}
-        </div>
-                  <div class="zoom-preview" id="zoomPreview"></div>
 
-      </div>
+            {% for image in variant.images.all %}
 
-      <div class="product-details">
-        <h1 class="product-title">{{ product.name }}</h1>
-        <p class="product-price">₹{{ variant.discounted_price }}</p>
+                {% if image.is_primary %}
 
-        <!-- Size Selector -->
-        <div class="selector-group">
-          <div class="selector-label">SELECT SIZE</div>
-          <div class="size-options">
-           {% for size  in sizes %}
+                <img
+                    id="mainProductImage"
+                    src="{{ image.image.url }}"
+                    class="main-product-image">
 
-<a href="{% url 'product_details' size.id %}">
-    <button
-        class="size-btn {% if size.id ==  variant.id %}active{% endif %}">
-        {{ size.size }}
-    </button>
-</a>
+                {% endif %}
 
-{% endfor %}
-          </div>
+            {% endfor %}
+
         </div>
 
-        <!-- Color Selector -->
+        <div class="zoom-preview" id="zoomPreview"></div>
+
+    </div>
+
+
+    <div class="product-details">
+
+        <h1 class="product-title">
+            {{ product.name }}
+        </h1>
+
+        <p class="product-price">
+            ₹{{ variant.discounted_price }}
+        </p>
+
+
         <div class="selector-group">
-          <div class="selector-label">COLOR</div>
-          <div class="color-row">
-            <div class="color-options">
-{% for color in colors %}
 
-<a href="{% url 'product_details' color.id %}">
-    <button
-        class="color-btn {% if color.id ==  variant.id %}active{% endif %}"
-        style="background-color: {{ color.color }}">
-    </button>
-</a>
+            <div class="selector-label">
+                SELECT SIZE
+            </div>
 
-{% endfor %}
+            <div class="size-options">
+
+                {% for size in sizes %}
+
+                <a href="{% url 'product_details' size.id %}">
+
+                    <button
+                        class="size-btn {% if size.id == variant.id %}active{% endif %}">
+
+                        {{ size.size }}
+
+                    </button>
+
+                </a>
+
+                {% endfor %}
 
             </div>
-{% if variant.total_offer %}
-    <span class="discount-badge">
-        {{ variant.total_offer }}% OFF
-    </span>
-{% endif %}       
-   </div>
+
         </div>
 
-<p class="stock-status">
-    {% if variant.stock > 0 %}
-        {{ variant.stock }} Left
-    {% else %}
-        Out Of Stock
-    {% endif %}
-</p>
-        <!-- Action Buttons -->
+
+        <div class="selector-group">
+
+            <div class="selector-label">
+                COLOR
+            </div>
+
+            <div class="color-row">
+
+                <div class="color-options">
+
+                    {% for color in colors %}
+
+                    <a href="{% url 'product_details' color.id %}">
+
+                        <button
+                            class="color-btn {% if color.id == variant.id %}active{% endif %}"
+                            style="background-color: {{ color.color }}">
+
+                        </button>
+
+                    </a>
+
+                    {% endfor %}
+
+                </div>
+
+                {% if variant.total_offer %}
+
+                <span class="discount-badge">
+
+                    {{ variant.total_offer }}% OFF
+
+                </span>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <p class="stock-status">
+
+            {% if variant.stock > 0 %}
+
+                {{ variant.stock }} Left
+
+            {% else %}
+
+                Out Of Stock
+
+            {% endif %}
+
+        </p>
         <div class="action-buttons">
-{% if cart_error %}
-    <div class="field-error">
-        {{ cart_error }}
-    </div>
+
+    {% if cart_error %}
+        <div class="field-error">
+            {{ cart_error }}
+        </div>
     {% endif %}
 
     <form
@@ -170,6 +188,7 @@
         style="display:contents;"
     >
         {% csrf_token %}
+
         <input
             type="hidden"
             name="variant_id"
@@ -177,255 +196,443 @@
         >
 
         <button class="btn btn-secondary">
-            Add to cart
+            Add to Cart
         </button>
     </form>
+
+
     {% if buy_now_error %}
-    <div class="field-error">
-        {{ buy_now_error }}
-    </div>
-{% endif %}
-<form method="POST" action="{% url 'buy_now' variant.id %}" style="display:contents;">
-    {% csrf_token %}
-    <input type="hidden" name="variant_id" value="{{ variant.id }}">
-    <button class="btn btn-primary">Buy Now</button>
-</form>
-
-          <button class="btn btn-outline btn-wishlist">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-            Save to Wishlist
-          </button>
+        <div class="field-error">
+            {{ buy_now_error }}
         </div>
+    {% endif %}
 
-        <!-- Accordion Description -->
-       <div class="accordion-item">
+    <form
+        method="POST"
+        action="{% url 'buy_now' variant.id %}"
+        style="display:contents;"
+    >
+        {% csrf_token %}
+
+        <input
+            type="hidden"
+            name="variant_id"
+            value="{{ variant.id }}"
+        >
+
+        <button class="btn btn-primary">
+            Buy Now
+        </button>
+
+    </form>
+
+
+    <form
+        method="POST"
+        action="{% url 'add_to_wishlist' variant.id %}"
+        style="display:contents;"
+    >
+
+        {% csrf_token %}
+
+        <input
+            type="hidden"
+            name="next"
+            value="{{ request.get_full_path }}"
+        >
+
+        <input
+            type="hidden"
+            name="variant_id"
+            value="{{ variant.id }}"
+        >
+
+        <button class="btn btn-outline btn-wishlist">
+
+            <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                {% if is_wishlisted %}
+                    fill="red"
+                {% else %}
+                    fill="none"
+                {% endif %}
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+
+            </svg>
+
+            {% if is_wishlisted %}
+                Wishlisted
+            {% else %}
+                Save to Wishlist
+            {% endif %}
+
+        </button>
+
+    </form>
+
+</div>
+
+
+<div class="accordion-item">
+
     <button class="accordion-trigger">
+
         <span>DESCRIPTION</span>
-        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24">
+
+        <svg
+            class="chevron"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24">
+
             <polyline points="6 9 12 15 18 9"></polyline>
+
         </svg>
+
     </button>
 
-    <div class="accordion-content" style="display:none;padding:10px 4px;">
+    <div
+        class="accordion-content"
+        style="display:none;padding:10px 4px;">
+
         {{ product.description }}
-    </div>
-</div>
-    </section>
 
-    <!-- Related Products Section -->
-    <section class="related-section">
-      <div class="section-header">
-        <h2 class="section-title">Related Products</h2>
+    </div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- Related Products -->
+<section class="related-section">
+
+    <div class="section-header">
+
+        <h2 class="section-title">
+            Related Products
+        </h2>
+
         <div class="carousel-nav">
-          <button  id="prevBtn" class="nav-arrow" aria-label="Previous Related Products">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12"></line>
-              <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-          </button>
-          <button id="nextBtn"  class="nav-arrow" aria-label="Next Related Products">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-          </button>
+
+            <button id="prevBtn"
+                    class="nav-arrow"
+                    aria-label="Previous">
+
+                <svg width="16"
+                     height="16"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+
+                    <polyline points="12 19 5 12 12 5"></polyline>
+
+                </svg>
+
+            </button>
+
+            <button id="nextBtn"
+                    class="nav-arrow"
+                    aria-label="Next">
+
+                <svg width="16"
+                     height="16"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+
+                    <polyline points="12 5 19 12 12 19"></polyline>
+
+                </svg>
+
+            </button>
+
         </div>
-      </div>
 
-<div id="relatedGrid" class="related-grid">
-          {% for variant in related_products  %}
-        <a href="{% url 'product_details' variant.id %}" class="product-card-link">
+    </div>
 
-        <!-- Related Product 1 -->
-        <div class="product-card">
-          <div class="card-image-container">
-            {% for img in  variant.images.all %}
-            {% if img.is_primary %}
+    <div id="relatedGrid" class="related-grid">
 
-            <img src="{{ img.image.url }}">
-            
-            {% endif %}
-                 {% endfor %}
+        {% for variant in related_products %}
 
-          </div>
-          <h3 class="card-title">{{ variant.product.name }} </h3>
-          <p class="card-price">₹{{ variant.discounted_price  }}</p>
-        </div>
-        {% if variant.total_offer %}
-    <span class="discount-badge">
-        {{ variant.total_offer }}% OFF
-    </span>
-{% endif %}
-      </a>
-     
-                {% endfor %}
+        <a href="{% url 'product_details' variant.id %}"
+           class="product-card-link">
 
-      </div>
-    </section>
+            <div class="product-card">
 
-    <!-- Reviews Section -->
-    <section class="reviews-section">
-      <div class="reviews-container">
-        
-        <!-- Left Side: Summary -->
+                <div class="card-image-container">
+
+                    {% for img in variant.images.all %}
+
+                        {% if img.is_primary %}
+
+                        <img src="{{ img.image.url }}"
+                             class="card-image">
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+                <h3 class="card-title">
+
+                    {{ variant.product.name }}
+
+                </h3>
+
+                <p class="card-price">
+
+                    ₹{{ variant.discounted_price }}
+
+                </p>
+
+                {% if variant.total_offer %}
+
+                <span class="discount-badge">
+
+                    {{ variant.total_offer }}% OFF
+
+                </span>
+
+                {% endif %}
+
+            </div>
+
+        </a>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+<section class="reviews-section">
+
+    <div class="reviews-container">
+
+        <!-- Summary -->
+
         <div class="reviews-summary">
-          <span class="sub-label">COMMUNITY FEEDBACK</span>
-          <h2 class="reviews-heading">Reviews</h2>
-          
-          <div class="rating-large-block">
-            <span class="rating-number">{{ avg_rating }}</span>
-            <div class="stars-container">
-              <div class="stars-row">
-                <!-- 4 solid, 1 empty -->
-               <div class="stars-row">
 
-    {% if avg_rating >= 1 %}
-        <span class="star filled">★</span>
-    {% else %}
-        <span class="star empty">★</span>
-    {% endif %}
+            <span class="sub-label">
+                COMMUNITY FEEDBACK
+            </span>
 
-    {% if avg_rating >= 2 %}
-        <span class="star filled">★</span>
-    {% else %}
-        <span class="star empty">★</span>
-    {% endif %}
+            <h2 class="reviews-heading">
+                Reviews
+            </h2>
 
-    {% if avg_rating >= 3 %}
-        <span class="star filled">★</span>
-    {% else %}
-        <span class="star empty">★</span>
-    {% endif %}
+            <div class="rating-large-block">
 
-    {% if avg_rating >= 4 %}
-        <span class="star filled">★</span>
-    {% else %}
-        <span class="star empty">★</span>
-    {% endif %}
+                <span class="rating-number">
+                    {{ avg_rating }}
+                </span>
 
-    {% if avg_rating >= 5 %}
-        <span class="star filled">★</span>
-    {% else %}
-        <span class="star empty">★</span>
-    {% endif %}
+                <div class="stars-container">
 
-</div>
-              </div>
-              <span class="rating-count">Based on {{ review_count }} reviews</span>
+                    <div class="stars-row">
+
+                        {% if avg_rating >= 1 %}
+                            <span class="star filled">★</span>
+                        {% else %}
+                            <span class="star empty">★</span>
+                        {% endif %}
+
+                        {% if avg_rating >= 2 %}
+                            <span class="star filled">★</span>
+                        {% else %}
+                            <span class="star empty">★</span>
+                        {% endif %}
+
+                        {% if avg_rating >= 3 %}
+                            <span class="star filled">★</span>
+                        {% else %}
+                            <span class="star empty">★</span>
+                        {% endif %}
+
+                        {% if avg_rating >= 4 %}
+                            <span class="star filled">★</span>
+                        {% else %}
+                            <span class="star empty">★</span>
+                        {% endif %}
+
+                        {% if avg_rating >= 5 %}
+                            <span class="star filled">★</span>
+                        {% else %}
+                            <span class="star empty">★</span>
+                        {% endif %}
+
+                    </div>
+
+                    <span class="rating-count">
+                        Based on {{ review_count }} reviews
+                    </span>
+
+                </div>
+
             </div>
-          </div>
 
-          <div class="rating-bars">
-            <!-- 5 star -->
-            <div class="bar-row">
-              <span class="bar-label">5 star</span>
-              <div class="bar-track">
-                <div class="bar-fill" style="width: {{ five_star_percent }}%;"></div>
-              </div>
-              <span class="bar-percent"> {{ five_star_percent }}%</span>
-            </div>
-            <!-- 4 star -->
-            <div class="bar-row">
-              <span class="bar-label">4 star</span>
-              <div class="bar-track">
-                <div class="bar-fill" style="width:  {{ four_star_percent }}%;"></div>
-              </div>
-              <span class="bar-percent"> {{ four_star_percent }}%</span>
-            </div>
-            <!-- 3 star -->
-            <div class="bar-row">
-              <span class="bar-label">3 star</span>
-              <div class="bar-track">
-                <div class="bar-fill" style="width:  {{ three_star_percent }}%;"></div>
-              </div>
-              <span class="bar-percent"> {{ three_star_percent }}%</span>
-            </div>
-            <!-- 2 star -->
-            <div class="bar-row">
-              <span class="bar-label">2 star</span>
-              <div class="bar-track">
-                <div class="bar-fill" style="width:  {{ two_star_percent }}%;"></div>
-              </div>
-              <span class="bar-percent"> {{ two_star_percent }}%</span>
-            </div>
-            <!-- 1 star -->
-            <div class="bar-row">
-              <span class="bar-label">1 star</span>
-              <div class="bar-track">
-                <div class="bar-fill" style="width:  {{ one_star_percent }}%;"></div>
-              </div>
-              <span class="bar-percent"> {{ one_star_percent }}%</span>
-            </div>
-          </div>
+            <div class="rating-bars">
 
-          <button class="btn-write-review">Write a Review</button>
+                <div class="bar-row">
+                    <span class="bar-label">5 star</span>
+                    <div class="bar-track">
+                        <div class="bar-fill"
+                             style="width: {{ five_star_percent }}%;">
+                        </div>
+                    </div>
+                    <span class="bar-percent">
+                        {{ five_star_percent }}%
+                    </span>
+                </div>
+
+                <div class="bar-row">
+                    <span class="bar-label">4 star</span>
+                    <div class="bar-track">
+                        <div class="bar-fill"
+                             style="width: {{ four_star_percent }}%;">
+                        </div>
+                    </div>
+                    <span class="bar-percent">
+                        {{ four_star_percent }}%
+                    </span>
+                </div>
+
+                <div class="bar-row">
+                    <span class="bar-label">3 star</span>
+                    <div class="bar-track">
+                        <div class="bar-fill"
+                             style="width: {{ three_star_percent }}%;">
+                        </div>
+                    </div>
+                    <span class="bar-percent">
+                        {{ three_star_percent }}%
+                    </span>
+                </div>
+
+                <div class="bar-row">
+                    <span class="bar-label">2 star</span>
+                    <div class="bar-track">
+                        <div class="bar-fill"
+                             style="width: {{ two_star_percent }}%;">
+                        </div>
+                    </div>
+                    <span class="bar-percent">
+                        {{ two_star_percent }}%
+                    </span>
+                </div>
+
+                <div class="bar-row">
+                    <span class="bar-label">1 star</span>
+                    <div class="bar-track">
+                        <div class="bar-fill"
+                             style="width: {{ one_star_percent }}%;">
+                        </div>
+                    </div>
+                    <span class="bar-percent">
+                        {{ one_star_percent }}%
+                    </span>
+                </div>
+
+            </div>
+
+            <button class="btn-write-review">
+                Write a Review
+            </button>
+
         </div>
 
-        <!-- Right Side: Reviews List -->
+        <!-- Review List -->
+
         <div class="reviews-list">
-          {% for review in reviews %}
-          
-          <!-- Review 1 -->
-          <div class="review-card">
-            <div class="review-header">
-              <div class="review-stars-title">
-                <div class="stars-row small">
-<div class="stars-row small">
 
-    {% for i in "12345" %}
-        {% if forloop.counter <= review.rating %}
-            <span class="star filled">★</span>
-        {% else %}
-            <span class="star empty">★</span>
-        {% endif %}
-    {% endfor %}
+            {% for review in reviews %}
 
+            <div class="review-card">
 
-</div>                </div>
-                <h3 class="review-title">{{ review.title }}</h3>
-              </div>
-              <div class="review-meta">
-                <span class="review-author">{{ review.user.name }}</span>
-                <span class="review-date">{{ review.created_at|date:"M d, Y" }}</span>
-              </div>
+                <div class="review-header">
+
+                    <div class="review-stars-title">
+
+                        <div class="stars-row small">
+
+                            {% for i in "12345" %}
+
+                                {% if forloop.counter <= review.rating %}
+                                    <span class="star filled">★</span>
+                                {% else %}
+                                    <span class="star empty">★</span>
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </div>
+
+                        <h3 class="review-title">
+                            {{ review.title }}
+                        </h3>
+
+                    </div>
+
+                    <div class="review-meta">
+
+                        <span class="review-author">
+                            {{ review.user.name }}
+                        </span>
+
+                        <span class="review-date">
+                            {{ review.created_at|date:"M d, Y" }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <p class="review-text">
+
+                    {{ review.comment }}
+
+                </p>
+
             </div>
 
-            <p class="review-text">
-              {{ review.comment }}
-            </p>
-          
-          </div>
-          {% endfor %}
+            {% endfor %}
 
-{% if next %}
-<a href="?page={{ page_number|add:1 }}"
-   class="load-more-btn">
-    Load More Reviews
-</a>
-{% endif %}   
+            {% if next %}
+
+            <a href="?page={{ page_number|add:1 }}"
+               class="load-more-btn">
+
+                Load More Reviews
+
+            </a>
+
+            {% endif %}
+
+        </div>
+
     </div>
 
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-container">
-      <div class="footer-links">
-        <a href="#" class="footer-link">PRIVACY</a>
-        <a href="#" class="footer-link">TERMS</a>
-        <a href="#" class="footer-link">SHIPPING</a>
-        <a href="#" class="footer-link">CONTACT</a>
-      </div>
-      
-      <p class="copyright">© 2024 NOVA STYLE. ALL RIGHTS RESERVED.</p>
-    </div>
-  </footer>
-  <!-- Review Modal -->
+</section>
+<!-- Review Modal -->
 <div class="review-modal" id="reviewModal">
 
     <div class="review-modal-content">
@@ -433,14 +640,14 @@
         <h3>Write a Review</h3>
 
         <form method="POST">
+
             {% csrf_token %}
 
             <input
                 type="hidden"
                 name="rating"
                 id="ratingInput"
-                value="0"
-            >
+                value="0">
 
             <div class="rating-select">
 
@@ -449,52 +656,54 @@
                 <span class="rating-star" data-rating="3">★</span>
                 <span class="rating-star" data-rating="4">★</span>
                 <span class="rating-star" data-rating="5">★</span>
-           
+
             </div>
-            
-{% if errors.rating %}
-<div class="field-error">
-    {{ errors.rating }}
-</div>
-{% endif %}
 
-<input
-    type="text"
-    name="title"
-    placeholder="Review title"
-    value="{{ request.POST.title }}"
-    class="review-title-field"
->
+            {% if errors.rating %}
+            <div class="field-error">
+                {{ errors.rating }}
+            </div>
+            {% endif %}
 
-{% if errors.title %}
-<div class="field-error">
-    {{ errors.title }}
-</div>
-{% endif %}
+            <input
+                type="text"
+                name="title"
+                class="review-title-field"
+                placeholder="Review title"
+                value="{{ request.POST.title }}">
+
+            {% if errors.title %}
+            <div class="field-error">
+                {{ errors.title }}
+            </div>
+            {% endif %}
+
             <textarea
                 name="review"
-                placeholder="Share your experience..."
-                
-            >{{ request.POST.review }}</textarea>
+                placeholder="Share your experience...">{{ request.POST.review }}</textarea>
+
             {% if errors.review %}
-<div class="field-error">
-    {{ errors.review }}
-</div>
-{% endif %}
+            <div class="field-error">
+                {{ errors.review }}
+            </div>
+            {% endif %}
+
             <div class="review-modal-actions">
 
                 <button
                     type="button"
-                    class="review-cancel-btn"
-                >
+                    class="review-cancel-btn">
+
                     Cancel
+
                 </button>
 
                 <button
                     type="submit"
-                    class="review-send-btn"
-                >
+                    class="review-send-btn">
+
                     Send
+
                 </button>
 
             </div>
@@ -505,27 +714,53 @@
 
 </div>
 
+
 {% if messages %}
+
 <div id="toast-container">
+
     {% for message in messages %}
-        <div class="toast {{ message.tags }}">
-            {{ message }}
-        </div>
+
+    <div class="toast {{ message.tags }}">
+
+        <span>{{ message }}</span>
+
+        <button class="toast-close">
+            &times;
+        </button>
+
+    </div>
+
     {% endfor %}
+
 </div>
+
 {% endif %}
+
 
 {% if errors %}
+
 <script>
+
 document.addEventListener("DOMContentLoaded", function () {
+
     const modal = document.getElementById("reviewModal");
 
-    if (modal) {
+    if(modal){
         modal.classList.add("active");
     }
+
 });
+
 </script>
+
 {% endif %}
-<script  src="{% static 'js/product_details.js' %}?v=7"></script>
-</body>
-</html>
+
+{% endblock %}
+
+
+{% block js %}
+
+<script src="{% static 'js/product_details.js' %}?v=8"></script>
+
+{% endblock %}

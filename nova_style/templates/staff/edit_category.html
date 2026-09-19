@@ -17,19 +17,22 @@
         <div class="card" aria-label="Category Form Container">
             <form class="form" id="categoryForm" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-
+<input type="hidden" name="_method" value="PATCH">
                 <div class="input-group">
                     <label for="categoryName" class="input-label">Category Name</label>
                     <input
                         type="text"
                         id="categoryName"
-                        name="categoryName"
+                        name="name"
                         class="input-field"
                         value="{{ category.name }}"
                     >
                
-                    <small id="nameError" class="error-message"></small>
-
+<small id="nameError" class="error-message">
+    {% if errors.name %}
+        {{ errors.name }}
+    {% endif %}
+</small>
                 </div>
 
                 <div class="input-group">
@@ -40,13 +43,55 @@
                             id="offer"
                             name="offer"
                             class="input-field offer-input"
-                            value="{{ category.offer }}"
+                            value="{{ category.offer|default:'' }}"
                         >
                         <span class="input-suffix">%</span>
                     </div>
-                        <small id="offerError" class="error-message"></small>
-
+<small id="offerError" class="error-message">
+    {% if errors.offer %}
+        {{ errors.offer }}
+    {% endif %}
+</small>
                 </div>
+                <div class="input-group">
+    <label for="startDate" class="input-label">Offer Start Date</label>
+
+<input
+    type="date"
+    id="startDate"
+    name="start_date"
+    class="input-field"
+    value="{% if start_date %}{{ start_date }}{% elif category.start_date %}{{ category.start_date|date:'Y-m-d' }}{% endif %}"
+>
+
+<small id="startDateError" class="error-message">
+    {% if errors.start_date %}
+        {{ errors.start_date }}
+    {% endif %}
+</small>
+
+</div>
+
+<div class="input-group">
+    <label for="endDate" class="input-label">Offer End Date</label>
+
+<input
+    type="date"
+    id="endDate"
+    name="end_date"
+    class="input-field"
+    value="{% if end_date %}{{ end_date }}{% elif category.end_date %}{{ category.end_date|date:'Y-m-d' }}{% endif %}"
+>
+
+<small id="endDateError" class="error-message">
+    {% if errors.end_date %}
+        {{ errors.end_date }}
+    {% endif %}
+</small>
+
+</div>
+
+                
 
                 <div class="divider"></div>
                     <div class="upload-zone" id="uploadZone">
@@ -64,8 +109,11 @@
         src="{% if category.image_url %}{{ category.image_url.url }}{% endif %}"
         alt="Preview"
     >
-<small id="imageError" class="error-message"></small>
-
+<small id="imageError" class="error-message">
+    {% if errors.image %}
+        {{ errors.image }}
+    {% endif %}
+</small>
 
     <div class="upload-content" id="uploadContent">
 
@@ -114,7 +162,6 @@
 
             </form>
         </div>
-    </div>
 
 
     <div class="crop-modal" id="cropModal">
@@ -159,10 +206,7 @@
 </div>
 {% endif %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
-<script>
-const CHECK_CATEGORY_URL = "{% url 'check_category_name' %}";
-const CATEGORY_ID = "{{ category.id }}";
-</script>
-    <script src="{% static 'js/edit_category.js' %}?v=3"></script>
+
+    <script src="{% static 'js/edit_category.js' %}?v=7"></script>
 </body>
 </html>

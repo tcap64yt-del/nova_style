@@ -1,424 +1,1006 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit Product</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/staff/edit_product.css' %}?v=8">
-  <link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+{% extends "base/staff/base.html" %}
+{% load static %}
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
-</head>
-<body>
-  <div class="page-container">
-    <!-- Main Content Area -->
-    <main class="main-content">
-<form id="product-form" method="POST" enctype="multipart/form-data">
-      {% csrf_token %}   
-      <input type="hidden" name="deleted_image_ids" id="deleted_image_ids">
-<input type="hidden" name="deleted_variant_ids" id="deleted_variant_ids">
-      <h1 class="page-title">Edit Product</h1>
+{% block title %}
+Edit Product
+{% endblock %}
 
-      <div class="layout-grid">
+{% block description %}
+Edit Nova Style product
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet"
+      href="{% static 'css/staff/edit_product.css' %}?v=10">
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+{% endblock %}
+
+
+{% block content %}
+
+<form id="product-form"
+      method="POST"
+      enctype="multipart/form-data">
+
+    {% csrf_token %}
+<input type="hidden" name="_method" value="PATCH">
+    <input type="hidden"
+           name="deleted_image_ids"
+           id="deleted_image_ids">
+
+    <input type="hidden"
+           name="deleted_variant_ids"
+           id="deleted_variant_ids">
+
+    <h1 class="page-title">Edit Product</h1>
+
+    <div class="layout-grid">
+
+
         <div class="primary-column">
+
+            <!-- Basic Information -->
+
             <section class="card basic-info-card">
-            <h2 class="card-title">Basic Information</h2>
-            
-            <div class="form-group">
-              <label for="product-name" class="field-label">PRODUCT NAME</label>
-<input
-    type="text"
-    name="product_name"
-    class="form-input"
-    value="{{ products.name}}"
->     
-    
-      </div>
-            
-            <div class="form-group">
-              <label for="product-description" class="field-label">DESCRIPTION</label>
-<textarea
-    name="description"
-    class="form-textarea"
->{{ products.description }}</textarea>
-   
-        </div>
-          </section>
 
-          <!-- Product Variant Card -->
-          <section class="card variant-card">
-            <div class="card-header-row">
-              <h2 class="card-title">Product Variant</h2>
-              <button type="button" class="btn btn-primary btn-add-variant" id="btn-add-variant">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Add Variant
-              </button>
-            </div>
-           
-            <!-- Variant Item Grid -->
-            <div  id="variant-items-container">
-                {% for  variant in variants  %}
-                            <div class="variant-grid" >
+                <h2 class="card-title">
+                    Basic Information
+                </h2>
 
-              <div class="variant-item-row">
-                 <input
-    type="hidden"
-    class="variant-id"
-    name="variant_id[]"
-    value="{{ variant.id }}">
-               <div class="variant-divider"></div>
+                <div class="form-group">
 
-<button type="button" class="btn-remove-variant">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 6h18"/>
-        <path d="M8 6V4h8v2"/>
-        <path d="M19 6l-1 14H6L5 6"/>
-    </svg>
-    Remove
-</button>
-                <!-- Price, Size, Stock row -->
-                <div class="form-row-three-col">
-                  <div class="form-group">
-                    <label class="field-label">PRICE (₹)</label>
-                    <div class="input-currency-wrapper">
-                      <span class="currency-symbol">₹</span>
-<input type="number"
-       name="price[]"
-       class="form-input price-input"
-       step="0.01"
-       value="{{ variant.price }}"
-       >
+                    <label
+                        for="product-name"
+                        class="field-label">
+                        PRODUCT NAME
+                    </label>
 
-                          </div>
-                      
-                  </div>
-                  
-                  <div class="form-group">
-                    <label class="field-label">SIZE</label>
-                    <div class="custom-select-wrapper">
-              <select name="size[]" class="form-select size-select">
-                  <option value="S" {% if variant.size == "S" %}selected{% endif %}>S</option>
-    <option value="M" {% if variant.size == "M" %}selected{% endif %}>M</option>
-    <option value="L" {% if variant.size == "L" %}selected{% endif %}>L</option>
-    <option value="XL" {% if variant.size == "XL" %}selected{% endif %}>XL</option>
-              </select>
-                      <span class="select-chevron">
-                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg>
-                      </span>
-                    </div>
-                    
-                  </div>
-                  
-                  
-                  <div class="form-group">
-                <label class="field-label">STOCK</label>
-          <input type="number"
-                name="stock[]"
-                class="form-input stock-input"
-                min="0"
-                value={{variant.stock}}
-                >  
-             
-                              </div>
-                              
-                </div>
-                
+                    <input
+                        id="product-name"
+                        type="text"
+                        name="product_name"
+                        class="form-input"
+                        value="{{ products.name }}"
+                    >
 
-                <!-- Color Pill -->
-                <div class="form-group color-group">
-                  <label class="field-label">COLOR</label>
-                  <div class="color-badge-container">
-      
-      <div class="color-badge-container">
-    <input
-        type="color"
-        name="color[]"
-        class="color-square"
-        value="{{variant.color}}">
-</div>
+                    {% if errors.product_name %}
+                        <small class="field-error">
+                            {{ errors.product_name }}
+                        </small>
+                    {% endif %}
 
-                        </div>
-                        
                 </div>
 
-<div class="form-row-two-col">
 
+                <div class="form-group">
 
-    <!-- Status -->
-    <div class="form-group">
-        <label class="field-label">STATUS</label>
+                    <label
+                        for="product-description"
+                        class="field-label">
+                        DESCRIPTION
+                    </label>
 
-        <div class="custom-select-wrapper">
-            <select name="status[]" class="form-select">
-                <option value="true"
-        {% if variant.status %}
-            selected
-        {% endif %}
-    >
-        Active
-    </option>
+                    <textarea
+                        id="product-description"
+                        name="description"
+                        class="form-textarea"
+                    >{{ products.description }}</textarea>
 
-    <option value="false"
-        {% if not variant.status %}
-            selected
-        {% endif %}
-    >
-        Inactive
-    </option>
-            </select>
+                    {% if errors.description %}
+                        <small class="field-error">
+                            {{ errors.description }}
+                        </small>
+                    {% endif %}
 
-            <span class="select-chevron">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"
-                     stroke="currentColor" stroke-width="2">
-                    <path d="M1 1l4 4 4-4"/>
-                </svg>
-            </span>
-        </div>
-    </div>
-
-</div>
-                <!-- Offer Section -->
-                <div class="offer-section">
-                  <h3 class="section-subtitle">Offer</h3>
-                  <div class="form-row-three-col">
-                    
-                    <div class="form-group">
-                      <label class="field-label">PERCENTAGE</label>
-                      <div class="input-percentage-wrapper">
-<input type="number"
-       name="offer[]"
-       class="form-input percentage-input"
-       min="0"
-       max="100"
-       value="{{ variant.offer }}">
-                               <span class="percentage-symbol">%</span>
-                      </div>
-                    </div>
-                    
-                    <div class="form-group">
-                      <label class="field-label">START DATE</label>
-                      <div class="date-input-wrapper">
-<input type="date"
-       name="start_date[]"
-       class="form-input date-input start-date" value="{{ variant.start_date|date:"Y-m-d" }}"> 
-      
-       <span class="calendar-icon">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div class="form-group">
-                      <label class="field-label">END DATE</label>
-                      <div class="date-input-wrapper">
-<input type="date"
-       name="end_date[]"
-       class="form-input date-input end-date" value="{{ variant.end_date|date:"Y-m-d" }}">                  
-      
-       <span class="calendar-icon">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                        </span>
-                      </div>
-                    </div>
-
-                  </div>
                 </div>
 
-                <!-- Media Gallery Section -->
-                <div class="media-gallery-section">
-                  <h3 class="section-subtitle">Media Gallery</h3>
-                  <p class="section-description">The First Image Will Be The Main Image</p>
-                  
-                  <div class="media-gallery-grid" >
-<div class="media-upload-box media-upload-trigger">
-    <input type="file"
-       name="images_{{forloop.counter0}}[]"
-       accept="image/*"
-       multiple
-       class="hidden-file-input media-file-input" style="display:none;">
-                             <div class="upload-content">
-                        <svg class="upload-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                          <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                          <polyline points="21 15 16 10 5 21"></polyline>
+            </section>
+
+
+            <!-- =========================
+                 PRODUCT VARIANTS
+            ========================== -->
+
+            <section class="card variant-card">
+
+                <div class="card-header-row">
+
+                    <h2 class="card-title">
+                        Product Variant
+                    </h2>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-add-variant"
+                        id="btn-add-variant">
+
+                        <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round">
+
+                            <line
+                                x1="12"
+                                y1="5"
+                                x2="12"
+                                y2="19">
+                            </line>
+
+                            <line
+                                x1="5"
+                                y1="12"
+                                x2="19"
+                                y2="12">
+                            </line>
+
                         </svg>
-                        <span class="upload-text">Upload images</span>
-                      </div>
-                    </div>
-                     {% for image in variant.images.all %}
-    <div class="media-item-box">
-        <img
-            src="{{ image.image.url }}"
-            class="preview-image"
-            alt="Product image">
-            <button
-            type="button"
-            class="btn-delete-image"
-            data-image-id="{{ image.id }}">
-            ✕</button>
-    </div>
-    {% endfor %}
-                  </div>
+
+                        Add Variant
+
+                    </button>
+
                 </div>
 
-              </div>
-            </div>
-        {% endfor %}
-          </section>
-      
+
+                <!-- Variant Container -->
+
+                <div id="variant-items-container">
+
+                    {% for variant in variants %}
+
+                    <div class="variant-grid">
+
+                        <div class="variant-item-row">
+
+                            <input
+                                type="hidden"
+                                class="variant-id"
+                                name="variant_id[]"
+                                value="{{ variant.id }}"
+                            >
+
+
+                            <!-- Remove Variant -->
+
+                            <button
+                                type="button"
+                                class="btn-remove-variant">
+
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round">
+
+                                    <path d="M3 6h18"></path>
+                                    <path d="M8 6V4h8v2"></path>
+                                    <path d="M19 6l-1 14H6L5 6"></path>
+
+                                </svg>
+
+                                Remove
+
+                            </button>
+
+
+                 
+                            <div class="form-row-three-col">
+
+                                <div class="form-group">
+
+                                    <label class="field-label">
+                                        PRICE (₹)
+                                    </label>
+
+                                    <div class="input-currency-wrapper">
+
+                                        <span class="currency-symbol">
+                                            ₹
+                                        </span>
+
+                                        <input
+                                            type="number"
+                                            name="price[]"
+                                            class="form-input price-input"
+                                            step="0.01"
+                                            value="{{ variant.price }}"
+                                        >
+
+                                    </div>
+{% if variant.errors.price %}
+    <small class="field-error">
+        {{ variant.errors.price }}
+    </small>
+{% endif %}
+                                </div>
+
+
+                                <div class="form-group">
+
+                                    <label class="field-label">
+                                        SIZE
+                                    </label>
+
+                                    <div class="custom-select-wrapper">
+
+                                        <select
+                                            name="size[]"
+                                            class="form-select size-select">
+
+                                            <option
+                                                value="S"
+                                                {% if variant.size == "S" %}selected{% endif %}>
+                                                S
+                                            </option>
+
+                                            <option
+                                                value="M"
+                                                {% if variant.size == "M" %}selected{% endif %}>
+                                                M
+                                            </option>
+
+                                            <option
+                                                value="L"
+                                                {% if variant.size == "L" %}selected{% endif %}>
+                                                L
+                                            </option>
+
+                                            <option
+                                                value="XL"
+                                                {% if variant.size == "XL" %}selected{% endif %}>
+                                                XL
+                                            </option>
+
+                                        </select>
+
+                                        <span class="select-chevron">
+
+                                            <svg
+                                                width="10"
+                                                height="6"
+                                                viewBox="0 0 10 6"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round">
+
+                                                <path d="M1 1l4 4 4-4"></path>
+
+                                            </svg>
+
+                                        </span>
+
+                                    </div>
+{% if variant.errors.size %}
+    <small class="field-error">
+        {{ variant.errors.size }}
+    </small>
+{% endif %}
+                                </div>
+
+
+                                <div class="form-group">
+
+                                    <label class="field-label">
+                                        STOCK
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        name="stock[]"
+                                        class="form-input stock-input"
+                                        min="0"
+                                        value="{{ variant.stock }}"
+                                    >
+{% if variant.errors.stock %}
+    <small class="field-error">
+        {{ variant.errors.stock }}
+    </small>
+{% endif %}
+                                </div>
+
+                            </div>
+
+
+                            <!-- =========================
+                                 COLOR
+                            ========================== -->
+
+                            <div class="form-group color-group">
+
+                                <label class="field-label">
+                                    COLOR
+                                </label>
+
+                                <div class="color-badge-container">
+
+                                    <input
+                                        type="color"
+                                        name="color[]"
+                                        class="color-square"
+                                        value="{{ variant.color }}"
+                                    >
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-row-two-col">
+
+                                <div class="form-group">
+
+                                    <label class="field-label">
+                                        STATUS
+                                    </label>
+
+                                    <div class="custom-select-wrapper">
+
+                                        <select
+                                            name="status[]"
+                                            class="form-select">
+
+                                            <option
+                                                value="true"
+                                                {% if variant.status %}selected{% endif %}>
+                                                Active
+                                            </option>
+
+                                            <option
+                                                value="false"
+                                                {% if not variant.status %}selected{% endif %}>
+                                                Inactive
+                                            </option>
+
+                                        </select>
+
+                                        <span class="select-chevron">
+
+                                            <svg
+                                                width="10"
+                                                height="6"
+                                                viewBox="0 0 10 6"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2">
+
+                                                <path d="M1 1l4 4 4-4"></path>
+
+                                            </svg>
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="offer-section">
+
+                                <h3 class="section-subtitle">
+                                    Offer
+                                </h3>
+
+                                <div class="form-row-three-col">
+
+                                    <div class="form-group">
+
+                                        <label class="field-label">
+                                            PERCENTAGE
+                                        </label>
+
+                                        <div class="input-percentage-wrapper">
+
+                                            <input
+                                                type="number"
+                                                name="offer[]"
+                                                class="form-input percentage-input"
+                                                min="0"
+                                                max="100"
+                                                value="{{ variant.offer }}"
+                                            >
+
+                                            <span class="percentage-symbol">
+                                                %
+                                            </span>
+
+                                        </div>
+{% if variant.errors.offer %}
+    <small class="field-error">
+        {{ variant.errors.offer }}
+    </small>
+{% endif %}
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <label class="field-label">
+                                            START DATE
+                                        </label>
+
+                                        <div class="date-input-wrapper">
+
+                                            <input
+                                                type="date"
+                                                name="start_date[]"
+                                                class="form-input date-input start-date"
+                                                value="{{ variant.start_date|date:'Y-m-d' }}"
+                                            >
+
+                                            <span class="calendar-icon">
+
+                                                <svg
+                                                    width="14"
+                                                    height="14"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round">
+
+                                                    <rect
+                                                        x="3"
+                                                        y="4"
+                                                        width="18"
+                                                        height="18"
+                                                        rx="2"
+                                                        ry="2">
+                                                    </rect>
+
+                                                    <line
+                                                        x1="16"
+                                                        y1="2"
+                                                        x2="16"
+                                                        y2="6">
+                                                    </line>
+
+                                                    <line
+                                                        x1="8"
+                                                        y1="2"
+                                                        x2="8"
+                                                        y2="6">
+                                                    </line>
+
+                                                    <line
+                                                        x1="3"
+                                                        y1="10"
+                                                        x2="21"
+                                                        y2="10">
+                                                    </line>
+
+                                                </svg>
+
+                                            </span>
+
+                                        </div>
+{% if variant.errors.start_date %}
+    <small class="field-error">
+        {{ variant.errors.start_date }}
+    </small>
+{% endif %}
+                                    </div>
+
+
+                                    <div class="form-group">
+
+                                        <label class="field-label">
+                                            END DATE
+                                        </label>
+
+                                        <div class="date-input-wrapper">
+
+                                            <input
+                                                type="date"
+                                                name="end_date[]"
+                                                class="form-input date-input end-date"
+                                                value="{{ variant.end_date|date:'Y-m-d' }}"
+                                            >
+
+                                            <span class="calendar-icon">
+
+                                                <svg
+                                                    width="14"
+                                                    height="14"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round">
+
+                                                    <rect
+                                                        x="3"
+                                                        y="4"
+                                                        width="18"
+                                                        height="18"
+                                                        rx="2"
+                                                        ry="2">
+                                                    </rect>
+
+                                                    <line
+                                                        x1="16"
+                                                        y1="2"
+                                                        x2="16"
+                                                        y2="6">
+                                                    </line>
+
+                                                    <line
+                                                        x1="8"
+                                                        y1="2"
+                                                        x2="8"
+                                                        y2="6">
+                                                    </line>
+
+                                                    <line
+                                                        x1="3"
+                                                        y1="10"
+                                                        x2="21"
+                                                        y2="10">
+                                                    </line>
+
+                                                </svg>
+
+                                            </span>
+
+                                        </div>
+{% if variant.errors.end_date %}
+    <small class="field-error">
+        {{ variant.errors.end_date }}
+    </small>
+{% endif %}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                  
+                            <div class="media-gallery-section">
+
+                                <h3 class="section-subtitle">
+                                    Media Gallery
+                                </h3>
+
+                                <p class="section-description">
+                                    The First Image Will Be The Main Image
+                                </p>
+
+
+                                <div class="media-gallery-grid">
+
+                                    <!-- Upload -->
+
+                                    <div class="media-upload-box media-upload-trigger">
+
+                                        <input
+                                            type="file"
+                                            name="images_{{ forloop.counter0 }}[]"
+                                            accept="image/*"
+                                            multiple
+                                            class="hidden-file-input media-file-input"
+                                             data-new-images="false"
+                                        >
+
+                                        <div class="upload-content">
+
+                                            <svg
+                                                class="upload-icon"
+                                                width="20"
+                                                height="20"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round">
+
+                                                <rect
+                                                    x="3"
+                                                    y="3"
+                                                    width="18"
+                                                    height="18"
+                                                    rx="2">
+                                                </rect>
+
+                                                <circle
+                                                    cx="8.5"
+                                                    cy="8.5"
+                                                    r="1.5">
+                                                </circle>
+
+                                                <polyline
+                                                    points="21 15 16 10 5 21">
+                                                </polyline>
+
+                                            </svg>
+
+                                            <span class="upload-text">
+                                                Upload images
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- Existing Images -->
+
+                                    {% for image in variant.images.all %}
+
+                                    <div class="media-item-box">
+
+                                        <img
+                                            src="{{ image.image.url }}"
+                                            class="preview-image"
+                                            alt="Product image"
+                                        >
+
+                                        <button
+                                            type="button"
+                                            class="btn-delete-image"
+                                            data-image-id="{{ image.id }}">
+
+                                            ✕
+
+                                        </button>
+
+                                    </div>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            </div>
+{% if variant.errors.images %}
+    <small class="field-error">
+        {{ variant.errors.images }}
+    </small>
+{% endif %}
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
 
         </div>
 
-        <!-- Right Column: Sidebar Settings -->
+
+ 
         <div class="secondary-column">
-          
-          <!-- Category Card -->
-<section class="card category-card">
-    <div class="form-group">
-        <label class="field-label-category">CATEGORY</label>
 
-        <div class="custom-select-wrapper">
+            <!-- Category -->
 
-            <select class="form-select category-select"
-                    id="category-select"
-                    name="category">
+            <section class="card category-card">
 
-                <option value="" disabled selected>
-                    Select Category
-                </option>
+                <div class="form-group">
 
-                {% for category in categories %}
-                {% if  category.is_active %}
-                    <option value="{{ category.id }}"
-            {% if category.id == products.category.id %}
-                selected
-            {% endif %}
-        >
-            {{ category.name }}
-        </option>
-                {% endif %}
-                {% endfor %}
+                    <label
+                        class="field-label-category"
+                        for="category-select">
 
-            </select>
-         
-            <span class="select-chevron">
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none"
-                     stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 1l4 4 4-4"/>
-                </svg>
-            </span>
+                        CATEGORY
+
+                    </label>
+
+                    <div class="custom-select-wrapper">
+
+                        <select
+                            class="form-select category-select"
+                            id="category-select"
+                            name="category">
+
+                            <option value="" disabled>
+                                Select Category
+                            </option>
+
+                            {% for category in categories %}
+
+                                {% if category.is_active %}
+
+                                    <option
+                                        value="{{ category.id }}"
+                                        {% if category.id == products.category.id %}
+                                            selected
+                                        {% endif %}
+                                    >
+
+                                        {{ category.name }}
+
+                                    </option>
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </select>
+
+                        {% if errors.category %}
+                            <small class="field-error">
+                                {{ errors.category }}
+                            </small>
+                        {% endif %}
+
+                        <span class="select-chevron">
+
+                            <svg
+                                width="10"
+                                height="6"
+                                viewBox="0 0 10 6"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round">
+
+                                <path d="M1 1l4 4 4-4"></path>
+
+                            </svg>
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- Show On List -->
+
+            <section class="card visibility-card">
+
+                <div class="form-group">
+
+                    <label
+                        class="field-label-category"
+                        for="list-visibility-select">
+
+                        SHOW ON LIST
+
+                    </label>
+
+                    <div class="custom-select-wrapper">
+
+                        <select
+                            class="form-select list-visibility-select"
+                            id="list-visibility-select"
+                            name="show_on_list">
+
+                            <option
+                                value="yes"
+                                {% if products.is_active %}
+                                    selected
+                                {% endif %}
+                            >
+                                Yes
+                            </option>
+
+                            <option
+                                value="no"
+                                {% if not products.is_active %}
+                                    selected
+                                {% endif %}
+                            >
+                                No
+                            </option>
+
+                        </select>
+
+                        {% if errors.show_on_list %}
+                            <small class="field-error">
+                                {{ errors.show_on_list }}
+                            </small>
+                        {% endif %}
+
+                        <span class="select-chevron">
+
+                            <svg
+                                width="10"
+                                height="6"
+                                viewBox="0 0 10 6"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round">
+
+                                <path d="M1 1l4 4 4-4"></path>
+
+                            </svg>
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
 
         </div>
+
     </div>
-</section>
 
-          <!-- Show on List Card -->
-          <section class="card visibility-card">
-            <div class="form-group">
-              <label class="field-label-category">SHOW ON LIST</label>
-              <div class="custom-select-wrapper">
-<select class="form-select list-visibility-select" id="list-visibility-select" name="show_on_list">
-                          <option value="yes"
-        {% if products.is_active %}
-            selected
-        {% endif %} >
-        Yes
-    </option>
+</form>
 
-    <option value="no"
-        {% if not products.is_active %}
-            selected
-        {% endif %}
-    >
-        No
-    </option>
-                </select>
-                <span class="select-chevron">
-                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4 4 4-4"/></svg>
-                </span>
-              </div>
-            </div>
-              
-          </section>
 
-        </div>
-      </div>
-      </form>
-    </main>
+<!-- =========================
+     BOTTOM ACTIONS
+========================== -->
 
-    <!-- Bottom Actions Sticky Bar -->
-    <footer class="bottom-actions-bar">
-      <div class="footer-buttons-wrapper">
-        <a href="{% url "product_management" %}">
-        <button type="button" class="btn btn-secondary btn-back" id="btn-back">BACK</button>
+<footer class="bottom-actions-bar">
+
+    <div class="footer-buttons-wrapper">
+
+        <a href="{% url 'product_management' %}"
+           class="btn btn-secondary btn-back">
+
+            BACK
+
         </a>
-<button type="submit" form="product-form" class="btn btn-dark btn-save" id="btn-save">
-                  <svg class="save-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-          </svg>
-          Save Product
+
+        <button
+            type="submit"
+            form="product-form"
+            class="btn btn-dark btn-save"
+            id="btn-save">
+
+            <svg
+                class="save-icon"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+
+                <line
+                    x1="22"
+                    y1="2"
+                    x2="11"
+                    y2="13">
+                </line>
+
+                <polygon
+                    points="22 2 15 22 11 13 2 9 22 2">
+                </polygon>
+
+            </svg>
+
+            Save Product
+
         </button>
-      </div>
-    </footer>
-  </div>
 
-  
+    </div>
 
-  <div id="cropModal" class="crop-modal">
+</footer>
+
+
+<!-- =========================
+     CROP MODAL
+========================== -->
+
+<div id="cropModal"
+     class="crop-modal">
+
     <div class="crop-modal-content">
 
         <div class="crop-header">
-            <h3>Crop Image</h3>
 
-            <button type="button" id="cancelCropBtn" class="crop-close">
+            <h3>
+                Crop Image
+            </h3>
+
+            <button
+                type="button"
+                id="cancelCropBtn"
+                class="crop-close">
+
                 ✕
+
             </button>
+
         </div>
+
 
         <div class="crop-body">
-            <img id="cropImage">
+
+            <img
+                id="cropImage"
+                alt="Crop preview">
+
         </div>
 
+
         <div class="crop-footer">
-            <button type="button" id="cancelCropBtn2" class="btn-cancel">
+
+            <button
+                type="button"
+                id="cancelCropBtn2"
+                class="btn-cancel">
+
                 Cancel
+
             </button>
 
-            <button type="button" id="cropBtn" class="btn-save">
+            <button
+                type="button"
+                id="cropBtn"
+                class="btn-save">
+
                 Save Image
+
             </button>
+
         </div>
 
     </div>
+
 </div>
+
+
+<!-- Django Messages -->
 
 {% if messages %}
+
 <div id="toast-container">
+
     {% for message in messages %}
+
         <div class="toast {{ message.tags }}">
-            <span>{{ message }}</span>
-            <button class="toast-close">&times;</button>
+
+            <span>
+                {{ message }}
+            </span>
+
+            <button
+                type="button"
+                class="toast-close">
+
+                &times;
+
+            </button>
+
         </div>
+
     {% endfor %}
+
 </div>
+
 {% endif %}
+
+{% endblock %}
+
+
+{% block extra_js %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-<script>
-const CHECK_PRODUCT_URL = "{% url 'check_product_name' %}";
-const PRODUCT_ID = "{{ products.id }}";
-</script>
-<script src="{% static 'js/edit_product.js' %}?v=7"></script>
-</body>
+
+<script src="{% static 'js/edit_product.js' %}?v=16"></script>
 
 
-
-
-</html>
+{% endblock %}

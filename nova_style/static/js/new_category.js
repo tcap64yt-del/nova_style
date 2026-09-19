@@ -119,35 +119,11 @@ else if (value.length < 3) {
     return;
 }
 
-// Stop the normal submit
-e.preventDefault();
-
-// Check duplicate name
-const response = await fetch(
-    `${CHECK_CATEGORY_URL}?name=${encodeURIComponent(value)}`
-);
-
-const data = await response.json();
-
-console.log(data);
-
-if (data.exists) {
-
-    console.log("Duplicate category");
-
-    showError(categoryName, "Category already exists.");
-
-    showToast("Failed", "error");
-
+if (!isValid) {
+    e.preventDefault();
+    showToast("Failed.", "error");
     return;
 }
-
-console.log("Submitting form");
-this.submit();
-
-// No duplicate -> submit form
-this.submit();
-
 
 });
 document.addEventListener("DOMContentLoaded", function () {
@@ -210,24 +186,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
         reader.onload = function (event) {
 
-            cropImage.src = event.target.result;
+            cropImage.onload = () => {
 
-            cropModal.style.display = "flex";
+    if (cropper) {
+        cropper.destroy();
+    }
 
-            if (cropper) {
-                cropper.destroy();
-            }
+    cropper = new Cropper(cropImage, {
+        aspectRatio: 1,
+        viewMode: 1,
+        autoCropArea: 1,
+        responsive: true,
+        movable: true,
+        zoomable: true,
+        scalable: true,
+        rotatable: false
+    });
+};
 
-            cropper = new Cropper(cropImage, {
-                aspectRatio: 1,
-                viewMode: 1,
-                autoCropArea: 1,
-                responsive: true,
-                movable: true,
-                zoomable: true,
-                scalable: true,
-                rotatable: false
-            });
+cropImage.src = event.target.result;
+cropModal.style.display = "flex";
         };
 
         reader.readAsDataURL(file);

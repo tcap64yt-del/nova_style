@@ -1,0 +1,184 @@
+:root {
+  --font-family: 'Plus Jakarta Sans', sans-serif;
+
+  --color-sidebar-bg: #0f1622;
+  --color-sidebar-text-muted: #748094;
+  --color-sidebar-text-hover: #fff;
+  --color-sidebar-active-bg: #dee9fc;
+  --color-sidebar-active-text: #1d52d9;
+
+  --color-primary: #1d52d9;
+  --color-primary-hover: #153fa8;
+
+  --color-bg-main: #f8fafc;
+  --color-card-bg: #fff;
+
+  --color-text-dark: #121826;
+  --color-text-muted: #64748b;
+  --color-text-light: #94a3b8;
+
+  --color-border: #f1f5f9;
+
+  --sidebar-width:260px;
+
+  --transition-speed:.25s;
+
+  --border-radius-lg:24px;
+  --border-radius-md:16px;
+  --border-radius-sm:12px;
+
+  --box-shadow-sm:0 4px 20px rgba(15,23,42,.04);
+  --box-shadow-md:0 8px 30px rgba(15,23,42,.05);
+}
+
+/* ==========================
+   RESET
+========================== */
+
+*,
+*::before,
+*::after{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:var(--font-family);
+    background:var(--color-bg-main);
+    color:var(--color-text-dark);
+    overflow-x:hidden;
+}
+
+a{
+    text-decoration:none;
+    color:inherit;
+}
+
+button{
+    border:none;
+    background:none;
+    font-family:inherit;
+    cursor:pointer;
+}
+
+/* ==========================
+   LAYOUT
+========================== */
+
+.admin-layout{
+    display:flex;
+    min-height:100vh;
+}
+
+/* ==========================
+   MOBILE HEADER
+========================== */
+
+.mobile-header{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    background:var(--color-sidebar-bg);
+
+    color:#fff;
+
+    padding:16px 20px;
+
+    position:fixed;
+
+    top:0;
+
+    left:0;
+
+    width:100%;
+
+    z-index:1000;
+
+}
+
+.mobile-logo-group{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.mobile-logo-title{
+
+    font-size:18px;
+
+    font-weight:700;
+
+}
+
+.mobile-logo-subtitle{
+
+    font-size:10px;
+
+    font-weight:600;
+
+    color:var(--color-sidebar-text-muted);
+
+}
+
+.mobile-menu-toggle{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#fff;
+
+}
+
+/* ==========================
+   MAIN CONTENT
+========================== */
+
+.main-content{
+
+    flex:1;
+
+    width:100%;
+
+    padding:95px 20px 40px;
+
+}
+
+/* ==========================
+   DESKTOP
+========================== */
+
+@media(min-width:1025px){
+
+.admin-layout{
+
+    flex-direction:row;
+
+}
+
+.mobile-header{
+
+    display:none;
+
+}
+
+.main-content{
+
+    padding:48px;
+
+    margin-left:0;
+
+    max-width:calc(100% - var(--sidebar-width));
+
+}
+
+}

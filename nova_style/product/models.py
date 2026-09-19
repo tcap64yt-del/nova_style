@@ -14,10 +14,6 @@ class Category(models.Model):
     class Meta:
         db_table="category"
 
-    def __str__(self):
-        return self.name
-        
-
 
 class Products(models.Model):
     name=models.CharField(max_length=255)
@@ -27,9 +23,7 @@ class Products(models.Model):
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.name
-    
+
     class Meta:
         db_table="products"
 
@@ -49,9 +43,7 @@ class ProductVariant(models.Model):
     class Meta:
         db_table="productvariant"
         unique_together=("product","size","color")
-    def __str__(self):
-        return f"{self.product.name} - {self.size} - {self.color}"
-    
+   
     @property
     def orginal_price(self):
         return self.price
@@ -96,9 +88,6 @@ class ProductImage(models.Model):
     class Meta:
         db_table="productimage"
 
-    def __str__(self):
-        return f"image for {self.variant}"
-
 
 class Review(models.Model):
     user=models.ForeignKey(Users,on_delete=models.CASCADE,related_name='reviews')
@@ -111,6 +100,3 @@ class Review(models.Model):
     class Meta:
         db_table="review"
 
-    def __str__(self):
-        return f"{self.user.name}"
-    
