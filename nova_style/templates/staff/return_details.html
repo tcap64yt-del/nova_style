@@ -55,10 +55,10 @@
 
             </button>
 
-        {% elif return_obj.status == "approved" %}
+        {% elif return_obj.status == "returned" %}
 
-            <span class="status-badge approved">
-                Approved
+            <span class="status-badge returned">
+                Returned
             </span>
 
         {% elif return_obj.status == "rejected" %}
@@ -453,7 +453,7 @@
             <input
                 type="hidden"
                 name="status"
-                value="approved">
+                value="returned">
 
 
             <div class="modal-actions">
