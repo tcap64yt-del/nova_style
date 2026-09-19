@@ -40,5 +40,5 @@ category management, coupons, offers, orders, payments, and an admin/staff dashb
 ### 1. Clone the repository
 
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
-cd YOUR_PROJECT_FOLDER
+git clone https://github.com/tcap64yt-del/nova_style.git
+cd nova_style
