@@ -7,7 +7,7 @@ Category Management | Admin Console
 
 {% block extra_css %}
 <link rel="stylesheet"
-      href="{% static 'css/staff/admin_category_management.css' %}?v=13">
+      href="{% static 'css/staff/admin_category_management.css' %}?v=14">
 {% endblock %}
 
 {% block content %}
@@ -221,13 +221,9 @@ Category Management | Admin Console
 
                             <div class="actions-wrapper">
 
-                                <a href="{% url 'edit_category' category.id %}"
-                                   class="btn-edit">
-
-                                    <i data-lucide="pencil"
-                                       class="action-icon"></i>
-
-                                </a>
+                              <a href="{% url 'edit_category' category.id %}" class="btn-edit" title="Edit">
+    ✎
+</a>
 
                                 <label class="switch-control">
 
