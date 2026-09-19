@@ -13,6 +13,10 @@ urlpatterns = [
 
    path("profile/addresses/", views.address_list, name="addresses"),   
    path("profile/wallet/", views.wallet, name="wallet"),   
+   path("profile/wallet/create-topup/", views.create_wallet_topup, name="create_wallet_topup"),   
+   path("profile/wallet/verify-topup/", views.verify_wallet_topup, name="verify_wallet_topup"),   
+   path("profile/wallet/topup-failed/", views.wallet_topup_failed, name="wallet_topup_failed"),   
+   path("profile/coupon/", views.coupon, name="coupon"),   
    path("profile/wishlist/", views.wishlist, name="wishlist"),   
    path("profile/wishlist/add/<int:variant_id>/", views.add_to_wishlist, name="add_to_wishlist"),   
    path("profile/orders/",views.orders, name="orders"),   

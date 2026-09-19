@@ -180,7 +180,42 @@
                         {% endif %}
 
                     </div>
+                <div class="form-group">
 
+    <label for="referral-code">
+        REFERRAL CODE
+        <span>(OPTIONAL)</span>
+    </label>
+
+    <input
+        type="text"
+        name="referral_code"
+        id="referral-code"
+        placeholder="Enter referral code"
+        value="{{ form.referral_code.value|default:'' }}"
+        autocomplete="off"
+        maxlength="20"
+    >
+
+    <small style="color: #777;">
+        Enter a referral code to get an extra coupon.
+    </small>
+
+    {% if form.referral_code.errors %}
+
+        <div class="form-errors" style="color: red;">
+
+            {% for error in form.referral_code.errors %}
+
+                <p>{{ error }}</p>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+</div>
                     <div class="checkbox-group">
 
                         <input

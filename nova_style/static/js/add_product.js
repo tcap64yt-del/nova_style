@@ -409,7 +409,6 @@ updateRemoveButtons();
 
 
 document.getElementById("product-form").addEventListener("submit", async function(e){
-       console.log("Submit clicked");
 
     let isValid = true;
 

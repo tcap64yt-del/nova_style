@@ -23,6 +23,7 @@ class SignupForm(forms.ModelForm):
         required=True,
         error_messages={"required": "Please agree with Privacy Policy and Terms"},
     )
+    referral_code = forms.CharField(max_length=20,required=False)
 
     class Meta:
         model = Users

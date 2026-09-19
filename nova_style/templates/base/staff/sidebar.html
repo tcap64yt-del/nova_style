@@ -18,8 +18,8 @@
 
             <li>
 
-                <a href="#"
-                   class="nav-link ">
+                <a href="{% url "admin_dashboard" %}"
+                  class="nav-link {% if active_page == 'admin_dashboard' %}active{% endif %}">
 
                     <svg class="nav-icon"
                          viewBox="0 0 24 24"
@@ -162,8 +162,8 @@
 
             <li>
 
-                <a href="#"
-                   class="nav-link">
+                <a href="{% url "coupon_management" %}"
+                   class="nav-link {% if active_page == 'admin_coupon_management' %}active{% endif %}">
 
                     <svg class="nav-icon"
                          viewBox="0 0 24 24"
@@ -195,8 +195,8 @@
 
             <li>
 
-                <a href="#"
-                   class="nav-link ">
+                <a href="{% url "sales_report" %}"
+                   class="nav-link {% if active_page == 'sales_report' %}active{% endif %}">
 
                     <svg class="nav-icon"
                          viewBox="0 0 24 24"

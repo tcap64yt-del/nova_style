@@ -85,10 +85,25 @@
   </div>
 </div>
 
-            <div class="profile-info">
-              <h2 class="profile-name">{{ details.name }}</h2>
-              <p class="profile-membership">{{ details.created_at  }}</p>
-            </div>
+        <div class="profile-info">
+    <h2 class="profile-name">{{ details.name }}</h2>
+    <p class="profile-membership">{{ details.created_at }}</p>
+
+    <div class="referral-code-box">
+        <span class="referral-label">YOUR REFERRAL CODE</span>
+        <div class="referral-code-row">
+            <span class="referral-code">{{ details.referral_code }}</span>
+
+            <button
+                type="button"
+                class="copy-referral-btn"
+                data-code="{{ details.referral_code }}"
+            >
+                Copy
+            </button>
+        </div>
+    </div>
+</div>
 
             <div class="profile-actions">
              <a href="{% url 'user_change_password' %}" class="change-password-link">
@@ -139,6 +154,20 @@
      
 
 <script>
+  document.querySelectorAll('.copy-referral-btn').forEach(button => {
+    button.addEventListener('click', function () {
+        const code = this.dataset.code;
+
+        navigator.clipboard.writeText(code).then(() => {
+            const originalText = this.textContent;
+            this.textContent = 'Copied!';
+
+            setTimeout(() => {
+                this.textContent = originalText;
+            }, 1500);
+        });
+    });
+});
 const modal = document.getElementById("profileModal");
 const openBtn = document.getElementById("openProfileModal");
 const closeBtn = document.getElementById("closeModalBtn");

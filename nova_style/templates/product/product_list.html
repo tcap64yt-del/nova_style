@@ -13,7 +13,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"rel="stylesheet">
 
-<link rel="stylesheet" href="{% static 'css/user/product/product_list.css' %}?v=22">
+<link rel="stylesheet" href="{% static 'css/user/product/product_list.css' %}?v=24">
 
 <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -233,39 +233,33 @@ NEW PRODUCTS
                     <div class="product-info">
                         <span class="product-category">{{ variant.product.category.name }}</span>
                         <h3 class="product-title">{{ variant.product.name }}</h3>
-                        <div class="product-price-row">
-                          <div class="price-group">
+<div class="product-price-row">
+    <div class="price-group">
 
-    {% if variant.total_offer %}
+        {% if variant.total_offer %}
+            <!-- Offer available -->
+            <span class="price-original">
+                ₹{{ variant.orginal_price }}
+            </span>
 
-        <!-- Offer exists: show original + discounted price -->
-        <span class="price-original">
-            ₹{{ variant.orginal_price }}
-        </span>
+            <span class="price-current">
+                ₹{{ variant.discounted_price }}
+            </span>
 
-        <span class="price-current">
-            ₹{{ variant.discounted_price }}
-        </span>
+            <span class="discount-badge">
+                {{ variant.total_offer }}% OFF
+            </span>
 
-    {% else %}
+        {% else %}
+            <!-- No offer -->
+            <span class="price-current">
+                ₹{{ variant.orginal_price }}
+            </span>
+        {% endif %}
 
-        <!-- No offer: show only original price -->
-        <span class="price-current">
-            ₹{{ variant.orginal_price }}
-        </span>
-
-    {% endif %}
-
+    </div>
 </div>
 
-{% if variant.total_offer %}
-    <span class="discount-badge">
-        {{ variant.total_offer }}% OFF
-    </span>
-{% endif %}
-
-
-                        </div>
                     </div>
                 </article>
                 </a>
@@ -273,6 +267,61 @@ NEW PRODUCTS
 
                
             </div>
+{% if page_obj.paginator.num_pages > 1 %}
+
+<div class="pagination">
+
+    {% if page_obj.has_previous %}
+        <a href="?{{ query_params }}&page={{ page_obj.previous_page_number }}"
+           class="pagination-btn">
+            PREVIOUS
+        </a>
+    {% else %}
+        <span class="pagination-btn disabled">
+            PREVIOUS
+        </span>
+    {% endif %}
+
+
+    <div class="pagination-pages">
+
+        {% for num in page_obj.paginator.page_range %}
+
+            {% if num == page_obj.number %}
+
+                <span class="pagination-number active">
+                    {{ num }}
+                </span>
+
+            {% else %}
+
+                <a href="?{{ query_params }}&page={{ num }}"
+                   class="pagination-number">
+                    {{ num }}
+                </a>
+
+            {% endif %}
+
+        {% endfor %}
+
+    </div>
+
+
+    {% if page_obj.has_next %}
+        <a href="?{{ query_params }}&page={{ page_obj.next_page_number }}"
+           class="pagination-btn">
+            NEXT
+        </a>
+    {% else %}
+        <span class="pagination-btn disabled">
+            NEXT
+        </span>
+    {% endif %}
+
+</div>
+
+{% endif %}
+
         </main>
     </div>
 

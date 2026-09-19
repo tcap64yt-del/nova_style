@@ -1,12 +1,3 @@
-/* ==========================================================================
-   Nova Style Admin Console - Order Management
-   PAGE-SPECIFIC CSS
-   ========================================================================== */
-
-
-/* ==========================================================================
-   PAGE VARIABLES
-   ========================================================================== */
 
 :root {
 
@@ -20,9 +11,6 @@
 }
 
 
-/* ==========================================================================
-   SPA VIEW CONTAINERS
-   ========================================================================== */
 
 .view-container {
     display: none;
@@ -2577,4 +2565,14 @@
 .item-status-returned {
     background: #e3f2fd;
     color: #1565c0;
+}
+
+.details-items-table th:nth-last-child(2),
+.details-items-table td:nth-last-child(2) {
+    padding-right: 8px;
+}
+
+.details-items-table th:last-child,
+.details-items-table td:last-child {
+    padding-left: 8px;
 }

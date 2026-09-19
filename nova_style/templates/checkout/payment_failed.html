@@ -461,16 +461,34 @@ retryButton.addEventListener("click", async function () {
             new Razorpay(options);
 
 
-        razorpay.on(
-            "payment.failed",
-            function () {
+      razorpay.on("payment.failed", async function (response) {
 
-                window.location.reload();
-
+    try {
+        const failedResponse = await fetch(
+            "{% url 'razorpay_payment_failed' %}",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+                body: JSON.stringify({
+                    order_id: data.order_id,
+                    razorpay_order_id: data.razorpay_order_id
+                })
             }
         );
 
+        const result = await failedResponse.json();
 
+        if (result.redirect_url) {
+            window.location.href = result.redirect_url;
+        }
+
+    } catch (error) {
+        console.error("Payment failure could not be saved:", error);
+    }
+});
         razorpay.open();
 
 
@@ -478,9 +496,7 @@ retryButton.addEventListener("click", async function () {
 
         console.error(error);
 
-        alert(
-            "Unable to start payment. Please try again."
-        );
+     
 
         resetRetryButton();
 

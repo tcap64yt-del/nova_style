@@ -9,12 +9,28 @@ class Category(models.Model):
     image_url=models.ImageField(upload_to="category/")
     offer=models.DecimalField(max_digits=5,decimal_places=2,null=True,blank=True)
     is_active=models.BooleanField(default=True)
+    start_date = models.DateField(blank=True, null=True)
+    end_date = models.DateField(blank=True, null=True)
     created_at=models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table="category"
 
 
+    @property
+    def offer_active(self):
+        if not self.offer:
+            return False
+
+        today = timezone.now().date()
+
+        if self.start_date and today < self.start_date:
+            return False
+
+        if self.end_date and today > self.end_date:
+            return False
+
+        return True
 class Products(models.Model):
     name=models.CharField(max_length=255)
     description=models.TextField()
@@ -60,25 +76,49 @@ class ProductVariant(models.Model):
 
         return True
     @property
-    def discounted_price(self):
-        price=self.price
+    def category_offer_active(self):
+            category = self.product.category
 
-        if self.product.category.offer:
-            price=price-(price*self.product.category.offer/Decimal("100"))
-        if self.variant_offer_active:
-            price=price-(price * self.offer /Decimal("100"))
-        return round(price,2)
-    
+            if not category.offer:
+                return False
+
+            today = timezone.now().date()
+
+            if category.start_date and today < category.start_date:
+                return False
+
+            if category.end_date and today > category.end_date:
+                return False
+
+            return True
+
     @property
     def total_offer(self):
-        offer=Decimal("0")
-        if self.product.category.offer:
-            offer+=self.product.category.offer
-        if self.variant_offer_active:
-            offer+=self.offer
-        return offer
-    
+        category = self.product.category
 
+        if self.category_offer_active:
+            category_offer = category.offer or Decimal("0")
+        else:
+            category_offer = Decimal("0")
+
+        if self.variant_offer_active:
+            variant_offer = self.offer or Decimal("0")
+        else:
+            variant_offer = Decimal("0")
+
+        return max(category_offer, variant_offer)
+
+
+
+    @property
+    def discounted_price(self):
+        offer = self.total_offer
+
+        price = self.price - (
+            self.price * offer / Decimal("100")
+        )
+
+        return round(price, 2)
 
 class ProductImage(models.Model):
     variant=models.ForeignKey(ProductVariant,on_delete=models.CASCADE,related_name="images")

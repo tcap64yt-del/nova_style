@@ -622,3 +622,30 @@ body {
         transform:translateX(0);
     }
 }
+.input-group {
+margin-bottom: 20px;
+}
+
+.input-label {
+display: block;
+margin-bottom: 8px;
+}
+
+.input-field {
+width: 100%;
+padding: 12px;
+border: 1px solid #ccc;
+border-radius: 6px;
+font-size: 14px;
+box-sizing: border-box;
+}
+
+.input-field[type="date"] {
+cursor: pointer;
+}
+
+.error-message {
+display: block;
+margin-top: 5px;
+font-size: 13px;
+}

@@ -415,44 +415,206 @@
     text-transform: uppercase;
 }
 
-.pagination-ui {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+/* ==========================================
+   PAGINATION
+========================================== */
+
+.pagination-ui{
+    width:100%;
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:16px;
+    padding:24px;
+    flex-wrap:wrap;
 }
 
 .pagination-page,
-.pagination-arrow {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    background: transparent;
-    border: none;
-    color: #121826;
-    font-size: 13px;
-    font-weight: 700;
-    transition: .2s;
+.pagination-arrow{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    background:transparent;
+    border:none;
+    color:#111827;
+    font-size:14px;
+    font-weight:700;
+    line-height:1;
+    transition:.2s;
 }
 
-.pagination-arrow {
-    width: 28px;
-    height: 28px;
-    color: #475569;
+.pagination-arrow{
+    width:20px;
+    height:20px;
+    font-size:22px;
+    color:#334155;
 }
 
-.pagination-page {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
+.pagination-page{
+    min-width:48px;
+    height:48px;
+    padding:0 14px;
+    border-radius:14px;
 }
 
 .pagination-page:hover,
-.pagination-arrow:hover {
-    color: #1d52d9;
+.pagination-arrow:hover{
+    color:#1d52d9;
 }
 
-.pagination-page.active {
-    background: #1d52d9;
-    color: #fff;
+.pagination-page.active{
+    background:#1d52d9;
+    color:#fff;
+    box-shadow:0 6px 16px rgba(29,82,217,.25);
 }
+
+@media(max-width:1024px){
+
+    .pagination-ui{
+        justify-content:center;
+        padding:20px;
+    }
+
+}
+
+@media(max-width:640px){
+
+    .pagination-ui{
+        gap:10px;
+    }
+
+    .pagination-page{
+        min-width:40px;
+        height:40px;
+    }
+
+}
+
+/* ==========================================
+   DELETE CONFIRMATION MODAL
+========================================== */
+
+.confirm-modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:9999;
+}
+
+.confirm-modal.is-open{
+    display:block;
+}
+
+.confirm-modal__overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(15,23,42,.55);
+    backdrop-filter:blur(4px);
+}
+
+.confirm-modal__card{
+    position:relative;
+    z-index:2;
+    width:min(92vw,420px);
+    margin:15vh auto 0;
+    background:#fff;
+    border-radius:18px;
+    padding:24px;
+    text-align:center;
+    animation:modalScale .25s ease;
+}
+
+@keyframes modalScale{
+    from{
+        transform:scale(.95);
+        opacity:0;
+    }
+
+    to{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+.confirm-modal__icon{
+    width:54px;
+    height:54px;
+    margin:0 auto 14px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:#fee2e2;
+    color:#dc2626;
+    font-size:26px;
+    font-weight:700;
+}
+
+.confirm-modal__card h3{
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:10px;
+    color:#121826;
+}
+
+.confirm-modal__card p{
+    color:#64748b;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.confirm-modal__actions{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    margin-top:24px;
+}
+
+.confirm-btn{
+    min-width:110px;
+    padding:11px 18px;
+    border:none;
+    border-radius:12px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.confirm-btn:hover{
+    opacity:.9;
+}
+
+.confirm-btn--secondary{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+.confirm-btn--danger{
+    background:#dc2626;
+    color:#fff;
+}
+.btn-delete{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:36px;
+    height:36px;
+    padding:0;
+    border:none;
+    background:transparent;
+    color:#64748b;
+    cursor:pointer;
+}
+
+.btn-delete svg{
+    width:18px;
+    height:18px;
+    display:block;
+}
+
+.btn-delete:hover{
+    color:#dc2626;
+    background:#fef2f2;
+    border-radius:50%;
+}
+

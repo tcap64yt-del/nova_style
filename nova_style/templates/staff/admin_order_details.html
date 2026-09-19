@@ -17,7 +17,7 @@
 
 <link
     rel="stylesheet"
-    href="{% static 'css/staff/admin_order_details.css' %}?v=5">
+    href="{% static 'css/staff/admin_order_details.css' %}?v=7">
 
 {% endblock %}
 
@@ -534,7 +534,7 @@
 
 
     <!-- OLD EDIT ORDER CONDITION -->
-{% if order.status != "cancelled" and order.status != "return pending" and order.status != "approved" and order.status != "rejected" %}
+{% if order.status != "cancelled" and order.status != "return pending" and order.status != "returned" and order.status != "rejected" %}
 
     <button
         type="button"
@@ -702,6 +702,8 @@
                             {{ shipping.state }}
                             |
                             {{ shipping.country }}
+                            |
+                            {{ shipping.postal_code }}
 
                         </p>
 
@@ -763,14 +765,21 @@
                             <th class="col-details-product">
                                 PRODUCT
                             </th>
+                             <th class="col-details-status">
+            STATUS
+        </th>
 
                             <th class="col-details-quantity">
                                 QUANTITY
                             </th>
 
-                            <th class="col-details-quantity">
-                                PRICE
-                            </th>
+                           <th class="col-details-quantity">
+    PRICE
+</th>
+
+<th class="col-details-quantity">
+    TOTAL
+</th>
 
                         </tr>
 
@@ -826,6 +835,22 @@
                                 </div>
 
                             </td>
+                                <td class="col-details-status">
+
+        <span class="item-status-badge
+            {% if item.status == 'returned' %}
+                item-status-returned
+            {% elif item.status == 'cancelled' %}
+                item-status-cancelled
+            {% else %}
+                item-status-pending
+            {% endif %}">
+
+            {{ item.status|default:"Pending"|title }}
+
+        </span>
+
+    </td>
 
 
                             <td class="col-details-quantity">
@@ -838,14 +863,17 @@
 
                             </td>
 
+<td class="col-details-quantity">
+    <span class="details-quantity-val">
+        ₹{{ item.unit_amount }}
+    </span>
+</td>
 
-                            <td class="col-details-quantity">
-
-                                <span class="details-quantity-val">₹{{ item.line_total }}
-
-                                </span>
-
-                            </td>
+<td class="col-details-quantity">
+    <span class="details-quantity-val">
+        ₹{{ item.line_total }}
+    </span>
+</td>
 
                         </tr>
 
@@ -866,10 +894,7 @@
         <div class="details-right-column">
 
 
-            <!-- Payment Summary -->
-
-          <!-- Payment Summary -->
-
+       
 <div class="details-card payment-summary-card">
 
     <h3 class="payment-summary-title">
@@ -880,11 +905,8 @@
     <div class="payment-divider"></div>
 
 
-    <!-- Payment Details -->
-
     <div class="payment-breakdown">
 
-        <!-- Payment Method -->
 
         <div class="breakdown-row">
 
@@ -901,7 +923,6 @@
         </div>
 
 
-        <!-- Payment Status -->
 
         <div class="breakdown-row">
 
@@ -933,21 +954,51 @@
 
     <!-- Total -->
 
-    <div class="payment-total-section">
+<!-- Price Breakdown -->
 
-        <span class="total-label">
-            TOTAL AMOUNT
+<div class="payment-breakdown">
+
+    <div class="breakdown-row">
+        <span class="breakdown-label">
+            SUBTOTAL
         </span>
 
-        <span
-            class="total-val"
-            id="detailsTotal">
-
-            ₹ {{ order.final_amount }}
-
+        <span class="breakdown-val">
+            ₹ {{ order.subtotal|default_if_none:"0.0" }}
         </span>
-
     </div>
+
+    <div class="breakdown-row">
+        <span class="breakdown-label">
+            COUPON DISCOUNT
+        </span>
+
+        <span class="breakdown-val">
+            ₹ {{ order.discount_amount|default_if_none:"0.0" }}
+        </span>
+    </div>
+
+</div>
+
+<div class="payment-divider"></div>
+
+<!-- Total -->
+
+<div class="payment-total-section">
+
+    <span class="total-label">
+        TOTAL AMOUNT
+    </span>
+
+    <span
+        class="total-val"
+        id="detailsTotal">
+
+        ₹ {{ order.final_amount }}
+
+    </span>
+
+</div>
 
 </div>
 
@@ -959,9 +1010,7 @@
 
 
 
-<!-- =========================================================
-     EDIT ORDER MODAL
-========================================================= -->
+
 
 <div
     id="editOrderModal"

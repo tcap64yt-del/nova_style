@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/user/checkout/checkout.css' %}?v=11">
+  <link rel="stylesheet" href="{% static 'css/user/checkout/checkout.css' %}?v=13">
 </head>
 <body>
   <div class="page-wrapper">
@@ -62,10 +62,13 @@
             <h1 class="checkout-title">Checkout</h1>
           </div>
 
-          <form id="checkoutForm" method="POST" novalidate>
-            
+          <form id="checkoutForm" method="POST" novalidate     data-variant-id="{{ variant_id|default:'' }}">
+            <input
+    type="hidden"
+    name="coupon_code"
+    value="{{ coupon_code }}"
+>
              {% csrf_token %}
-            <!-- Section 01: Shipping Information -->
             <div class="checkout-section">
               <div class="section-header">
                 <div class="section-badge">01</div>
@@ -74,7 +77,6 @@
               
             
 
-<!-- Shipping Address Card -->
 <div class="address-section">
 
     <div class="address-header">
@@ -420,22 +422,66 @@
          
              
               
-              <div class="totals-separator"></div>
-              
-              <div class="totals-line total-price-line">
-                <span class="totals-label total-label-bold">Total</span>
-                  {% if  buy_now %}
-                {% for item in items  %}
-                   <span class="totals-value total-value-bold">₹{{ item.subtotal }}</span>
-                  {% endfor %}
-                   {% else %}
-                     <span class="totals-value total-value-bold">₹{{ subtotal }}</span>
-                {% endif %}
+        <div class="totals-separator"></div>
 
 
+<!-- Subtotal -->
 
-              </div>
-            </div>
+<div class="totals-line">
+
+    <span class="totals-label">
+        Subtotal
+    </span>
+
+    <span
+        class="totals-value"
+        id="subtotalValue"
+    >
+        ₹{{ subtotal }}
+    </span>
+
+</div>
+
+
+{% if discount_amount > 0 %}
+
+<div
+    class="totals-line"
+    id="couponDiscountRow"
+>
+
+    <span class="totals-label">
+        Coupon Discount
+    </span>
+
+    <span
+        class="totals-value"
+        id="couponDiscount"
+    >
+        -₹{{ discount_amount }}
+    </span>
+
+</div>
+
+{% endif %}
+
+
+<!-- Final Total -->
+
+<div class="totals-line total-price-line">
+
+    <span class="totals-label total-label-bold">
+        Total
+    </span>
+
+    <span
+        class="totals-value total-value-bold"
+        id="finalTotal"
+    >
+       ₹{{ final_amount }}
+    </span>
+
+</div>
 {% if checkout_errors %}
 <div class="checkout-stock-errors">
     {% for error in checkout_errors %}
@@ -465,16 +511,148 @@
             <button type="submit" form="checkoutForm" class="btn-complete-checkout" id="completePurchaseButton">
               Complete Purchase
             </button>
+<div class="coupon-section">
 
-            <!-- Coupon Code Row -->
-            <div class="coupon-code-row" id="couponRow">
-              <span class="coupon-row-text">APPLY COUPON CODE</span>
-              <div class="coupon-check-indicator">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-              </div>
+    {% if coupon_code %}
+
+        <!-- APPLIED COUPON -->
+        <div class="applied-coupon">
+
+            <div>
+                <span class="applied-icon">✓</span>
+
+                <div>
+                    <strong>{{ coupon_code }}</strong>
+                    <small>Coupon applied successfully</small>
+                </div>
             </div>
+
+            <a
+                href="{% url 'checkout' %}{% if variant_id %}{{ variant_id }}/{% endif %}"
+                class="remove-coupon"
+            >
+                Remove
+            </a>
+
+        </div>
+
+    {% else %}
+
+        <!-- AVAILABLE COUPONS DROPDOWN -->
+        <div class="coupon-dropdown">
+
+            <button
+                type="button"
+                class="coupon-toggle"
+                onclick="toggleCoupons()"
+            >
+                <span>🎟 Available Coupons</span>
+                <span id="couponArrow">▼</span>
+            </button>
+
+            <div id="couponList" class="coupon-list">
+
+                {% for coupon in available_coupons %}
+
+                    <div class="coupon-row">
+
+                        <div class="coupon-info">
+
+                            <strong>{{ coupon.code }}</strong>
+
+                            {% if coupon.discount_type == "percentage" %}
+                                <span>
+                                    {{ coupon.discount_value }}% OFF
+                                </span>
+                            {% else %}
+                                <span>
+                                    ₹{{ coupon.discount_value }} OFF
+                                </span>
+                            {% endif %}
+
+                            <small>
+                                Min. order ₹{{ coupon.min_order_amount }}
+                            </small>
+
+                        </div>
+
+                        <form
+                            method="POST"
+                            action="{% url 'apply_coupon' %}"
+                        >
+                            {% csrf_token %}
+
+                            <input
+                                type="hidden"
+                                name="coupon_code"
+                                value="{{ coupon.code }}"
+                            >
+
+                            {% if buy_now %}
+                                <input
+                                    type="hidden"
+                                    name="variant_id"
+                                    value="{{ variant_id }}"
+                                >
+                            {% endif %}
+
+                            <button
+                                type="submit"
+                                class="coupon-apply"
+                            >
+                                Apply
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <!-- MANUAL COUPON INPUT -->
+        <form
+            method="POST"
+            action="{% url 'apply_coupon' %}"
+            class="coupon-input-form"
+        >
+            {% csrf_token %}
+
+            <input
+                type="text"
+                name="coupon_code"
+                placeholder="Enter coupon code"
+                value="{{ coupon_code }}"
+            >
+
+            {% if buy_now %}
+                <input
+                    type="hidden"
+                    name="variant_id"
+                    value="{{ variant_id }}"
+                >
+            {% endif %}
+
+            <button type="submit">
+                Apply
+            </button>
+
+        </form>
+
+        {% if coupon_error %}
+            <p class="coupon-error">
+                {{ coupon_error }}
+            </p>
+        {% endif %}
+
+    {% endif %}
+
+</div>
+
           </div>
         </section>
 
@@ -752,73 +930,7 @@ Save Address
 </div>
 
 </div>
-<!-- Wallet Confirmation Modal -->
-<div class="wallet-modal" id="walletModal">
 
-    <div class="wallet-modal-box">
-
-        <div class="wallet-modal-header">
-            <h2>Wallet Payment</h2>
-
-            <button type="button"
-                    class="wallet-close-btn"
-                    id="closeWalletModal">
-                &times;
-            </button>
-        </div>
-
-        <div class="wallet-modal-content">
-
-            <div class="wallet-info-row">
-                <span>Wallet Balance</span>
-                <strong>₹{{ wallet_balance }}</strong>
-            </div>
-
-            <div class="wallet-info-row">
-                <span>Order Total</span>
-                 {% if  buy_now %}
-                {% for item in items  %}
-                   <span class="totals-value total-value-bold">₹{{ item.subtotal }}</span>
-                  {% endfor %}
-                   {% else %}
-                     <span class="totals-value total-value-bold">₹{{ subtotal }}</span>
-                {% endif %}
-            </div>
-
-            <div class="wallet-divider"></div>
-
-            <div class="wallet-info-row wallet-total-row">
-                <span>Balance After Payment</span>
-                <strong>₹{{ wallet_remaining }}</strong>
-            </div>
-
-            {% if wallet_error %}
-                <p class="wallet-error">
-                    {{ wallet_error }}
-                </p>
-            {% endif %}
-
-        </div>
-
-        <div class="wallet-modal-actions">
-
-            <button type="button"
-                    class="wallet-cancel-btn"
-                    id="cancelWallet">
-                Cancel
-            </button>
-
-            <button type="button"
-                    class="wallet-confirm-btn"
-                    id="confirmWallet">
-                Okay
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
 
 
 {% if show_add_modal %}
@@ -839,6 +951,6 @@ document
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-  <script src="{% static 'js/checkout.js' %}?v=15"></script>
+  <script src="{% static 'js/checkout.js' %}?v=24"></script>
 </body>
 </html>

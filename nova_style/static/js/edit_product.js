@@ -231,8 +231,7 @@ document.getElementById("product-form").addEventListener("submit", async functio
 
     if (totalVariants === 0) {
 
-        alert("At least one variant is required");
-
+      
         isValid = false;
     }
 

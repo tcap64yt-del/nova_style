@@ -1,6 +1,22 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
 from django.utils import timezone
+import secrets
+import string
+
+
+def generate_referral_code():
+    characters = string.ascii_uppercase + string.digits
+
+    while True:
+        code = "NS" + "".join(
+            secrets.choice(characters)
+            for _ in range(8)
+        )
+
+        if not Users.objects.filter(referral_code=code).exists():
+            return code
+    
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -12,7 +28,10 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", False)
         extra_fields.setdefault("status", True)
 
-        user = self.model(email=email, **extra_fields)
+        if not extra_fields.get("referral_code"):
+            extra_fields["referral_code"] = generate_referral_code()
+
+        user = self.model(email=email,**extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -31,17 +50,18 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 class Users(AbstractBaseUser, PermissionsMixin):
-    last_login = None
 
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     status = models.BooleanField(default=True)
-   
+    referral_code = models.CharField( max_length=20, unique=True, null=True, blank=True ) 
+    referred_by = models.ForeignKey( "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="referred_users" )
     is_staff = models.BooleanField(default=False)
     avatar_url = models.ImageField(upload_to='profile/',null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = UserManager()
+
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ['name']
@@ -49,7 +69,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
     class Meta:
         db_table = "users"
 
-    
 class EmailOTP(models.Model):
     email = models.EmailField()
     otp_code = models.CharField(max_length=6)
@@ -144,16 +163,24 @@ class WalletTransaction(models.Model):
     TRANSACTION_TYPE_CHOICES = [
         ("credit", "Credit"),
         ("debit", "Debit"),
+        ("refund", "Refund"),
+    ]
+    STATUS_CHOICES=[
+        ("pending", "Pending"),
+        ("completed", "Completed"),
+        ("failed", "Failed"),
     ]
 
     wallet = models.ForeignKey(
-        Wallet,
-        on_delete=models.CASCADE,
+        Wallet,on_delete=models.CASCADE,
         related_name="transactions")
 
     amount = models.DecimalField(max_digits=12,decimal_places=2)
 
     type = models.CharField(max_length=10,choices=TRANSACTION_TYPE_CHOICES)
+    status=models.CharField(max_length=20,choices=STATUS_CHOICES,default='pending')
+    razorpay_order_id = models.CharField(max_length=100,null=True,blank=True)
+    razorpay_payment_id = models.CharField(max_length=100,null=True,blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
         db_table="wallet_transactions"

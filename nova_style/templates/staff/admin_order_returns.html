@@ -134,9 +134,9 @@
 
 <button
     type="button"
-    class="status-tab {% if status == 'approved' %}active{% endif %}"
-    data-status="approved">
-    Approved
+    class="status-tab {% if status == 'returned' %}active{% endif %}"
+    data-status="returned">
+    Returned
 </button>
 
 <button
@@ -307,10 +307,10 @@
                                 PENDING
                             </span>
 
-                        {% elif return.status == "approved" %}
+                        {% elif return.status == "returned" %}
 
-                            <span class="badge badge-approved">
-                                APPROVED
+                            <span class="badge badge-returned">
+                                RETURNED
                             </span>
 
                         {% else %}

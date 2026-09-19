@@ -30,4 +30,11 @@ urlpatterns = [
 
    path('coupon-management/',views.admin_coupon_management,name='coupon_management'),
    path('coupon-management/add-coupon/',views.add_coupon,name='add_coupon'),
+   path('coupon-management/delete/<int:coupon_id>/',views.delete_coupon,name='delete_coupon'),
+   path('coupon-management/edit-coupon/<int:coupon_id>/',views.edit_coupon,name='edit_coupon'),
+
+   path('sales-report/',views.sales_report,name='sales_report'),
+   path('sales-report/pdf/',views.sales_report_pdf,name='sales_report_pdf'),
+   path('sales-report/excel/',views.sales_report_excel,name='sales_report_excel'),
+   path('admin-dashboard/',views.admin_dashboard,name='admin_dashboard'),
 ]

@@ -1563,3 +1563,164 @@ width:100%;
 .wallet-confirm-btn:hover {
     opacity: 0.9;
 }
+.coupon-section {
+    width: 100%;
+    margin: 15px 0;
+}
+
+/* Available coupon button */
+
+.coupon-toggle {
+    width: 100%;
+    padding: 12px 15px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Sliding coupon list */
+
+.coupon-list {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+
+    transition:
+        max-height 0.35s ease,
+        opacity 0.25s ease;
+}
+
+.coupon-list.show {
+    max-height: 300px;
+    opacity: 1;
+    overflow-y: auto;
+
+    border: 1px solid #ddd;
+    border-top: none;
+}
+
+/* Individual coupon */
+
+.coupon-row {
+    padding: 12px 15px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    border-bottom: 1px solid #eee;
+}
+
+.coupon-info strong {
+    display: block;
+    font-size: 14px;
+}
+
+.coupon-info span {
+    display: block;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.coupon-info small {
+    display: block;
+    color: #777;
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+.coupon-apply {
+    padding: 6px 12px;
+    border: 1px solid #111;
+    background: #111;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Manual input */
+
+.coupon-input-form {
+    display: flex;
+    margin-top: 10px;
+    gap: 8px;
+}
+
+.coupon-input-form input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.coupon-input-form button {
+    padding: 10px 16px;
+    border: none;
+    background: #111;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Applied coupon */
+
+.applied-coupon {
+    padding: 12px 15px;
+
+    border: 1px solid #ddd;
+    border-radius: 8px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.applied-coupon > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.applied-icon {
+    width: 25px;
+    height: 25px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    background: #111;
+    color: white;
+    font-size: 13px;
+}
+
+.applied-coupon strong {
+    display: block;
+}
+
+.applied-coupon small {
+    display: block;
+    color: #777;
+    margin-top: 2px;
+}
+
+.remove-coupon {
+    color: #d00;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.coupon-error {
+    color: #d00;
+    font-size: 13px;
+    margin-top: 7px;
+}

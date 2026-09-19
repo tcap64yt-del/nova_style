@@ -120,9 +120,7 @@ applyCrop.addEventListener('click', function () {
 
     fileInput.files = dataTransfer.files;
 
-    console.log("FILE COUNT:", fileInput.files.length);
-    console.log("FILE:", fileInput.files[0]);
-
+ 
 }, 'image/jpeg', 0.9);
 
     cropModal.style.display = 'none';

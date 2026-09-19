@@ -55,11 +55,35 @@
 
       <div class="thankyou-card-divider"></div>
  {% endfor %}
-      <div class="thankyou-total-row">
-        <span class="thankyou-total-label">TOTAL PAID</span>
-        <span class="thankyou-total-value">₹{{ order.final_amount  }}</span>
-      </div>
-    </div>
+<!-- Price Breakdown -->
+<div class="thankyou-total-row">
+    <span class="thankyou-total-label">SUBTOTAL</span>
+    <span class="thankyou-total-value">
+        ₹{{ order.subtotal }}
+    </span>
+</div>
+
+{% if order.discount_amount and order.discount_amount > 0 %}
+<div class="thankyou-total-row coupon-discount-row">
+    <span class="thankyou-total-label">
+        COUPON DISCOUNT
+        {% if order.coupon_code %}
+            ({{ order.coupon_code }})
+        {% endif %}
+    </span>
+
+    <span class="thankyou-total-value coupon-discount-value">
+        -₹{{ order.discount_amount }}
+    </span>
+</div>
+{% endif %}
+
+<div class="thankyou-total-row">
+    <span class="thankyou-total-label">TOTAL PAID</span>
+    <span class="thankyou-total-value">
+        ₹{{ order.final_amount }}
+    </span>
+</div>
 
     <!-- Actions -->
     <div class="thankyou-actions">

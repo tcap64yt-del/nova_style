@@ -33,6 +33,7 @@ AUTH_USER_MODEL = "user.Users"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+SOCIALACCOUNT_ADAPTER = "user.adapters.MySocialAccountAdapter"
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
@@ -51,7 +52,9 @@ DEFAULT_FROM_EMAIL = os.getenv(
     EMAIL_HOST_USER,
 )
 ACCOUNT_UNIQUE_EMAIL = True
-
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
@@ -76,8 +79,7 @@ INSTALLED_APPS = [
     'product',
     "cart",
     "order",
-
-    
+    "coupon",
     'django.contrib.sites',
     "allauth",
     "allauth.account",

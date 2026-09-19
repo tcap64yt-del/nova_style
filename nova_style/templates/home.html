@@ -114,11 +114,11 @@
 
                    <div class="meta-left">
 
-    {% if category.offer %}
-        <span class="badge">
-            {{ category.offer|floatformat:0 }}% OFF
-        </span>
-    {% endif %}
+  {% if category.offer_active %}
+    <span class="badge">
+        {{ category.offer|floatformat:0 }}% OFF
+    </span>
+{% endif %}
 </div>
                 </div>
             </a>

@@ -7,7 +7,7 @@
 
 {% block css %}
 <link rel="stylesheet"
-      href="{% static 'css/user/product/product_details.css' %}?v=13">
+      href="{% static 'css/user/product/product_details.css' %}?v=14">
 
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
@@ -87,10 +87,19 @@
             {{ product.name }}
         </h1>
 
-        <p class="product-price">
-            ₹{{ variant.discounted_price }}
-        </p>
+<p class="product-price">
+    {% if variant.total_offer %}
+        <span class="price-original">
+            ₹{{ variant.orginal_price }}
+        </span>
 
+        <span class="price-current">
+            ₹{{ variant.discounted_price }}
+        </span>
+    {% else %}
+        ₹{{ variant.orginal_price }}
+    {% endif %}
+</p>
 
         <div class="selector-group">
 
@@ -399,11 +408,19 @@
 
                 </h3>
 
-                <p class="card-price">
+<p class="card-price">
+    {% if variant.total_offer %}
+        <span class="price-original">
+            ₹{{ variant.orginal_price }}
+        </span>
+        <span class="price-current">
+            ₹{{ variant.discounted_price }}
+        </span>
+    {% else %}
+        ₹{{ variant.orginal_price }}
+    {% endif %}
+</p>
 
-                    ₹{{ variant.discounted_price }}
-
-                </p>
 
                 {% if variant.total_offer %}
 
@@ -424,6 +441,7 @@
     </div>
 
 </section>
+
 <section class="reviews-section">
 
     <div class="reviews-container">
@@ -553,10 +571,16 @@
                 </div>
 
             </div>
-
-            <button class="btn-write-review">
-                Write a Review
-            </button>
+            
+       {% if user.is_authenticated and has_purchased %}
+    <button class="btn-write-review">
+        Write a Review
+    </button>
+{% elif user.is_authenticated %}
+    <p class="review-message">
+        You can only review a product after purchasing it.
+    </p>
+{% endif %}
 
         </div>
 

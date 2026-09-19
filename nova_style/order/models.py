@@ -13,7 +13,7 @@ class Orders(models.Model):
         ("delivered", "Delivered"),
         ("cancelled", "Cancelled"),
         ("return pending", "Return Pending"),
-        ("approved", "Approved"),
+        ("returned", "Returned"),
         ("rejected", "Rejected"),
         ]
     PAYMENT_STATUS=[
@@ -25,6 +25,9 @@ class Orders(models.Model):
     
     order_id=models.CharField(max_length=20,unique=True,null=True,blank=True)
     user=models.ForeignKey(Users,on_delete=models.CASCADE,related_name="orders")
+    subtotal=models.DecimalField(max_digits=10,decimal_places=2,default=0)
+    discount_amount=models.DecimalField(max_digits=10,decimal_places=2,default=0)
+    coupon_code=models.CharField(max_length=100,null=True,blank=True)
     final_amount=models.DecimalField(max_digits=10,decimal_places=2)
     status=models.CharField(max_length=30,choices=STATUS_CHOICES,default="pending",)
     payment_status=models.CharField(max_length=30,choices=PAYMENT_STATUS,default="pending")
@@ -72,7 +75,7 @@ class OrderItems(models.Model):
         ("active", "Active"),
         ("cancelled", "Cancelled"),
         ("return pending", "Return Pending"),
-        ("approved", "Approved"),
+        ("returned", "Returned"),
         ("rejected", "Rejected"),
     ]
     order=models.ForeignKey(Orders,on_delete=models.CASCADE,related_name="items")
@@ -122,7 +125,7 @@ class OrderItemCancellation(models.Model):
         db_table = "order_item_cancellation"
 
 class OrderReturns(models.Model):
-    STATUS_CHOICES = [("approved", "Approved"),("rejected", "Rejected"),("pending", "Pending"),]
+    STATUS_CHOICES = [("returned", "Returned"),("rejected", "Rejected"),("pending", "Pending"),]
 
     order = models.OneToOneField(Orders,on_delete=models.CASCADE,related_name="returns")
     reason = models.CharField(max_length=255)
@@ -135,7 +138,7 @@ class OrderReturns(models.Model):
         db_table = "order_returns"
 
 class OrderItemReturn(models.Model):
-    STATUS_CHOICES = [("approved", "Approved"),("rejected", "Rejected"),("pending", "Pending"),]
+    STATUS_CHOICES = [("returned", "Returned"),("rejected", "Rejected"),("pending", "Pending"),]
     order_item=models.ForeignKey(OrderItems,on_delete=models.CASCADE,related_name='returns')
     quantity=models.PositiveIntegerField()
     reason=models.CharField(max_length=255)

@@ -114,3 +114,274 @@ document.querySelectorAll(".btn-return-product").forEach(btn => {
         returnModal.style.display = "flex";
     });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const payAgainButton =
+        document.getElementById("payAgainButton");
+
+    if (!payAgainButton) return;
+
+    payAgainButton.addEventListener("click", async function () {
+
+        if (payAgainButton.disabled) return;
+
+        const originalText = payAgainButton.innerHTML;
+
+        payAgainButton.disabled = true;
+        payAgainButton.innerHTML = "Preparing Payment...";
+
+        let paymentCompleted = false;
+
+        try {
+
+            // Create NEW Razorpay retry order
+            const response = await fetch(
+                payAgainButton.dataset.retryUrl,
+                {
+                    method: "GET",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            if (data.status !== "razorpay") {
+                throw new Error(
+                    data.message || "Unable to start payment."
+                );
+            }
+
+
+            // ============================
+            // RAZORPAY OPTIONS
+            // ============================
+
+            const options = {
+
+                key: data.razorpay_key,
+
+                amount: data.amount,
+
+                currency: "INR",
+
+                name: "NOVA STYLE",
+
+                description: "Order Payment",
+
+                order_id: data.razorpay_order_id,
+
+
+                // ============================
+                // SUCCESS
+                // ============================
+
+                handler: async function (razorpayResponse) {
+
+                    paymentCompleted = true;
+
+                    try {
+
+                        const verifyResponse = await fetch(
+                            payAgainButton.dataset.verifyUrl,
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken":
+                                        getCookie("csrftoken")
+                                },
+
+                                body: JSON.stringify({
+
+                                    order_id: data.order_id,
+
+                                    razorpay_payment_id:
+                                        razorpayResponse
+                                            .razorpay_payment_id,
+
+                                    razorpay_order_id:
+                                        razorpayResponse
+                                            .razorpay_order_id,
+
+                                    razorpay_signature:
+                                        razorpayResponse
+                                            .razorpay_signature
+                                })
+                            }
+                        );
+
+                        const result =
+                            await verifyResponse.json();
+
+
+                        // PAYMENT SUCCESS
+                        if (result.status === "success") {
+
+                            window.location.href =
+                                result.redirect_url ||
+                                payAgainButton.dataset.successUrl;
+
+                            return;
+                        }
+
+
+                        // VERIFICATION FAILED
+                        window.location.href =
+                            payAgainButton.dataset.failedPageUrl;
+
+                    } catch (error) {
+
+                        console.error(
+                            "Verification error:",
+                            error
+                        );
+
+                        window.location.href =
+                            payAgainButton.dataset.failedPageUrl;
+                    }
+                },
+
+
+                // ============================
+                // CLOSE RAZORPAY
+                // ============================
+
+                modal: {
+
+                    ondismiss: function () {
+
+                        if (paymentCompleted) {
+                            return;
+                        }
+
+                        // User only closed Razorpay.
+                        // Stay on Order Details.
+                        payAgainButton.disabled = false;
+                        payAgainButton.innerHTML =
+                            originalText;
+                    }
+                }
+            };
+
+
+            const razorpay =
+                new Razorpay(options);
+
+
+            // ============================
+            // PAYMENT FAILED
+            // ============================
+
+            razorpay.on(
+                "payment.failed",
+                async function () {
+
+                    try {
+
+                        const failedResponse =
+                            await fetch(
+                                payAgainButton.dataset.failedUrl,
+                                {
+                                    method: "POST",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json",
+
+                                        "X-CSRFToken":
+                                            getCookie("csrftoken")
+                                    },
+
+                                    body: JSON.stringify({
+
+                                        order_id:
+                                            data.order_id,
+
+                                        razorpay_order_id:
+                                            data.razorpay_order_id
+                                    })
+                                }
+                            );
+
+                        const result =
+                            await failedResponse.json();
+
+
+                        // Go to existing failed page
+                        window.location.href =
+                            result.redirect_url ||
+                            payAgainButton.dataset.failedPageUrl;
+
+                    } catch (error) {
+
+                        console.error(
+                            "Payment failed error:",
+                            error
+                        );
+
+                        // Still go to failed page
+                        window.location.href =
+                            payAgainButton.dataset.failedPageUrl;
+                    }
+                }
+            );
+
+
+            // Open Razorpay
+            razorpay.open();
+
+        } catch (error) {
+
+            console.error(
+                "Razorpay retry error:",
+                error
+            );
+
+            payAgainButton.disabled = false;
+            payAgainButton.innerHTML = originalText;
+        }
+    });
+});
+
+
+// ============================
+// CSRF COOKIE
+// ============================
+
+function getCookie(name) {
+
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+
+        const cookies =
+            document.cookie.split(";");
+
+        for (let cookie of cookies) {
+
+            cookie = cookie.trim();
+
+            if (
+                cookie.substring(
+                    0,
+                    name.length + 1
+                ) === name + "="
+            ) {
+
+                cookieValue = decodeURIComponent(
+                    cookie.substring(
+                        name.length + 1
+                    )
+                );
+
+                break;
+            }
+        }
+    }
+
+    return cookieValue;
+}

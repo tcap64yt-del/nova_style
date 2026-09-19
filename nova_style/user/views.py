@@ -1,6 +1,8 @@
-import random,re
+import random,json,razorpay,uuid,re
+from django.db import transaction
+from django.http import JsonResponse
+from decimal import Decimal
 from django.apps import apps
-
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib import messages
@@ -10,11 +12,12 @@ from django.shortcuts import redirect,render,get_object_or_404
 from django.core.mail import send_mail
 from django.conf import settings
 from .forms import SignupForm,LoginForm,OTPForm,ProfileForm,AvatarForm
-from .models import EmailOTP,Users,Addresses,Wishlist,WishlistItem
+from .models import EmailOTP,Users,Addresses,Wishlist,WishlistItem,Wallet,WalletTransaction
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from product.models import Category
 from order.models import OrderItems,Orders
+from coupon.models import Coupon,UserCoupon
 from django.db.models import Q
 
 
@@ -31,13 +34,23 @@ def generate_otp():
 def signup(request):
     if request.user.is_authenticated:
         return redirect("home")
+    referral_code = request.GET.get("ref", "").strip().upper()
     if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
+            referral_code=(form.cleaned_data.get("referral_code","").strip().upper() or referral_code)
+            if referral_code:
+                referrer=Users.objects.filter(referral_code=referral_code,status=True).first()
+                if not referrer:
+                    form.add_error("referral_code","invalid referral code")
+                    return render(request,"signup.html",{"form":form})
+                
             request.session["signup_data"] = {
                 "name": form.cleaned_data["name"],
                 "email": form.cleaned_data["email"].lower(),
                 "password": form.cleaned_data["password"],
+                "referral_code": referral_code,
+                
             }
 
             email=request.session['signup_data']['email']
@@ -54,7 +67,7 @@ def signup(request):
             )
             send_mail(
                 subject="Your OTP Code",
-                message=f"Your OTP for account verification is {otp}. This code is valid for 2 minutes. Do not share it with anyone.",
+                message=f"Welcome to NovaStyle! Your account verification OTP is {otp}. This code is valid for 2 minutes only. Please enter the OTP to complete your verification securely. Never share this code with anyone, including NovaStyle representatives. If you did not request this OTP, please ignore this message. Thank you..",
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[email],
             )
@@ -96,18 +109,31 @@ def verify_otp(request):
                 return redirect("otp_verify")
 
             if entered_otp == otp_record.otp_code:
+                referral_code = signup_data.get( "referral_code", "" ).strip().upper() 
+                referrer = None 
+                if referral_code: 
+                    referrer = Users.objects.filter( referral_code=referral_code, status=True ).first()
+                
                 user = Users.objects.create_user(
                     name=signup_data["name"],
                     email=signup_data["email"],
                     password=(signup_data["password"]),
                     status=True,
+                    referred_by=referrer
                 )
+                Wallet.objects.create( user=user, balance=0 )
+                if referrer: 
+                    referral_coupon = Coupon.objects.filter( code="REFERRAL10", is_active=True ).first()
+                    if referral_coupon:
+                        UserCoupon.objects.create( user=user, coupon=referral_coupon )
                 otp_record.is_verified=True
                 otp_record.save(update_fields=['is_verified'])
                 otp_record.delete()
                 request.session.pop("signup_data", None)
-
-                messages.success(request, "Account created. Now you can login.")
+                if referrer:
+                    messages.success(request,"Account created successfully!""Your extra coupon has been added")
+                else:
+                    messages.success(request,"Account created.Now you can login.")
                 return redirect("login")
 
             otp_record.attempts += 1
@@ -456,7 +482,7 @@ def new_address(request):
             errors["country"] = "Country is required"
 
         if errors:
-            return render(request,"new_address.html",{"details": details,"errors": errors,"form_data": request.POST,},)
+            return render(request,"new_address.html",{"details": details,"errors": errors,"form_data": request.POST,"show_sidebar": True},)
         Addresses.objects.create(user=request.user,name=name,phone=phone,state=state,district=district,country=country,postal_code=postal_code,address=address,is_default=is_default,)
         messages.success(request, "Address added successfully.")
         return redirect("addresses")
@@ -609,7 +635,7 @@ def orders(request):
     if search:
         orders = orders.filter(items__variant__product__name__icontains=search)
 
-    paginator = Paginator(orders, 5 ) 
+    paginator = Paginator(orders, 4) 
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -619,5 +645,437 @@ def orders(request):
 @login_required(login_url='login')
 def wallet(request):
     profile=request.user
+    balance=get_object_or_404(Wallet,user=request.user)
+    wallet=get_object_or_404(Wallet,user=request.user)
+    transactions=WalletTransaction.objects.filter(wallet=wallet).order_by("-created_at")
+    paginator = Paginator(transactions, 5)  
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
-    return render(request,"wallet/wallet.html",{"show_sidebar": True,"active_page": "wallet","details":profile})
+    return render(request,"wallet/wallet.html",{"show_sidebar": True,"active_page": "wallet","details":profile,"balance":balance,"page_obj": page_obj})
+
+@login_required(login_url='login')
+def coupon(request):
+    profile=request.user
+
+    coupons=Coupon.objects.filter(is_active=True).exclude(code="REFERRAL10")
+    user_coupons=UserCoupon.objects.filter(user=request.user,is_used=False,coupon__is_active=True).select_related("coupon")
+
+    paginator = Paginator(coupons, 4)  
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request,"coupon.html",{"show_sidebar": True,"active_page": "coupon","coupons":coupons,"user_coupons": user_coupons,"details":profile,'page_obj': page_obj,})
+
+
+
+
+razorpay_client = razorpay.Client(
+    auth=(
+        settings.RAZORPAY_KEY_ID,
+        settings.RAZORPAY_KEY_SECRET
+    )
+)
+
+
+@login_required(login_url="login")
+def create_wallet_topup(request):
+
+    if request.method != "POST":
+        return JsonResponse(
+            {"status": "error","message": "POST request required."},status=405)
+
+    try:
+
+        data = json.loads(request.body)
+
+        amount = int(data.get("amount", 0))
+
+    except (json.JSONDecodeError, TypeError, ValueError):
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Invalid amount."
+            },
+            status=400
+        )
+
+
+
+    allowed_amounts = {
+        100,
+        500,
+        1000,
+        2000
+    }
+
+    if amount not in allowed_amounts:
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Invalid top-up amount."
+            },
+            status=400
+        )
+
+
+
+    wallet = get_object_or_404(
+        Wallet,
+        user=request.user
+    )
+
+    amount_paise = amount * 100
+
+
+    try:
+
+
+        razorpay_order = razorpay_client.order.create({
+
+            "amount": amount_paise,
+
+            "currency": "INR",
+
+            "receipt":
+                f"wallet_{uuid.uuid4().hex[:20]}",
+
+            "notes": {
+
+                "user_id":
+                    str(request.user.id),
+
+                "purpose":
+                    "wallet_topup"
+
+            }
+
+        })
+
+
+    except Exception as e:
+
+        print("RAZORPAY ORDER ERROR:", e)
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message":
+                    "Unable to create Razorpay order."
+            },
+            status=500
+        )
+
+
+    # Create pending transaction
+
+    topup = WalletTransaction.objects.create(
+
+        wallet=wallet,
+
+        amount=Decimal(str(amount)),
+
+        type="credit",
+
+        status="pending",
+
+        razorpay_order_id=
+            razorpay_order["id"]
+
+    )
+
+
+    return JsonResponse({
+
+        "status": "success",
+
+        "topup_id": topup.id,
+
+        "razorpay_key":
+            settings.RAZORPAY_KEY_ID,
+
+        "razorpay_order_id":
+            razorpay_order["id"],
+
+        "amount":
+            amount_paise,
+
+        "customer_name":
+            request.user.name,
+
+        "customer_email":
+            request.user.email,
+
+    })
+
+
+@login_required(login_url="login")
+def verify_wallet_topup(request):
+
+    if request.method != "POST":
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "POST request required."
+            },
+            status=405
+        )
+
+
+    try:
+
+        data = json.loads(request.body)
+
+    except json.JSONDecodeError:
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Invalid request."
+            },
+            status=400
+        )
+
+
+    topup_id = data.get("topup_id")
+
+    payment_id = data.get(
+        "razorpay_payment_id"
+    )
+
+    razorpay_order_id = data.get(
+        "razorpay_order_id"
+    )
+
+    signature = data.get(
+        "razorpay_signature"
+    )
+
+
+    if not all([
+        topup_id,
+        payment_id,
+        razorpay_order_id,
+        signature
+    ]):
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message":
+                    "Missing payment information."
+            },
+            status=400
+        )
+
+
+
+    topup = get_object_or_404(
+        WalletTransaction,
+        id=topup_id,
+        wallet__user=request.user
+    )
+
+
+
+    if topup.status == "completed":
+
+        return JsonResponse({
+
+            "status": "success",
+
+            "message":
+                "Payment already processed."
+
+        })
+
+
+
+    if (
+        topup.razorpay_order_id
+        != razorpay_order_id
+    ):
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message":
+                    "Invalid Razorpay order."
+            },
+            status=400
+        )
+
+
+
+    try:
+
+        razorpay_client.utility.verify_payment_signature({
+
+            "razorpay_order_id":
+                razorpay_order_id,
+
+            "razorpay_payment_id":
+                payment_id,
+
+            "razorpay_signature":
+                signature
+
+        })
+
+    except razorpay.errors.SignatureVerificationError:
+
+        topup.status = "failed"
+
+        topup.save(
+            update_fields=["status"]
+        )
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message":
+                    "Payment verification failed."
+            },
+            status=400
+        )
+
+
+
+    with transaction.atomic():
+
+        wallet = Wallet.objects.select_for_update().get(
+            id=topup.wallet.id
+        )
+
+
+
+        topup.refresh_from_db()
+
+        if topup.status == "completed":
+
+            return JsonResponse({
+
+                "status": "success",
+
+                "message":
+                    "Payment already processed."
+
+            })
+
+
+        # Save payment
+
+        topup.razorpay_payment_id = payment_id
+
+        topup.status = "completed"
+
+        topup.save(
+            update_fields=[
+                "razorpay_payment_id",
+                "status"
+            ]
+        )
+
+
+        # Add money
+
+        wallet.balance += topup.amount
+
+        wallet.save(
+            update_fields=["balance"]
+        )
+
+
+    return JsonResponse({
+
+        "status": "success",
+
+        "message":
+            "Wallet credited successfully.",
+
+        "balance":
+            str(wallet.balance)
+
+    })
+
+@login_required(login_url="login")
+def wallet_topup_failed(request):
+
+    if request.method != "POST":
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "POST request required."
+            },
+            status=405
+        )
+
+
+    try:
+
+        data = json.loads(request.body)
+
+    except json.JSONDecodeError:
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Invalid request."
+            },
+            status=400
+        )
+
+
+    topup_id = data.get("topup_id")
+
+
+    if not topup_id:
+
+        return JsonResponse(
+            {
+                "status": "error",
+                "message": "Transaction ID required."
+            },
+            status=400
+        )
+
+
+    topup = get_object_or_404(
+        WalletTransaction,
+        id=topup_id,
+        wallet__user=request.user
+    )
+
+
+
+    if topup.status == "completed":
+
+        return JsonResponse({
+
+            "status": "success",
+
+            "message":
+                "Payment already completed."
+
+        })
+
+
+    topup.status = "failed"
+
+    topup.save(
+        update_fields=["status"]
+    )
+
+
+    return JsonResponse({
+
+        "status": "failed",
+
+        "message":
+            "Wallet top-up failed."
+
+    })

@@ -193,7 +193,6 @@ form.addEventListener("submit", async function (e) {
         'input[name="payment_method"]:checked'
     )?.value;
 
-    console.log("Payment method:", paymentMethod);
 
     purchaseBtn.disabled = true;
     purchaseBtn.innerHTML = "Processing...";
@@ -222,7 +221,6 @@ form.addEventListener("submit", async function (e) {
 const contentType =
     response.headers.get("content-type") || "";
 
-console.log("Response content type:", contentType);
 
 
 // Django returned normal checkout HTML
@@ -247,10 +245,7 @@ console.log("Django response:", data);
 
                 console.error(data);
 
-                alert(
-                    data.message ||
-                    "Unable to create Razorpay order."
-                );
+              
 
                 purchaseBtn.disabled = false;
                 purchaseBtn.innerHTML = "Complete Purchase";
@@ -278,7 +273,6 @@ console.log("Django response:", data);
 
                 handler: async function (paymentResponse) {
 
-    console.log("RAZORPAY SUCCESS:", paymentResponse);
 
     const response = await fetch(
         "/order/checkout/verify-razorpay/",
@@ -304,7 +298,6 @@ console.log("Django response:", data);
 
     const result = await response.json();
 
-    console.log("VERIFY RESULT:", result);
 
     if (result.status === "success") {
         window.location.href = result.redirect_url;
@@ -324,32 +317,64 @@ console.log("Django response:", data);
                     color: "#111111"
                 },
 
-                modal: {
+modal: {
+    ondismiss: async function () {
 
-                    ondismiss: function () {
+        console.log("Razorpay closed by user");
 
-                        console.log(
-                            "Razorpay window closed"
-                        );
+        try {
 
-                        purchaseBtn.disabled = false;
-                        purchaseBtn.innerHTML =
-                            "Complete Purchase";
-                    }
+            const failedResponse = await fetch(
+                "/order/checkout/razorpay-payment-failed/",
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken"),
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+
+                    body: JSON.stringify({
+                        order_id: data.order_id,
+                        razorpay_order_id: data.razorpay_order_id
+                    })
                 }
-            };
-
-            console.log(
-                "Opening Razorpay...",
-                options
             );
 
+            const result = await failedResponse.json();
+
+            console.log("Dismiss response:", result);
+
+            if (result.status === "failed" && result.redirect_url) {
+                window.location.href = result.redirect_url;
+                return;
+            }
+
+            purchaseBtn.disabled = false;
+            purchaseBtn.innerHTML = "Complete Purchase";
+
+        } catch (error) {
+
+            console.error(
+                "Error saving dismissed Razorpay payment:",
+                error
+            );
+
+            purchaseBtn.disabled = false;
+            purchaseBtn.innerHTML = "Complete Purchase";
+        }
+    }
+}
+            };
+
+           
             const razorpay = new Razorpay(options);
 
-            razorpay.on("payment.failed", async function (response) {
+          razorpay.on("payment.failed", async function (response) {
 
-    console.log("Razorpay payment failed:", response);
-
+  
     try {
 
         const failedResponse = await fetch(
@@ -363,39 +388,27 @@ console.log("Django response:", data);
                 },
 
                 body: JSON.stringify({
-    order_id: data.order_id,
-    razorpay_order_id: data.razorpay_order_id,
-    razorpay_payment_id:
-        response.error?.metadata?.payment_id || null
-})
+                    order_id: data.order_id,
+                    razorpay_order_id: data.razorpay_order_id
+                })
             }
         );
 
+       
         const result = await failedResponse.json();
 
-        console.log(
-            "Failed payment response:",
-            result
-        );
+       
 
         if (result.redirect_url) {
-
-            window.location.href =
-                result.redirect_url;
-
-            return;
+            window.location.href = result.redirect_url;
         }
 
     } catch (error) {
 
         console.error(
-            "Could not save failed payment:",
+            "FAILED PAYMENT ERROR:",
             error
         );
-
-        // Fallback redirect
-        window.location.href =
-            `/order/payment-failed/${data.order_id}/`;
     }
 
 });
@@ -408,9 +421,7 @@ console.log("Django response:", data);
                 error
             );
 
-            alert(
-                "Something went wrong while opening Razorpay."
-            );
+           
 
             purchaseBtn.disabled = false;
             purchaseBtn.innerHTML =
@@ -455,7 +466,6 @@ async function verifyRazorpayPayment(paymentResponse, orderId) {
 
         const data = await response.json();
 
-        console.log("VERIFY:", data);
 
         if (data.status === "success") {
             window.location.href = data.redirect_url;
@@ -860,4 +870,16 @@ if (walletModal) {
 
 
 
+function toggleCoupons() {
 
+    const couponList = document.getElementById("couponList");
+    const arrow = document.getElementById("couponArrow");
+
+    couponList.classList.toggle("show");
+
+    if (couponList.classList.contains("show")) {
+        arrow.textContent = "▲";
+    } else {
+        arrow.textContent = "▼";
+    }
+}

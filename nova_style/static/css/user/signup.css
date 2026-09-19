@@ -429,3 +429,16 @@ input.ng-invalid {
     font-size: 13px;
     font-weight: 500;
 }
+
+.referral-group small {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #777;
+}
+
+.referral-group label span {
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.6;
+}

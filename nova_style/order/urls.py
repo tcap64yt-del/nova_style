@@ -14,4 +14,5 @@ urlpatterns = [
     path("checkout/razorpay-payment-failed/",views.razorpay_payment_failed,name="razorpay_payment_failed"),
     path("payment-failed/<int:order_id>/",views.payment_failed,name="payment_failed"),
     path("retry-payment/<int:order_id>/",views.retry_payment,name="retry_payment"),
+    path("checkout/apply-coupon/",views.apply_coupon,name="apply_coupon"),
 ]

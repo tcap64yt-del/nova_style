@@ -1,0 +1,173 @@
+/* ==========================================
+   COUPONS GRID & CARDS
+========================================== */
+
+.coupons-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+}
+
+.coupon-card {
+    background-color: var(--color-white, #ffffff);
+    border-radius: 12px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Secondary background for the bottom cards as shown in the screenshot */
+.coupon-card.alt-bg {
+    background-color: var(--input-bg, #f1f3f6); 
+}
+
+.coupon-amount {
+    font-size: 56px;
+    font-weight: 600;
+    color: var(--color-btn-gray, var(--btn-dark, #5f5e60));
+    margin-bottom: 48px;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+.coupon-details {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 48px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.detail-label {
+    color: var(--color-text-muted, var(--text-muted, #8c9096));
+    font-weight: 400;
+}
+
+.detail-value {
+    color: var(--color-text-primary, var(--text-main, #111111));
+    font-weight: 500;
+}
+
+.coupon-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.coupon-code {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text-primary, var(--text-main, #111111));
+    letter-spacing: 0.5px;
+}
+
+.copy-btn {
+    background-color: var(--color-btn-gray, var(--btn-dark, #5f5e60));
+    color: var(--color-white, #ffffff);
+    border: none;
+    border-radius: 99px;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.copy-btn:hover {
+    background-color: var(--color-btn-hover, var(--btn-dark-hover, #4a494b));
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+========================================== */
+
+@media (max-width: 1024px) {
+    .coupons-grid {
+        gap: 24px;
+    }
+    .coupon-card {
+        padding: 32px;
+    }
+}
+
+@media (max-width: 768px) {
+    .coupons-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    .coupon-amount {
+        font-size: 48px;
+        margin-bottom: 32px;
+    }
+    .coupon-details {
+        margin-bottom: 32px;
+    }
+}
+/* ==========================================
+   PAGINATION
+========================================== */
+
+.pagination{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:12px;
+    margin-top:30px;
+}
+
+.pagination a{
+    padding:10px 16px;
+    border:1px solid #e4e4e7;
+    border-radius:10px;
+    transition:.25s;
+    font-size:.85rem;
+    color:#111;
+    text-decoration:none;
+}
+
+.pagination a:hover{
+    background:#f1f3f6;
+}
+
+.pagination span{
+    font-size:.85rem;
+    color:#666;
+}
+
+
+
+.empty-coupons{
+    grid-column:1 / -1;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    padding:70px 20px;
+
+    border:1px solid #ededed;
+    border-radius:14px;
+
+    text-align:center;
+    background:#fff;
+}
+
+.empty-coupons h3{
+    font-size:1.4rem;
+    font-weight:600;
+    color:#111;
+    margin-bottom:10px;
+}
+
+.empty-coupons p{
+    font-size:.9rem;
+    color:#777;
+}

@@ -1,4 +1,4 @@
-{% extends 'base/user/base.html' %} 
+{% extends 'base/user/base.html' %}
 {% load static %}
 
 {% block title %}
@@ -6,82 +6,245 @@
 {% endblock %}
 
 {% block css %}
-<link rel="stylesheet" href="{% static 'css/user/wallet/wallet.css' %}">
+<link rel="stylesheet" href="{% static 'css/user/wallet/wallet.css' %}?v=5">
 {% endblock %}
 
 {% block content %}
 
 <div class="wallet-container">
-    
+
     <!-- Wallet Balance Card -->
     <div class="wallet-card">
         <span class="wallet-label">Available Funds</span>
-        <h2 class="wallet-balance">₹2,480</h2>
-        <button class="btn-add-funds">Add Funds</button>
+        <h2 class="wallet-balance">₹ {{ balance.balance }}</h2>
+       <button type="button" class="btn-add-funds" id="openTopupModal">
+    Add Funds
+</button>
     </div>
 
-    <!-- Transaction History Section -->
     <div class="transaction-section">
+
         <div class="transaction-header">
             <h3 class="transaction-title">Transaction History</h3>
             <p class="transaction-desc">Your recent activity</p>
         </div>
 
         <div class="transaction-list">
-            
-            <!-- Transaction Item: Purchase -->
-            <div class="transaction-item">
-                <div class="tx-icon-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="tx-icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                    </svg>
-                </div>
-                <div class="tx-details">
-                    <div class="tx-name">Purchased</div>
-                    <div class="tx-date">May 12, 2024</div>
-                </div>
-                <div class="tx-amount-col">
-                    <div class="tx-amount negative">-₹1,240.00</div>
-                    <div class="tx-status">COMPLETED</div>
-                </div>
-            </div>
 
-            <!-- Transaction Item: Top-up -->
-            <div class="transaction-item">
-                <div class="tx-icon-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="tx-icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.315 48.315 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" />
-                    </svg>
-                </div>
-                <div class="tx-details">
-                    <div class="tx-name">Wallet Top-up</div>
-                    <div class="tx-date">May 08, 2024</div>
-                </div>
-                <div class="tx-amount-col">
-                    <div class="tx-amount positive">+₹500.00</div>
-                    <div class="tx-status">COMPLETED</div>
-                </div>
-            </div>
+            {% for transaction in page_obj %}
 
-            <!-- Transaction Item: Refund -->
-            <div class="transaction-item">
-                <div class="tx-icon-wrap">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="tx-icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
-                    </svg>
+               <div class="transaction-item
+    {% if transaction.status|lower == 'failed' %}
+        failed-transaction
+    {% elif transaction.type|lower == 'debit' %}
+        debit-transaction
+    {% elif transaction.type|lower == 'credit' %}
+        credit-transaction
+    {% endif %}
+">
+                    <!-- Transaction Icon -->
+                    <div class="tx-icon-wrap">
+
+                        {% if transaction.type|lower == 'debit' %}
+
+                            <!-- Debit Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="1.5"
+                                 stroke="currentColor"
+                                 class="tx-icon">
+
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z" />
+
+                            </svg>
+
+                        {% elif transaction.type|lower == 'credit' %}
+
+                            <!-- Credit Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke-width="1.5"
+                                 stroke="currentColor"
+                                 class="tx-icon">
+
+                                <path stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      d="M12 6v12m0 0 4.5-4.5M12 18l-4.5-4.5" />
+
+                            </svg>
+
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Transaction Details -->
+                    <div class="tx-details">
+
+<div class="tx-name">
+
+    {% if transaction.type|lower == 'refund' %}
+        Refund Amount
+    {% elif transaction.type|lower == 'debit' %}
+        Payment
+    {% elif transaction.type|lower == 'credit' %}
+        Wallet Credit
+    {% else %}
+        {{ transaction.type|title }}
+    {% endif %}
+
+</div>
+
+                        <div class="tx-date">
+                            {{ transaction.created_at|date:"M d, Y, h:i A" }}
+                        </div>
+
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="tx-amount-col">
+
+{% if transaction.status|lower == 'failed' %}
+
+    <div class="tx-amount failed">
+        +₹{{ transaction.amount|floatformat:2 }}
+    </div>
+
+{% elif transaction.type|lower == 'debit' %}
+
+    <div class="tx-amount negative">
+        -₹{{ transaction.amount|floatformat:2 }}
+    </div>
+
+{% elif transaction.type|lower == 'credit' %}
+
+    <div class="tx-amount positive">
+        +₹{{ transaction.amount|floatformat:2 }}
+    </div>
+
+{% elif transaction.type|lower == 'refund' %}
+
+    <div class="tx-amount positive">
+        +₹{{ transaction.amount|floatformat:2 }}
+    </div>
+
+{% endif %}
+
+
+                <div class="tx-status
+    {% if transaction.status|lower == 'failed' %}
+        failed
+    {% elif transaction.type|lower == 'debit' %}
+        debit-completed
+    {% elif transaction.type|lower == 'refund' %}
+        credit-completed
+    {% else %}
+        credit-completed
+    {% endif %}
+">
+    {% if transaction.status|lower == 'failed' %}
+        FAILED
+    {% else %}
+        COMPLETED
+    {% endif %}
+</div>
+
+                    </div>
+
                 </div>
-                <div class="tx-details">
-                    <div class="tx-name">Refund</div>
-                    <div class="tx-date">April 29, 2024</div>
+
+            {% empty %}
+
+                <div class="empty-transactions">
+                    <p>No transactions found.</p>
                 </div>
-                <div class="tx-amount-col">
-                    <div class="tx-amount positive">+₹320.00</div>
-                    <div class="tx-status">COMPLETED</div>
-                </div>
-            </div>
+
+            {% endfor %}
 
         </div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+ <div class="pagination"> 
+    {% if page_obj.has_previous %}
+
+     <a href="?page={{ page_obj.previous_page_number }}"> Previous </a>
+      {% endif %} 
+      <span> Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} </span>
+       {% if page_obj.has_next %} 
+       <a href="?page={{ page_obj.next_page_number }}"> Next </a>
+        {% endif %}
+     </div>
+         {% endif %}
     </div>
 
 </div>
+<!-- Top Up Modal -->
+<!-- Add Funds Modal -->
+<div class="topup-modal-overlay" id="topupModal">
+
+    <div class="topup-modal">
+
+        <button type="button"
+                class="topup-close"
+                id="closeTopupModal">
+            &times;
+        </button>
+
+        <div class="topup-header">
+            <h3>Top Up Wallet</h3>
+            <p>Select an amount to add to your wallet</p>
+        </div>
+
+        <form id="topupForm"
+      data-create-url="{% url 'create_wallet_topup' %}"
+      data-verify-url="{% url 'verify_wallet_topup' %}"
+      data-failed-url="{% url 'wallet_topup_failed' %}">
+            {% csrf_token %}
+
+            <div class="topup-options">
+
+                <label class="topup-option">
+                    <input type="radio" name="amount" value="100">
+                    <span>₹100</span>
+                </label>
+
+                <label class="topup-option">
+                    <input type="radio" name="amount" value="500">
+                    <span>₹500</span>
+                </label>
+
+                <label class="topup-option">
+                    <input type="radio" name="amount" value="1000">
+                    <span>₹1,000</span>
+                </label>
+
+                <label class="topup-option">
+                    <input type="radio" name="amount" value="2000">
+                    <span>₹2,000</span>
+                </label>
+
+            </div>
+
+            <p id="topupError" class="topup-error"></p>
+
+            <button type="submit"
+                    class="topup-submit"
+                    id="topupContinue">
+                Continue to Payment
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script
+    src="{% static 'js/wallet.js' %}?v=6">
+</script>
+
 {% endblock %}
+

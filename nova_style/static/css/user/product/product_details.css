@@ -1290,3 +1290,6 @@ button{
     }
 
 }
+.price-original {
+    text-decoration: line-through;
+}
