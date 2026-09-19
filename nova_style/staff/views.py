@@ -8,15 +8,25 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout 
 from django.core.paginator import Paginator
 import re
+from django.db.models.functions import Coalesce,TruncDay,TruncMonth,TruncYear
+from django.db import models
 from decimal import Decimal,InvalidOperation
 from django.utils import timezone
 from itertools import chain
 from operator import attrgetter
-from django.db.models import F
 from django.db.models import Count,Prefetch
 from order.models import Orders,OrderItems,OrderAddress,OrderTrack,OrderReturns,OrderItemReturn,Payment
-from django.db.models import Sum
-from coupon.models import Coupon
+from coupon.models import Coupon,CouponUsage
+from order.views import calculate_item_refund,refund_to_wallet
+from datetime import timedelta
+from django.db.models import Sum, F,DecimalField,ExpressionWrapper,Value
+from django.db.models.functions import Coalesce
+from django.http import HttpResponse
+from openpyxl import Workbook
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.platypus import ( SimpleDocTemplate,Table,TableStyle,Paragraph,Spacer,)
+from reportlab.lib.styles import getSampleStyleSheet
 
 
 def validate_coupon(data,coupon_id=None):
@@ -35,7 +45,7 @@ def validate_coupon(data,coupon_id=None):
         errors['code']="Coupon code is required"
     elif not re.match(r"^[A-Z0-9_-]{3,20}$", code):
         errors["code"] = (
-            "Coupon code must contain only uppercase letters, ""numbers, underscore or hyphen.")
+            "Coupon code must contain only uppercase letters, ""numbers, underscore or hyphen, atleast 3 letter.")
 
     else :
         coupon_query=Coupon.objects.filter(code__iexact=code)
@@ -55,46 +65,66 @@ def validate_coupon(data,coupon_id=None):
     except (InvalidOperation,ValueError):
         errors['discount_value']=("Enter a valid discount value.")
 
-    try :
-        if max_discount:
-            max_discount=Decimal(max_discount)
-            if max_discount<=0:
-                errors['max_discount']=("maximum discount must greater than zero")
-        else:
-            max_discount=None
-    except(InvalidOperation,ValueError):
-        errors['max_discount']=("enter a valid maximum discount amount")
+    if not min_order_amount:
+        errors["min_order_amount"]=("Minimum purchase amount is required.")
+        min_order_amount=None
+    else:
+        try:
+            min_order_amount=Decimal(min_order_amount)
+            if min_order_amount <=0:
+                errors["min_order_amount"]=('Minimumm purchase amount must greater than zero.')
+        except (InvalidOperation,ValueError):
+            errors["min_order_amount"]=("Enter a valid minimum purchase amount")
+            min_order_amount=None
+    if not max_discount:
+        errors['max_discount']=("Maximum discount amount is required.")
+        max_discount=None
+    else:
+        try :
+            if max_discount:
+                max_discount=Decimal(max_discount)
+                if max_discount<=0:
+                    errors['max_discount']=("maximum discount must greater than zero")
+            else:
+                max_discount=None
+        except(InvalidOperation,ValueError):
+            errors['max_discount']=("enter a valid maximum discount amount")
 
     if not max_usage:
         errors['max_usage']="Maximum usage is required."
-    elif not re.fullmatch(r"^[1-9]\d*$",max_usage):
-        errors["max_usage"]=("Maximum usage must positive number.")
+   
     else:
         max_usage=int(max_usage)
-    try:
-        if start_date:
-            start_date=timezone.datetime.strptime(start_date,"%Y-%m-%d").date()
-        else:
+    today = timezone.localdate()
+
+    if not start_date:
+        errors["start_date"] = "Start date is required."
+        start_date = None
+    else:
+        try:
+            start_date = timezone.datetime.strptime(start_date, "%Y-%m-%d").date()
+
+         
+        except ValueError:
+            errors["start_date"] = "Invalid start date."
             start_date = None
-    except ValueError:
-        errors['start_date']="invalid start date"
 
-    try:
 
-        if end_date:
-            end_date = timezone.datetime.strptime(end_date,"%Y-%m-%d").date()
-        else:
+    if not end_date:
+        errors["end_date"] = "End date is required."
+        end_date = None
+    else:
+        try:
+            end_date = timezone.datetime.strptime(end_date, "%Y-%m-%d").date()
+
+        except ValueError:
+            errors["end_date"] = "Invalid end date."
             end_date = None
-
-    except ValueError:
-        errors["end_date"] = "Invalid end date."
 
 
     if start_date and end_date:
         if end_date < start_date:
-
-            errors["end_date"] = ("End date cannot be before start date.")
-
+            errors["end_date"] = "End date cannot  before start date."
 
     cleaned_data = {
         "code": code,
@@ -135,7 +165,7 @@ def admin_login(request):
 def user_management(request):
     sort = request.GET.get('sort', 'all')
     search = request.GET.get('search', '')
-    users=Users.objects.all()
+    users=Users.objects.all().order_by("-created_at")
     if search:
         users=users.filter(Q(name__icontains=search) |Q(email__icontains=search))
 
@@ -144,7 +174,7 @@ def user_management(request):
     elif sort == 'oldest':
         users = users.order_by('created_at')
 
-    paginator=Paginator(users,3)
+    paginator=Paginator(users,5)
     page_number=request.GET.get('page')
     page_obj=paginator.get_page(page_number)
 
@@ -201,6 +231,8 @@ def new_category(request):
     if request.method =="POST":
         name=request.POST.get("name","").strip()
         offer=request.POST.get("offer","").strip()
+        start_date=request.POST.get("start_date")
+        end_date=request.POST.get("end_date")
         image=request.FILES.get("image_url")
         if not name:
             errors["name"]="category name is required"
@@ -218,11 +250,23 @@ def new_category(request):
                 offer_value=float(offer)
                 if offer_value<0 or offer_value>100:
                     errors["offer"]="offer must be between 0 and 100."
+                elif offer_value>0:
+                    if not start_date:
+                        errors['start_date']="start date is required."
+                    if not end_date:
+                        errors["end_date"]="end date is required."
+                    if start_date:
+                        today=timezone.now().date()
+                        if start_date<str(today):
+                            errors["start_date"]="start date cannot be in the before today"
+                        if start_date and end_date:
+                            if end_date < start_date:
+                                errors['end_date']="end date must after start date"
         if not image:
             errors["image"] = "Category image is required."
         if errors:
-            return render(request,"staff/new_category.html",{"errors":errors,"name":name,"offer":offer,})
-        Category.objects.create( name=name,offer=offer if request.POST.get("offer") else None,image_url=image,) 
+            return render(request,"staff/new_category.html",{"errors":errors,"name":name,"offer":offer,"start_date": start_date,"end_date": end_date,})
+        Category.objects.create( name=name,offer=offer if request.POST.get("offer") else None,start_date=start_date if start_date else None,end_date=end_date if end_date else None,image_url=image,) 
         messages.success(request,"category added successfully.")
         return redirect("category_management")
     return render(request, "staff/new_category.html")
@@ -238,6 +282,8 @@ def edit_category(request, category_id):
             return redirect("category_management")
         name = request.POST.get('name', '').strip()
         offer = request.POST.get('offer')
+        start_date = request.POST.get("start_date")
+        end_date = request.POST.get("end_date")
 
         if not name:
             errors["name"]="Category name is required"
@@ -255,17 +301,31 @@ def edit_category(request, category_id):
                 offer_value=float(offer)
                 if offer_value<0 or offer_value>100:
                     errors["offer"]="offer must be between 0 and 100."
+                elif offer_value >0:
+                    if not start_date :
+                        errors['start_date']="Start date is required."
+                    if not end_date:
+                        errors["end_date"]="End date is required."
+                    if start_date:
+                        today=timezone.now().date()
+                        if  start_date <str(today):
+                            errors['start_date']="start date cannot be before today."
+                        if end_date and start_date:
+                            if end_date <start_date:
+                                errors['end_date']="End date must after start date."
+                            
         
         uploaded_image = request.FILES.get('image')
         if not uploaded_image and not category.image_url:
             errors["image"] = "Category image is required."
             return render(request, 'staff/edit_category.html', {"category": category})
         if errors:
-            return render(request,"staff/edit_category.html",{"category":category,"errors":errors})
+            return render(request,"staff/edit_category.html",{"category":category,"errors":errors,"start_date": start_date,"end_date": end_date,})
         
         category.name = name
         category.offer = offer_value
-
+        category.start_date = start_date if start_date else None
+        category.end_date = end_date if end_date else None
         if uploaded_image:
             category.image_url = uploaded_image
            
@@ -665,6 +725,9 @@ def admin_order_detail(request,order_id):
     items=(OrderItems.objects.filter(order=order).select_related("variant","variant__product").prefetch_related("variant__images"))
     shipping=OrderAddress.objects.filter(order=order,address_type="shipping").first()
     tracking=OrderTrack.objects.filter(order=order).order_by("-status_time").first()
+
+    
+
     for i in items:
         i.line_total=i.quantity * i.unit_amount
 
@@ -692,9 +755,7 @@ def order_status(request,order_id):
         if order.status != new_status:
             order.status =new_status
             if new_status =="delivered":
-                payment = Payment.objects.filter(
-    order=order
-).order_by('-created_at').first()
+                payment = Payment.objects.filter(order=order).order_by('-created_at').first()
 
                 if payment:
                     payment.status='paid'
@@ -765,72 +826,157 @@ def admin_order_returns(request):
 
 
 @login_required(login_url="admin_login")
-def return_details(request,return_type,return_id):
+def return_details(request, return_type, return_id):
 
-    if return_type =="order":
-        return_obj=get_object_or_404(OrderReturns.objects.select_related("order","order__user").prefetch_related(Prefetch("order__addresses",queryset=OrderAddress.objects.filter(address_type='shipping'),to_attr='shipping_address'),"order__items__variant__product",'order__items__variant__images'),id=return_id)
-        items=return_obj.order.items.all()
-        refund_amount=return_obj.order.final_amount
+    if return_type == "order":
+
+        return_obj = get_object_or_404(OrderReturns.objects.select_related("order","order__user").prefetch_related(Prefetch("order__addresses",queryset=OrderAddress.objects.filter(address_type="shipping"),to_attr="shipping_address"),"order__items__variant__product","order__items__variant__images"),id=return_id)
+        items = return_obj.order.items.all()
+        refund_amount = Decimal("0.00")
+
+        if return_obj.status == "pending":
+            for item in items:
+
+                cancelled_qty = (item.cancellation.aggregate(total=Sum("quantity"))["total"] or 0)
+                returned_qty = (item.returns.filter(status="returned").aggregate(total=Sum("quantity"))["total"] or 0)
+                remaining_qty = (item.quantity - cancelled_qty - returned_qty)
+
+                if remaining_qty > 0:
+
+                    refund_amount += calculate_item_refund(item,remaining_qty)
     else:
-        return_obj=get_object_or_404(OrderItemReturn.objects.select_related("order_item","order_item__order","order_item__order__user","order_item__variant__product").prefetch_related("order_item__variant__images",Prefetch("order_item__order__addresses",queryset=OrderAddress.objects.filter(address_type="shipping"),to_attr="shipping_address")),id=return_id)
-        items=[return_obj.order_item]
-        refund_amount=(return_obj.quantity*return_obj.order_item.unit_amount)
 
-    return render(request,"staff/return_details.html",{"return_type": return_type,"return_obj": return_obj, "order": return_obj.order if return_type == "order" else return_obj.order_item.order,  "items": items,"refund_amount": refund_amount,"active_page": "admin_order_management"},)
+        return_obj = get_object_or_404(OrderItemReturn.objects.select_related("order_item","order_item__order","order_item__order__user","order_item__variant__product").prefetch_related("order_item__variant__images",Prefetch("order_item__order__addresses",queryset=OrderAddress.objects.filter(address_type="shipping"),to_attr="shipping_address")),id=return_id)
+        items = [return_obj.order_item]
+
+        refund_amount = calculate_item_refund(return_obj.order_item,return_obj.quantity)
+
+    order = (return_obj.order if return_type == "order" else return_obj.order_item.order)
+
+    return render(request,"staff/return_details.html",{"return_type": return_type,"return_obj": return_obj,"order": order,"items": items,"refund_amount": refund_amount,"active_page": "admin_order_management",})
+
 
 @login_required(login_url="admin_login")
-def update_return_status(request,return_id,return_type):
+def update_return_status(request, return_id, return_type):
+
     if return_type == "order":
-        return_order = get_object_or_404(OrderReturns, id=return_id)
+
+        return_order = get_object_or_404(OrderReturns,id=return_id)
         order = return_order.order
+
     else:
-        return_order = get_object_or_404(OrderItemReturn, id=return_id)
+        return_order = get_object_or_404(OrderItemReturn,id=return_id)
         order = return_order.order_item.order
 
-    if request.method =="POST":
-        status=request.POST.get("status")
+    if request.method == "POST":
 
+        status = request.POST.get("status")
+
+ 
         if status == "returned":
-            if return_order.status == "pending":
-                if return_type == "order":
 
-                    for item in order.items.select_related("variant"):
-                        if OrderItemReturn.objects.filter(order_item=item,status="returned").exists():
-                            continue
+            if return_order.status != "pending":
+                return redirect("admin_order_returns")
 
-                        ProductVariant.objects.filter(id=item.variant.id).update(stock=F("stock") + item.quantity)
-                    order.status = "returned"
-                    order.save(update_fields=["status"])
-                    OrderTrack.objects.create(order=order,status="returned")
+            refund_amount = Decimal("0.00")
+            if return_type == "order":
 
+                for item in order.items.select_related("variant"):
+
+                    cancelled_qty = (item.cancellation.aggregate(total=Sum("quantity"))["total"] or 0)
+                    already_returned_qty = (item.returns.filter(status="returned").aggregate(total=Sum("quantity"))["total"] or 0)
+                    remaining_qty = (item.quantity- cancelled_qty - already_returned_qty)
+
+                    if remaining_qty <= 0:
+                        continue
+
+                    if order.payment_status == "paid":
+                        refund_amount += calculate_item_refund(item,remaining_qty)
+
+                    ProductVariant.objects.filter(id=item.variant.id).update(stock=F("stock") + remaining_qty)
+
+                    if (cancelled_qty + already_returned_qty + remaining_qty >= item.quantity ):
+                        item.status = "returned"
+
+                        item.save(update_fields=["status"])
+
+         
+            else:
+
+                item = return_order.order_item
+                quantity = return_order.quantity
+                if order.payment_status == "paid":
+                    refund_amount = calculate_item_refund(item,quantity)
+                ProductVariant.objects.filter(id=item.variant.id).update(stock=F("stock") + quantity)
+                returned_qty = (item.returns.filter(status="returned").aggregate(total=Sum("quantity"))["total"] or 0)
+                cancelled_qty = ( item.cancellation.aggregate( total=Sum("quantity"))["total"] or 0)
+
+                total_returned = (returned_qty + quantity)
+
+                if (cancelled_qty+ total_returned>= item.quantity):
+                    item.status = "returned"
                 else:
+                    item.status = "active"
 
-                    ProductVariant.objects.filter(id=return_order.order_item.variant.id).update(stock=F("stock") + return_order.quantity)
+                item.save(update_fields=["status"])
 
-                    return_order.order_item.status = "returned"
-                    return_order.order_item.save(update_fields=["status"])
+   
+            if (order.payment_status == "paid"and refund_amount > 0):
 
-                return_order.status = "returned"
-                return_order.save(update_fields=["status"])
+                refund_to_wallet(order.user,refund_amount)
 
-        else:
-
-            return_order.status = "rejected"
+            return_order.status = "returned"
             return_order.save(update_fields=["status"])
 
-            if return_type == "order":
-                order.status = "rejected"
-                order.save(update_fields=["status"])
-                OrderTrack.objects.create(order=order,status="rejected")
-            else:
-                return_order.order_item.status = "rejected"
-                return_order.order_item.save(update_fields=["status"])
+
+            order.status = "returned"
+
+            order.save( update_fields=["status"])
+
+            OrderTrack.objects.create( order=order,status="returned")
+
+  
+        elif status == "rejected":
+
+            if return_order.status == "pending":
+
+                return_order.status = "rejected"
+                return_order.save( update_fields=["status"])
+
+                if return_type == "order":
+
+                    order.status = "rejected"
+                    order.save( update_fields=["status"])
+
+                    OrderTrack.objects.create( order=order,status="rejected")
+
+                else:
+                    return_order.order_item.status = "rejected"
+                    return_order.order_item.save(update_fields=["status"])
 
     return redirect("admin_order_returns")
 
-@login_required(login_url="admin_login")
+@login_required(login_url='admin_login')
 def admin_coupon_management(request):
-    return render(request,"staff/admin_coupon_management.html",{"active_page": "admin_coupon_management"})
+
+    search = request.GET.get("search", "").strip()
+    sort = request.GET.get("sort", "all")
+    coupons = Coupon.objects.annotate(coupon_count=Count("usages"))
+    if search:
+        coupons = coupons.filter(Q(code__icontains=search))
+    if sort == "newest":
+        coupons = coupons.order_by("-id")
+
+    elif sort == "oldest":
+        coupons = coupons.order_by("id")
+
+    else:
+        coupons = coupons.order_by("-id")
+
+    paginator = Paginator(coupons, 5)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(  request,"staff/admin_coupon_management.html",{ "active_page": "admin_coupon_management","coupons": page_obj, "page_obj": page_obj,"search": search,"sort": sort,})
 
 @login_required(login_url="admin_login")
 def add_coupon(request):
@@ -840,41 +986,410 @@ def add_coupon(request):
         errors, cleaned_data = validate_coupon(
             request.POST
         )
-
         if not errors:
 
             Coupon.objects.create(
 
                 code=cleaned_data["code"],
-
                 discount_type=cleaned_data["discount_type"],
-
                 discount_value=cleaned_data["discount_value"],
-
-                min_order_amount=cleaned_data[
-                    "min_order_amount"
-                ],
-
-                max_discount=cleaned_data[
-                    "max_discount"
-                ],
-
+                min_order_amount=cleaned_data["min_order_amount"],
+                max_discount=cleaned_data["max_discount"],
                 max_usage=cleaned_data["max_usage"],
-
+                usage_remaining=cleaned_data['max_usage'],
                 start_date=cleaned_data["start_date"],
-
                 end_date=cleaned_data["end_date"],
-
-                is_active=(
-                    request.POST.get("is_active") == "on"
-                )
-            )
-
-            messages.success(
-                request,
-                "Coupon created successfully."
-            )
-            redirect("admin_coupon_management")
+                is_active=(request.POST.get("is_active") == "on"))
+                
+            return redirect("coupon_management")
         return render(request,"staff/add_coupon.html",{"errors": errors,"data": request.POST,"active_page":"admin_coupon_management"})
-
     return render(request,"staff/add_coupon.html",{"active_page":"admin_coupon_management"})
+
+
+@login_required(login_url='admin_login')
+def edit_coupon(request,coupon_id):
+    coupon=get_object_or_404(Coupon,id=coupon_id)
+    if request.method == "POST":
+        errors,cleaned_data=validate_coupon(request.POST,coupon_id)
+        if not errors:
+            
+            coupon.code=cleaned_data["code"]
+            coupon.discount_type=cleaned_data["discount_type"]
+            coupon.discount_value=cleaned_data["discount_value"]
+            coupon.min_order_amount=cleaned_data["min_order_amount"]
+            coupon.max_discount=cleaned_data["max_discount"]
+            coupon.max_usage=cleaned_data["max_usage"]
+            coupon.usage_remaining=cleaned_data["max_usage"]
+            coupon.start_date=cleaned_data["start_date"]
+            coupon.end_date=cleaned_data["end_date"]
+            coupon.is_active=(request.POST.get("is_active") == "on")
+            coupon.save()
+            return redirect("coupon_management")
+        return render(request,"staff/add_coupon.html",{"errors": errors,"data": request.POST,"active_page":"admin_coupon_management"})
+    return render(request,'staff/edit_coupon.html',{"active_page":"admin_coupon_management","coupon":coupon})
+
+@login_required(login_url='admin_login')
+def delete_coupon(request, coupon_id):
+    coupon = get_object_or_404(Coupon, id=coupon_id)
+
+    if request.method == "POST":
+        coupon.delete()
+        messages.success(request, "Coupon deleted successfully.")
+
+    return redirect("coupon_management")
+
+
+@login_required(login_url="admin_login")
+def sales_report(request):
+
+    today = timezone.localdate()
+    report_type = request.GET.get("report_type", "daily")
+    start_date = request.GET.get("start_date", "")
+    end_date = request.GET.get("end_date", "")
+    search = request.GET.get("search", "").strip()
+
+
+    if report_type == "daily":
+
+        start = today
+        end = today
+
+    elif report_type == "weekly":
+
+        start = today - timedelta(days=today.weekday())
+        end = start + timedelta(days=6)
+
+    elif report_type == "yearly":
+
+        start = today.replace(month=1, day=1)
+        end = today.replace(month=12, day=31)
+
+    elif report_type == "custom":
+        try:
+            start = timezone.datetime.strptime(start_date,"%Y-%m-%d" ).date()
+            end = timezone.datetime.strptime(end_date,"%Y-%m-%d").date()
+
+        except (ValueError, TypeError):
+
+            start = today
+            end = today
+
+    else:
+        report_type = "daily"
+        start = today
+        end = today
+    orders = ( Orders.objects .filter( created_at__date__gte=start,created_at__date__lte=end, ) .exclude( status__in=["cancelled","rejected",]).select_related("user").prefetch_related("payments").order_by("-created_at"))
+    if search:
+        orders = orders.filter( Q(order_id__icontains=search) | Q(user__name__icontains=search))
+    overall_sales_count = orders.count()
+    order_amount = sum( order.subtotal for order in orders)
+
+    total_discount = sum(order.discount_amount for order in orders)
+    final_revenue = sum(
+        order.final_amount
+        for order in orders)
+    paginator = Paginator(orders, 5)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render( request, "staff/sales_report.html",{ "active_page": "sales_report","orders": page_obj,"page_obj": page_obj,"search": search,"overall_sales_count": overall_sales_count, "order_amount": order_amount,"total_discount": total_discount,"final_revenue": final_revenue,"report_type": report_type,"start_date": start.strftime("%Y-%m-%d"),"end_date": end.strftime("%Y-%m-%d"),"start_date_display": start.strftime( "%d %b, %Y"),"end_date_display": end.strftime("%d %b, %Y"),})
+
+@login_required(login_url="admin_login")
+def sales_report_pdf(request):
+
+    today = timezone.localdate()
+
+    report_type = request.GET.get("report_type", "daily")
+    start_date = request.GET.get("start_date", "")
+    end_date = request.GET.get("end_date", "")
+    search = request.GET.get("search", "").strip()
+
+    # DATE RANGE
+    if report_type == "daily":
+        start = today
+        end = today
+
+    elif report_type == "weekly":
+        start = today - timedelta(days=today.weekday())
+        end = start + timedelta(days=6)
+
+    elif report_type == "yearly":
+        start = today.replace(month=1, day=1)
+        end = today.replace(month=12, day=31)
+
+    elif report_type == "custom":
+        try:
+            start = timezone.datetime.strptime(
+                start_date, "%Y-%m-%d"
+            ).date()
+
+            end = timezone.datetime.strptime(
+                end_date, "%Y-%m-%d"
+            ).date()
+
+        except (ValueError, TypeError):
+            start = today
+            end = today
+
+    else:
+        start = today
+        end = today
+
+    orders = (
+        Orders.objects
+        .filter(
+            created_at__date__gte=start,
+            created_at__date__lte=end
+        )
+        .exclude(status__in=["cancelled", "rejected"])
+        .select_related("user")
+        .prefetch_related("payments")
+        .order_by("-created_at")
+    )
+
+    # SEARCH FILTER
+    if search:
+        orders = orders.filter(
+            Q(order_id__icontains=search) |
+            Q(user__name__icontains=search)
+        )
+
+    # PDF RESPONSE
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = (
+        'attachment; filename="sales_report.pdf"'
+    )
+
+    document = SimpleDocTemplate(
+        response,
+        pagesize=landscape(A4),
+        rightMargin=25,
+        leftMargin=25,
+        topMargin=25,
+        bottomMargin=25,
+    )
+
+    styles = getSampleStyleSheet()
+
+    elements = []
+
+    # Title
+    elements.append(
+        Paragraph(
+            "Nova Style - Sales Report",
+            styles["Title"]
+        )
+    )
+
+    elements.append(Spacer(1, 10))
+
+    # Table data
+    data = [
+        [
+            "Order ID",
+            "Customer",
+            "Date",
+            "Subtotal",
+            "Discount",
+            "Final Amount",
+            "Status",
+        ]
+    ]
+
+    for order in orders:
+        data.append([
+            str(order.order_id),
+            order.user.name if order.user else "",
+            order.created_at.strftime("%d-%m-%Y %H:%M"),
+            f"{float(order.subtotal or 0):.2f}",
+            f"{float(order.discount_amount or 0):.2f}",
+            f"{float(order.final_amount or 0):.2f}",
+            str(order.status),
+        ])
+
+    table = Table(
+        data,
+        repeatRows=1,
+        colWidths=[
+            90,
+            130,
+            110,
+            80,
+            80,
+            90,
+            80,
+        ],
+    )
+
+    table.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+            ("ALIGN", (3, 1), (5, -1), "RIGHT"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+            ("TOPPADDING", (0, 0), (-1, 0), 8),
+        ])
+    )
+
+    elements.append(table)
+
+    # Build PDF
+    document.build(elements)
+
+    return response
+
+@login_required(login_url="admin_login")
+def sales_report_excel(request):
+
+    today = timezone.localdate()
+
+    report_type = request.GET.get("report_type", "daily")
+    start_date = request.GET.get("start_date", "")
+    end_date = request.GET.get("end_date", "")
+    search = request.GET.get("search", "").strip()
+
+    # DATE RANGE
+    if report_type == "daily":
+        start = today
+        end = today
+
+    elif report_type == "weekly":
+        start = today - timedelta(days=today.weekday())
+        end = start + timedelta(days=6)
+
+    elif report_type == "yearly":
+        start = today.replace(month=1, day=1)
+        end = today.replace(month=12, day=31)
+
+    elif report_type == "custom":
+        try:
+            start = timezone.datetime.strptime(
+                start_date, "%Y-%m-%d"
+            ).date()
+
+            end = timezone.datetime.strptime(
+                end_date, "%Y-%m-%d"
+            ).date()
+
+        except (ValueError, TypeError):
+            start = today
+            end = today
+
+    else:
+        start = today
+        end = today
+
+    # GET ORDERS
+    orders = (
+        Orders.objects
+        .filter(
+            created_at__date__gte=start,
+            created_at__date__lte=end
+        )
+        .exclude(status__in=["cancelled", "rejected"])
+        .select_related("user")
+        .prefetch_related("payments")
+        .order_by("-created_at")
+    )
+
+    # SEARCH FILTER
+    if search:
+        orders = orders.filter(
+            Q(order_id__icontains=search) |
+            Q(user__name__icontains=search)
+        )
+
+    # CREATE EXCEL
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Sales Report"
+
+    # Header
+    worksheet.append([
+        "Order ID",
+        "Customer",
+        "Date",
+        "Subtotal",
+        "Discount",
+        "Final Amount",
+        "Status",
+    ])
+
+    # Data
+    for order in orders:
+        worksheet.append([
+            order.order_id,
+            order.user.name if order.user else "",
+            order.created_at.strftime("%d-%m-%Y %H:%M"),
+            float(order.subtotal or 0),
+            float(order.discount_amount or 0),
+            float(order.final_amount or 0),
+            order.status,
+        ])
+
+    # Column widths
+    worksheet.column_dimensions["A"].width = 20
+    worksheet.column_dimensions["B"].width = 25
+    worksheet.column_dimensions["C"].width = 22
+    worksheet.column_dimensions["D"].width = 15
+    worksheet.column_dimensions["E"].width = 15
+    worksheet.column_dimensions["F"].width = 18
+    worksheet.column_dimensions["G"].width = 15
+
+    # Response
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    response["Content-Disposition"] = (
+        'attachment; filename="sales_report.xlsx"'
+    )
+
+    workbook.save(response)
+
+    return response
+
+
+
+@login_required(login_url="admin_login")
+def admin_dashboard(request):
+
+    active_users = Users.objects.filter(status=True).count()
+    total_orders = Orders.objects.filter(status="delivered").count()
+    total_revenue = OrderItems.objects.filter(order__status="delivered", status="active",).aggregate(total=Coalesce(Sum(ExpressionWrapper(F("quantity") * F("unit_amount"),output_field=DecimalField( max_digits=12,decimal_places=2,),)), Value(Decimal("0.00"),output_field=DecimalField(max_digits=12,decimal_places=2,),),))["total"]
+    best_selling_products = (OrderItems.objects.filter(order__status="delivered",status="active",).values("variant__product","variant__product__name","variant__product__category__name",).annotate(total_sales=Sum("quantity"),total_revenue=Sum(ExpressionWrapper(F("quantity") * F("unit_amount"),output_field=DecimalField(max_digits=12,decimal_places=2,),)), price=F("variant__price"),).order_by("-total_sales")[:5])
+    best_selling_categories = (OrderItems.objects.filter(order__status="delivered",status="active",).values("variant__product__category","variant__product__category__name",).annotate(total_sales=Sum("quantity"),total_revenue=Sum(ExpressionWrapper(F("quantity") * F("unit_amount"), output_field=DecimalField(max_digits=12,decimal_places=2,),)),).order_by("-total_revenue")[:5])
+
+    chart_type = request.GET.get("chart","monthly")
+    delivered_orders = Orders.objects.filter(status="delivered")
+
+
+
+    if chart_type == "daily":
+        sales_data = (delivered_orders .annotate(period=TruncDay("created_at")).values("period").annotate(revenue=Sum("final_amount")).order_by("period"))
+
+        chart_labels = [item["period"].strftime("%d %b")for item in sales_data]
+
+        chart_values = [float(item["revenue"] or 0)for item in sales_data]
+
+
+    elif chart_type == "yearly":
+
+        sales_data = (delivered_orders.annotate(period=TruncYear("created_at")).values("period").annotate(revenue=Sum("final_amount")).order_by("period"))
+
+        chart_labels = [  item["period"].strftime("%Y")for item in sales_data]
+        chart_values = [float(item["revenue"] or 0)for item in sales_data]
+
+    else:
+
+        chart_type = "monthly"
+
+        sales_data = ( delivered_orders.annotate(period=TruncMonth("created_at")) .values("period").annotate(revenue=Sum("final_amount")).order_by("period"))
+
+        chart_labels = [item["period"].strftime("%b %Y")for item in sales_data]
+        chart_values = [ float(item["revenue"] or 0)for item in sales_data]
+    return render(request,"staff/admin_dashboard.html",{"active_page": "admin_dashboard","active_users": active_users,"total_orders": total_orders,"total_revenue": total_revenue,"best_selling_products": best_selling_products,"best_selling_categories": best_selling_categories,"chart_type": chart_type,"chart_labels": chart_labels,"chart_values": chart_values})
