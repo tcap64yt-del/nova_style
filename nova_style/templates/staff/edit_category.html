@@ -53,6 +53,45 @@
     {% endif %}
 </small>
                 </div>
+                <div class="input-group">
+    <label for="startDate" class="input-label">Offer Start Date</label>
+
+<input
+    type="date"
+    id="startDate"
+    name="start_date"
+    class="input-field"
+    value="{% if start_date %}{{ start_date }}{% elif category.start_date %}{{ category.start_date|date:'Y-m-d' }}{% endif %}"
+>
+
+<small id="startDateError" class="error-message">
+    {% if errors.start_date %}
+        {{ errors.start_date }}
+    {% endif %}
+</small>
+
+</div>
+
+<div class="input-group">
+    <label for="endDate" class="input-label">Offer End Date</label>
+
+<input
+    type="date"
+    id="endDate"
+    name="end_date"
+    class="input-field"
+    value="{% if end_date %}{{ end_date }}{% elif category.end_date %}{{ category.end_date|date:'Y-m-d' }}{% endif %}"
+>
+
+<small id="endDateError" class="error-message">
+    {% if errors.end_date %}
+        {{ errors.end_date }}
+    {% endif %}
+</small>
+
+</div>
+
+                
 
                 <div class="divider"></div>
                     <div class="upload-zone" id="uploadZone">
