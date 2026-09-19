@@ -32,7 +32,7 @@ category management, coupons, offers, orders, payments, and an admin/staff dashb
 - CSS
 - JavaScript
 - Bootstrap
-- PostgreSQL / MySQL
+- PostgreSQL 
 - Razorpay
 
 ## Installation
