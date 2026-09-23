@@ -7,14 +7,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coupon', '0003_coupon_usage_remaining'),
-        ('order', '0027_rename_subtoal_orders_subtotal'),
+        ("coupon", "0003_coupon_usage_remaining"),
+        ("order", "0027_rename_subtoal_orders_subtotal"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddConstraint(
-            model_name='couponusage',
-            constraint=models.UniqueConstraint(fields=('coupon', 'user'), name='unique_coupon_per_user'),
+            model_name="couponusage",
+            constraint=models.UniqueConstraint(
+                fields=("coupon", "user"), name="unique_coupon_per_user"
+            ),
         ),
     ]

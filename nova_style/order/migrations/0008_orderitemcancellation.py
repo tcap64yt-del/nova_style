@@ -7,22 +7,37 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0007_orders_status'),
+        ("order", "0007_orders_status"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OrderItemCancellation',
+            name="OrderItemCancellation",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.PositiveIntegerField()),
-                ('reason', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('order_item', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='cancellation', to='order.orderitems')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("quantity", models.PositiveIntegerField()),
+                ("reason", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "order_item",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cancellation",
+                        to="order.orderitems",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'order_item_cancellations',
+                "db_table": "order_item_cancellations",
             },
         ),
     ]

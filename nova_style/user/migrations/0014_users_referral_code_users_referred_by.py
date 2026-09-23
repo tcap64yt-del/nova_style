@@ -8,18 +8,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0013_wallettransaction_razorpay_order_id_and_more'),
+        ("user", "0013_wallettransaction_razorpay_order_id_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='users',
-            name='referral_code',
+            model_name="users",
+            name="referral_code",
             field=models.CharField(blank=True, max_length=20, null=True, unique=True),
         ),
         migrations.AddField(
-            model_name='users',
-            name='referred_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='referred_users', to=settings.AUTH_USER_MODEL),
+            model_name="users",
+            name="referred_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="referred_users",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

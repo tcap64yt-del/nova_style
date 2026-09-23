@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coupon', '0002_alter_coupon_max_discount_and_more'),
+        ("coupon", "0002_alter_coupon_max_discount_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='coupon',
-            name='usage_remaining',
+            model_name="coupon",
+            name="usage_remaining",
             field=models.PositiveIntegerField(default=1),
             preserve_default=False,
         ),

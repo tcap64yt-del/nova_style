@@ -6,19 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coupon', '0001_initial'),
+        ("coupon", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='coupon',
-            name='max_discount',
+            model_name="coupon",
+            name="max_discount",
             field=models.DecimalField(decimal_places=2, default=1, max_digits=10),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='coupon',
-            name='min_order_amount',
+            model_name="coupon",
+            name="min_order_amount",
             field=models.DecimalField(decimal_places=2, default=2, max_digits=10),
             preserve_default=False,
         ),

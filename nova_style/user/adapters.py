@@ -25,6 +25,7 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
 
         if not user.referral_code:
             from .models import generate_referral_code
+
             user.referral_code = generate_referral_code()
 
         user.set_unusable_password()

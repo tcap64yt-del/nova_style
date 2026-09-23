@@ -6,13 +6,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0011_alter_orderitemcancellation_order_item'),
+        ("order", "0011_alter_orderitemcancellation_order_item"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='orderitems',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('order placed', 'Order Placed'), ('shipped', 'Shipped'), ('out for delivery', 'Out for delivery'), ('delivered', 'Delivered'), ('cancelled', 'Cancelled')], default='pending', max_length=20),
+            model_name="orderitems",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Pending"),
+                    ("order placed", "Order Placed"),
+                    ("shipped", "Shipped"),
+                    ("out for delivery", "Out for delivery"),
+                    ("delivered", "Delivered"),
+                    ("cancelled", "Cancelled"),
+                ],
+                default="pending",
+                max_length=20,
+            ),
         ),
     ]

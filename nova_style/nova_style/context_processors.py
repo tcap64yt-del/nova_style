@@ -1,14 +1,13 @@
 from cart.models import CartItem
 from user.models import WishlistItem
 
+
 def header_counts(request):
     cart_count = 0
     wishlist_count = 0
 
     if request.user.is_authenticated:
-        cart_count = CartItem.objects.filter(
-            cart__user=request.user
-        ).count()
+        cart_count = CartItem.objects.filter(cart__user=request.user).count()
 
         wishlist_count = WishlistItem.objects.filter(
             wishlist__user=request.user

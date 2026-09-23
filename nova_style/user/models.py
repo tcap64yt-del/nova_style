@@ -1,22 +1,24 @@
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager,PermissionsMixin
-from django.utils import timezone
 import secrets
 import string
+
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
+from django.db import models
+from django.utils import timezone
 
 
 def generate_referral_code():
     characters = string.ascii_uppercase + string.digits
 
     while True:
-        code = "NS" + "".join(
-            secrets.choice(characters)
-            for _ in range(8)
-        )
+        code = "NS" + "".join(secrets.choice(characters) for _ in range(8))
 
         if not Users.objects.filter(referral_code=code).exists():
             return code
-    
+
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -31,43 +33,48 @@ class UserManager(BaseUserManager):
         if not extra_fields.get("referral_code"):
             extra_fields["referral_code"] = generate_referral_code()
 
-        user = self.model(email=email,**extra_fields)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
-    
+
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True")
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True")
-       
 
         return self.create_user(email, password, **extra_fields)
+
 
 class Users(AbstractBaseUser, PermissionsMixin):
 
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     status = models.BooleanField(default=True)
-    referral_code = models.CharField( max_length=20, unique=True, null=True, blank=True ) 
-    referred_by = models.ForeignKey( "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="referred_users" )
+    referral_code = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    referred_by = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="referred_users",
+    )
     is_staff = models.BooleanField(default=False)
-    avatar_url = models.ImageField(upload_to='profile/',null=True,blank=True)
+    avatar_url = models.ImageField(upload_to="profile/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = UserManager()
 
-
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ['name']
+    REQUIRED_FIELDS = ["name"]
 
     class Meta:
         db_table = "users"
+
 
 class EmailOTP(models.Model):
     email = models.EmailField()
@@ -81,30 +88,29 @@ class EmailOTP(models.Model):
     def is_expired(self):
         return timezone.now() > self.expires_at
 
-    
     class Meta:
-        db_table ="email_otp"
+        db_table = "email_otp"
 
 
 class Addresses(models.Model):
-    user=models.ForeignKey(Users,on_delete=models.CASCADE,related_name="addresses")
-    name=models.CharField(max_length=255)
-    address=models.TextField()
-    phone=models.CharField(max_length=10)
-    district=models.CharField(max_length=255)
-    state=models.CharField(max_length=255)
-    country=models.CharField(max_length=255)
-    postal_code=models.CharField(max_length=6)
-    is_default=models.BooleanField(default=False)
-    
-    created_at=models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name="addresses")
+    name = models.CharField(max_length=255)
+    address = models.TextField()
+    phone = models.CharField(max_length=10)
+    district = models.CharField(max_length=255)
+    state = models.CharField(max_length=255)
+    country = models.CharField(max_length=255)
+    postal_code = models.CharField(max_length=6)
+    is_default = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "addresses"
 
     def __str__(self):
         return self.name
-    
+
     def save(self, *args, **kwargs):
 
         required_fields = [
@@ -114,7 +120,7 @@ class Addresses(models.Model):
             self.district,
             self.state,
             self.country,
-            self.postal_code
+            self.postal_code,
         ]
 
         for field in required_fields:
@@ -127,11 +133,15 @@ class Addresses(models.Model):
         super().save(*args, **kwargs)
 
         if self.is_default:
-            Addresses.objects.filter(user=self.user).exclude(id=self.id).update(is_default=False)
+            Addresses.objects.filter(user=self.user).exclude(id=self.id).update(
+                is_default=False
+            )
 
 
 class Wishlist(models.Model):
-    user = models.OneToOneField(Users,on_delete=models.CASCADE,related_name="wishlist")
+    user = models.OneToOneField(
+        Users, on_delete=models.CASCADE, related_name="wishlist"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -139,24 +149,27 @@ class Wishlist(models.Model):
 
 
 class WishlistItem(models.Model):
-    wishlist = models.ForeignKey(Wishlist,on_delete=models.CASCADE,related_name="wishlist_items")
-    variant = models.ForeignKey("product.ProductVariant",on_delete=models.CASCADE)
+    wishlist = models.ForeignKey(
+        Wishlist, on_delete=models.CASCADE, related_name="wishlist_items"
+    )
+    variant = models.ForeignKey("product.ProductVariant", on_delete=models.CASCADE)
 
     class Meta:
-        db_table="wishlist_items"
+        db_table = "wishlist_items"
         constraints = [
             models.UniqueConstraint(
-                fields=["wishlist", "variant"],
-                name="unique_wishlist_variant"
+                fields=["wishlist", "variant"], name="unique_wishlist_variant"
             )
         ]
 
+
 class Wallet(models.Model):
-    user=models.OneToOneField(Users,on_delete=models.CASCADE,related_name='wallet')
-    balance=models.DecimalField(max_digits=12,decimal_places=2,default=0)
+    user = models.OneToOneField(Users, on_delete=models.CASCADE, related_name="wallet")
+    balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     class Meta:
-        db_table='wallet'
+        db_table = "wallet"
+
 
 class WalletTransaction(models.Model):
 
@@ -165,22 +178,23 @@ class WalletTransaction(models.Model):
         ("debit", "Debit"),
         ("refund", "Refund"),
     ]
-    STATUS_CHOICES=[
+    STATUS_CHOICES = [
         ("pending", "Pending"),
         ("completed", "Completed"),
         ("failed", "Failed"),
     ]
 
     wallet = models.ForeignKey(
-        Wallet,on_delete=models.CASCADE,
-        related_name="transactions")
+        Wallet, on_delete=models.CASCADE, related_name="transactions"
+    )
 
-    amount = models.DecimalField(max_digits=12,decimal_places=2)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
 
-    type = models.CharField(max_length=10,choices=TRANSACTION_TYPE_CHOICES)
-    status=models.CharField(max_length=20,choices=STATUS_CHOICES,default='pending')
-    razorpay_order_id = models.CharField(max_length=100,null=True,blank=True)
-    razorpay_payment_id = models.CharField(max_length=100,null=True,blank=True)
+    type = models.CharField(max_length=10, choices=TRANSACTION_TYPE_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    razorpay_order_id = models.CharField(max_length=100, null=True, blank=True)
+    razorpay_payment_id = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
     class Meta:
-        db_table="wallet_transactions"
+        db_table = "wallet_transactions"

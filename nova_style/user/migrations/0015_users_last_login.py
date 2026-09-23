@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0014_users_referral_code_users_referred_by'),
+        ("user", "0014_users_referral_code_users_referred_by"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='users',
-            name='last_login',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='last login'),
+            model_name="users",
+            name="last_login",
+            field=models.DateTimeField(
+                blank=True, null=True, verbose_name="last login"
+            ),
         ),
     ]

@@ -7,20 +7,47 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0003_orderaddress_name'),
+        ("order", "0003_orderaddress_name"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OrderTrack',
+            name="OrderTrack",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('shipped', 'Shipped'), ('out for delivery', 'Out for delivery'), ('delivered', 'Delivered'), ('cancelled', 'Cancelled')], max_length=255)),
-                ('status_time', models.DateTimeField(auto_now_add=True)),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tracks', to='order.orders')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pending", "Pending"),
+                            ("shipped", "Shipped"),
+                            ("out for delivery", "Out for delivery"),
+                            ("delivered", "Delivered"),
+                            ("cancelled", "Cancelled"),
+                        ],
+                        max_length=255,
+                    ),
+                ),
+                ("status_time", models.DateTimeField(auto_now_add=True)),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tracks",
+                        to="order.orders",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'order_track',
+                "db_table": "order_track",
             },
         ),
     ]

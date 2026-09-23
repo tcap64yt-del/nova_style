@@ -6,33 +6,86 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0024_alter_payment_razorpay_payment_id'),
+        ("order", "0024_alter_payment_razorpay_payment_id"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='orderitemreturn',
-            name='status',
-            field=models.CharField(choices=[('returned', 'Returned'), ('rejected', 'Rejected'), ('pending', 'Pending')], default='pending', max_length=20),
+            model_name="orderitemreturn",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("returned", "Returned"),
+                    ("rejected", "Rejected"),
+                    ("pending", "Pending"),
+                ],
+                default="pending",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='orderitems',
-            name='status',
-            field=models.CharField(choices=[('active', 'Active'), ('cancelled', 'Cancelled'), ('return pending', 'Return Pending'), ('returned', 'Returned'), ('rejected', 'Rejected')], default='active', max_length=30),
+            model_name="orderitems",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("active", "Active"),
+                    ("cancelled", "Cancelled"),
+                    ("return pending", "Return Pending"),
+                    ("returned", "Returned"),
+                    ("rejected", "Rejected"),
+                ],
+                default="active",
+                max_length=30,
+            ),
         ),
         migrations.AlterField(
-            model_name='orderreturns',
-            name='status',
-            field=models.CharField(choices=[('returned', 'Returned'), ('rejected', 'Rejected'), ('pending', 'Pending')], default='pending', max_length=20),
+            model_name="orderreturns",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("returned", "Returned"),
+                    ("rejected", "Rejected"),
+                    ("pending", "Pending"),
+                ],
+                default="pending",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='orders',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('order placed', 'Order Placed'), ('shipped', 'Shipped'), ('out for delivery', 'Out for delivery'), ('delivered', 'Delivered'), ('cancelled', 'Cancelled'), ('return pending', 'Return Pending'), ('returned', 'Returned'), ('rejected', 'Rejected')], default='pending', max_length=30),
+            model_name="orders",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Pending"),
+                    ("order placed", "Order Placed"),
+                    ("shipped", "Shipped"),
+                    ("out for delivery", "Out for delivery"),
+                    ("delivered", "Delivered"),
+                    ("cancelled", "Cancelled"),
+                    ("return pending", "Return Pending"),
+                    ("returned", "Returned"),
+                    ("rejected", "Rejected"),
+                ],
+                default="pending",
+                max_length=30,
+            ),
         ),
         migrations.AlterField(
-            model_name='ordertrack',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('order placed', 'Order Placed'), ('shipped', 'Shipped'), ('out for delivery', 'Out for delivery'), ('delivered', 'Delivered'), ('cancelled', 'Cancelled'), ('return pending', 'Return Pending'), ('returned', 'Returned'), ('rejected', 'Rejected')], max_length=255),
+            model_name="ordertrack",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Pending"),
+                    ("order placed", "Order Placed"),
+                    ("shipped", "Shipped"),
+                    ("out for delivery", "Out for delivery"),
+                    ("delivered", "Delivered"),
+                    ("cancelled", "Cancelled"),
+                    ("return pending", "Return Pending"),
+                    ("returned", "Returned"),
+                    ("rejected", "Rejected"),
+                ],
+                max_length=255,
+            ),
         ),
     ]

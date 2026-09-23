@@ -1,18 +1,19 @@
-from django import forms
-from .models import Users
 import re
-from django.contrib.auth.forms import PasswordResetForm
-from django.contrib.auth import get_user_model
 
+from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import PasswordResetForm
+
+from .models import Users
 
 User = get_user_model()
+
+
 class CustomPasswordResetForm(PasswordResetForm):
 
     def get_users(self, email):
-        return User.objects.filter(
-            email=email,
-            status=True
-        )
+        return User.objects.filter(email=email, status=True)
+
 
 class SignupForm(forms.ModelForm):
     name = forms.CharField(min_length=2, max_length=255)
@@ -23,7 +24,7 @@ class SignupForm(forms.ModelForm):
         required=True,
         error_messages={"required": "Please agree with Privacy Policy and Terms"},
     )
-    referral_code = forms.CharField(max_length=20,required=False)
+    referral_code = forms.CharField(max_length=20, required=False)
 
     class Meta:
         model = Users
@@ -49,22 +50,13 @@ class SignupForm(forms.ModelForm):
         confirm_password = cleaned_data.get("confirm_password")
         if password:
             if not re.search(r"[A-Za-z]", password):
-                self.add_error(
-                    "password",
-                    "Password must contain letter."
-                )
+                self.add_error("password", "Password must contain letter.")
 
             if not re.search(r"\d", password):
-                self.add_error(
-                    "password",
-                    "Password must contain number."
-                )
+                self.add_error("password", "Password must contain number.")
 
             if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-                self.add_error(
-                    "password",
-                    "Password must contain special character."
-                ) 
+                self.add_error("password", "Password must contain special character.")
         if password and confirm_password and password != confirm_password:
             self.add_error("confirm_password", "Passwords don't match.")
 
@@ -93,16 +85,14 @@ class ProfileForm(forms.Form):
         return name
 
 
-
 class AvatarForm(forms.Form):
-    avatar_url=forms.ImageField(required=False)
+    avatar_url = forms.ImageField(required=False)
+
     def clean_avatar_url(self):
         image = self.cleaned_data.get("avatar_url")
 
         if image:
             if image.size > 5 * 1024 * 1024:
-                raise forms.ValidationError(
-                    "Image size must be less than 5 MB."
-                )
+                raise forms.ValidationError("Image size must be less than 5 MB.")
 
         return image

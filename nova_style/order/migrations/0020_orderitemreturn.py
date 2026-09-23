@@ -7,23 +7,49 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0019_alter_orders_status_alter_ordertrack_status'),
+        ("order", "0019_alter_orders_status_alter_ordertrack_status"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OrderItemReturn',
+            name="OrderItemReturn",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.PositiveIntegerField()),
-                ('reason', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('status', models.CharField(choices=[('approved', 'Approved'), ('rejected', 'Rejected'), ('pending', 'Pending')], default='pending', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('order_item', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='returns', to='order.orderitems')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("quantity", models.PositiveIntegerField()),
+                ("reason", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("approved", "Approved"),
+                            ("rejected", "Rejected"),
+                            ("pending", "Pending"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "order_item",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="returns",
+                        to="order.orderitems",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'order_item_returns',
+                "db_table": "order_item_returns",
             },
         ),
     ]

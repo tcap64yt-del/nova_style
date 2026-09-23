@@ -7,22 +7,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0014_alter_orderitems_status'),
+        ("order", "0014_alter_orderitems_status"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='OrderReturns',
+            name="OrderReturns",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('reason', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True, null=True)),
-                ('status', models.CharField(choices=[('approved', 'Approved'), ('not_approved', 'Not Approved'), ('pending', 'Pending')], default='pending', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('order', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='returns', to='order.orders')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("reason", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True, null=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("approved", "Approved"),
+                            ("not_approved", "Not Approved"),
+                            ("pending", "Pending"),
+                        ],
+                        default="pending",
+                        max_length=20,
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "order",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="returns",
+                        to="order.orders",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'order_returns',
+                "db_table": "order_returns",
             },
         ),
     ]

@@ -6,18 +6,41 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0015_orderreturns'),
+        ("order", "0015_orderreturns"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='orders',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('order placed', 'Order Placed'), ('shipped', 'Shipped'), ('out for delivery', 'Out for delivery'), ('delivered', 'Delivered'), ('cancelled', 'Cancelled'), ('approved', 'Approved')], default='pending', max_length=20),
+            model_name="orders",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Pending"),
+                    ("order placed", "Order Placed"),
+                    ("shipped", "Shipped"),
+                    ("out for delivery", "Out for delivery"),
+                    ("delivered", "Delivered"),
+                    ("cancelled", "Cancelled"),
+                    ("approved", "Approved"),
+                ],
+                default="pending",
+                max_length=20,
+            ),
         ),
         migrations.AlterField(
-            model_name='ordertrack',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('order placed', 'Order Placed'), ('shipped', 'Shipped'), ('out for delivery', 'Out for delivery'), ('delivered', 'Delivered'), ('cancelled', 'Cancelled'), ('approved', 'Approved')], max_length=255),
+            model_name="ordertrack",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Pending"),
+                    ("order placed", "Order Placed"),
+                    ("shipped", "Shipped"),
+                    ("out for delivery", "Out for delivery"),
+                    ("delivered", "Delivered"),
+                    ("cancelled", "Cancelled"),
+                    ("approved", "Approved"),
+                ],
+                max_length=255,
+            ),
         ),
     ]

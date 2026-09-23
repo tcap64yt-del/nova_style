@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0009_alter_orderitemcancellation_order_item'),
+        ("order", "0009_alter_orderitemcancellation_order_item"),
     ]
 
     operations = [
         migrations.AlterModelTable(
-            name='orderitemcancellation',
-            table='order_item_cancellation',
+            name="orderitemcancellation",
+            table="order_item_cancellation",
         ),
     ]

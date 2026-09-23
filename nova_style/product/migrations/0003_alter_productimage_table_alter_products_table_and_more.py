@@ -6,20 +6,20 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('product', '0002_products_productvariant_productimage'),
+        ("product", "0002_products_productvariant_productimage"),
     ]
 
     operations = [
         migrations.AlterModelTable(
-            name='productimage',
-            table='productimage',
+            name="productimage",
+            table="productimage",
         ),
         migrations.AlterModelTable(
-            name='products',
-            table='products',
+            name="products",
+            table="products",
         ),
         migrations.AlterModelTable(
-            name='productvariant',
-            table='productvariant',
+            name="productvariant",
+            table="productvariant",
         ),
     ]

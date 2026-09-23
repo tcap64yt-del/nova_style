@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('coupon', '0005_usercoupon'),
+        ("coupon", "0005_usercoupon"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='coupon',
-            name='is_referral_coupon',
+            model_name="coupon",
+            name="is_referral_coupon",
             field=models.BooleanField(default=False),
         ),
     ]

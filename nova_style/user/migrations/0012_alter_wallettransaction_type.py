@@ -6,13 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0011_wallettransaction'),
+        ("user", "0011_wallettransaction"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='wallettransaction',
-            name='type',
-            field=models.CharField(choices=[('credit', 'Credit'), ('debit', 'Debit'), ('refund', 'Refund')], max_length=10),
+            model_name="wallettransaction",
+            name="type",
+            field=models.CharField(
+                choices=[
+                    ("credit", "Credit"),
+                    ("debit", "Debit"),
+                    ("refund", "Refund"),
+                ],
+                max_length=10,
+            ),
         ),
     ]

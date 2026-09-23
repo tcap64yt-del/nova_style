@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('order', '0025_alter_orderitemreturn_status_alter_orderitems_status_and_more'),
+        ("order", "0025_alter_orderitemreturn_status_alter_orderitems_status_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='orders',
-            name='coupon_code',
+            model_name="orders",
+            name="coupon_code",
             field=models.CharField(blank=True, max_length=100, null=True),
         ),
         migrations.AddField(
-            model_name='orders',
-            name='discount_amount',
+            model_name="orders",
+            name="discount_amount",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
         ),
         migrations.AddField(
-            model_name='orders',
-            name='subtoal',
+            model_name="orders",
+            name="subtoal",
             field=models.DecimalField(decimal_places=2, default=0, max_digits=10),
         ),
     ]

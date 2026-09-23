@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('product', '0006_review'),
+        ("product", "0006_review"),
     ]
 
     operations = [
         migrations.AlterModelTable(
-            name='review',
-            table='Review',
+            name="review",
+            table="Review",
         ),
     ]

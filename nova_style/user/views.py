@@ -1,34 +1,54 @@
-import random,json,razorpay,uuid,re
-from django.db import transaction
-from django.http import JsonResponse
-from decimal import Decimal
-from django.apps import apps
-from django.utils import timezone
+import json
+import random
+import re
+import uuid
 from datetime import timedelta
-from django.contrib import messages
-from django.contrib.auth import authenticate, login as auth_login,update_session_auth_hash
-from django.contrib.auth import logout as auth_logout
-from django.shortcuts import redirect,render,get_object_or_404
-from django.core.mail import send_mail
-from django.conf import settings
-from .forms import SignupForm,LoginForm,OTPForm,ProfileForm,AvatarForm
-from .models import EmailOTP,Users,Addresses,Wishlist,WishlistItem,Wallet,WalletTransaction
-from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from product.models import Category
-from order.models import OrderItems,Orders
-from coupon.models import Coupon,UserCoupon
-from django.db.models import Q
+from decimal import Decimal
 
+import razorpay
+from django.apps import apps
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import (
+    authenticate,
+    update_session_auth_hash,
+)
+from django.contrib.auth import (
+    login as auth_login,
+)
+from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
+from coupon.models import Coupon, UserCoupon
+from order.models import Orders
+from product.models import Category
+
+from .forms import AvatarForm, LoginForm, OTPForm, ProfileForm, SignupForm
+from .models import (
+    Addresses,
+    EmailOTP,
+    Users,
+    Wallet,
+    WalletTransaction,
+    Wishlist,
+    WishlistItem,
+)
 
 ProductVariant = apps.get_model("product", "ProductVariant")
 MAX_ATTEMPTS = 5
 MAX_RESENDS = 3
 OTP_SECONDS = 120
 
+
 def generate_otp():
     return f"{random.randint(100000, 999999)}"
-
 
 
 def signup(request):
@@ -38,22 +58,26 @@ def signup(request):
     if request.method == "POST":
         form = SignupForm(request.POST)
         if form.is_valid():
-            referral_code=(form.cleaned_data.get("referral_code","").strip().upper() or referral_code)
+            referral_code = (
+                form.cleaned_data.get("referral_code", "").strip().upper()
+                or referral_code
+            )
             if referral_code:
-                referrer=Users.objects.filter(referral_code=referral_code,status=True).first()
+                referrer = Users.objects.filter(
+                    referral_code=referral_code, status=True
+                ).first()
                 if not referrer:
-                    form.add_error("referral_code","invalid referral code")
-                    return render(request,"signup.html",{"form":form})
-                
+                    form.add_error("referral_code", "invalid referral code")
+                    return render(request, "signup.html", {"form": form})
+
             request.session["signup_data"] = {
                 "name": form.cleaned_data["name"],
                 "email": form.cleaned_data["email"].lower(),
                 "password": form.cleaned_data["password"],
                 "referral_code": referral_code,
-                
             }
 
-            email=request.session['signup_data']['email']
+            email = request.session["signup_data"]["email"]
             otp = generate_otp()
             EmailOTP.objects.update_or_create(
                 email=email,
@@ -78,28 +102,31 @@ def signup(request):
 
     return render(request, "signup.html", {"form": form})
 
+
 def verify_otp(request):
-    signup_data=request.session.get('signup_data')
+    signup_data = request.session.get("signup_data")
 
     if not signup_data:
         return redirect("signup")
-    email=signup_data['email']
+    email = signup_data["email"]
     otp_record = EmailOTP.objects.filter(email=email).order_by("-created_at").first()
 
     if not otp_record:
         messages.error(request, "OTP not found. please resend OTP.")
         return redirect("otp_verify")
-    remaining_seconds = max(0, int((otp_record.expires_at - timezone.now()).total_seconds()))
+    remaining_seconds = max(
+        0, int((otp_record.expires_at - timezone.now()).total_seconds())
+    )
     otp_expiry_ms = int(otp_record.expires_at.timestamp() * 1000)
 
     if request.method == "POST":
         form = OTPForm(request.POST)
         if form.is_valid():
             entered_otp = form.cleaned_data["otp"]
-            if len(entered_otp) !=6:
-                messages.error(request,"Enter 6 digit number")
+            if len(entered_otp) != 6:
+                messages.error(request, "Enter 6 digit number")
                 return redirect("otp_verify")
-            
+
             if otp_record.is_expired():
                 messages.error(request, "OTP expired.")
                 return redirect("otp_verify")
@@ -109,31 +136,39 @@ def verify_otp(request):
                 return redirect("otp_verify")
 
             if entered_otp == otp_record.otp_code:
-                referral_code = signup_data.get( "referral_code", "" ).strip().upper() 
-                referrer = None 
-                if referral_code: 
-                    referrer = Users.objects.filter( referral_code=referral_code, status=True ).first()
-                
+                referral_code = signup_data.get("referral_code", "").strip().upper()
+                referrer = None
+                if referral_code:
+                    referrer = Users.objects.filter(
+                        referral_code=referral_code, status=True
+                    ).first()
+
                 user = Users.objects.create_user(
                     name=signup_data["name"],
                     email=signup_data["email"],
                     password=(signup_data["password"]),
                     status=True,
-                    referred_by=referrer
+                    referred_by=referrer,
                 )
-                Wallet.objects.create( user=user, balance=0 )
-                if referrer: 
-                    referral_coupon = Coupon.objects.filter( code="REFERRAL10", is_active=True ).first()
+                Wallet.objects.create(user=user, balance=0)
+                if referrer:
+                    referral_coupon = Coupon.objects.filter(
+                        code="REFERRAL10", is_active=True
+                    ).first()
                     if referral_coupon:
-                        UserCoupon.objects.create( user=user, coupon=referral_coupon )
-                otp_record.is_verified=True
-                otp_record.save(update_fields=['is_verified'])
+                        UserCoupon.objects.create(user=user, coupon=referral_coupon)
+                otp_record.is_verified = True
+                otp_record.save(update_fields=["is_verified"])
                 otp_record.delete()
                 request.session.pop("signup_data", None)
                 if referrer:
-                    messages.success(request,"Account created successfully!""Your extra coupon has been added")
+                    messages.success(
+                        request,
+                        "Account created successfully!"
+                        "Your extra coupon has been added",
+                    )
                 else:
-                    messages.success(request,"Account created.Now you can login.")
+                    messages.success(request, "Account created.Now you can login.")
                 return redirect("login")
 
             otp_record.attempts += 1
@@ -143,12 +178,20 @@ def verify_otp(request):
     else:
         form = OTPForm()
 
-    return render(request, "otp_verification.html", {"form": form,"remaining_seconds": remaining_seconds,"otp_expiry_ms": otp_expiry_ms,})
+    return render(
+        request,
+        "otp_verification.html",
+        {
+            "form": form,
+            "remaining_seconds": remaining_seconds,
+            "otp_expiry_ms": otp_expiry_ms,
+        },
+    )
 
 
 def resend_otp(request):
 
-    signup_data=request.session.get('signup_data')
+    signup_data = request.session.get("signup_data")
 
     if not signup_data:
         return redirect("signup")
@@ -167,7 +210,9 @@ def resend_otp(request):
     otp_record.attempts = 0
     otp_record.resend_count += 1
     otp_record.last_sent_at = timezone.now()
-    otp_record.save(update_fields=["otp_code", "expires_at", "attempts", "resend_count"])
+    otp_record.save(
+        update_fields=["otp_code", "expires_at", "attempts", "resend_count"]
+    )
 
     send_mail(
         subject="Your new OTP",
@@ -195,10 +240,10 @@ def login(request):
             email = form.cleaned_data["email"].lower()
             password = form.cleaned_data["password"]
 
-            user_obj=Users.objects.filter(email=email).first()
-            if user_obj and user_obj.status==False:
+            user_obj = Users.objects.filter(email=email).first()
+            if user_obj and user_obj.status == False:
                 messages.error(request, "Your account is blocked.")
-                return redirect('login')   
+                return redirect("login")
 
             user = authenticate(request, email=email, password=password)
 
@@ -210,7 +255,7 @@ def login(request):
                 request.session.set_expiry(3600)
                 return redirect("home")
         else:
-            messages.error(request,"please fill all fields.")
+            messages.error(request, "please fill all fields.")
             return redirect("login")
     else:
         form = LoginForm()
@@ -225,48 +270,62 @@ def logout(request):
 
 def home(request):
     details = None
-    categories=Category.objects.filter(is_active=True)
+    categories = Category.objects.filter(is_active=True)
     if request.user.is_authenticated:
         if request.user.status == False:
             auth_logout(request)
             messages.error(request, "Your account is blocked.")
             return redirect("login")
-        
+
         email = request.user.email
 
         details = Users.objects.filter(email=email).first()
 
-    return render(request, "home.html",{"details":details,"categories":categories})
+    return render(request, "home.html", {"details": details, "categories": categories})
 
-@login_required(login_url='login')
+
+@login_required(login_url="login")
 def profile(request):
     details = request.user
-    categories=Category.objects.all()
-    form = ProfileForm(initial={"name": details.name,"email": details.email})
+    categories = Category.objects.all()
+    form = ProfileForm(initial={"name": details.name, "email": details.email})
     avatar_form = AvatarForm()
     if request.method == "POST":
         if "save_avatar" in request.POST:
 
-                avatar_form = AvatarForm(request.POST, request.FILES)
+            avatar_form = AvatarForm(request.POST, request.FILES)
 
-                if avatar_form.is_valid():
-                    avatar = avatar_form.cleaned_data["avatar_url"]
+            if avatar_form.is_valid():
+                avatar = avatar_form.cleaned_data["avatar_url"]
 
-                    if avatar:
-                        details.avatar_url = avatar
-                        details.save(update_fields=["avatar_url", "updated_at"])
-                        messages.success(request,"Profile image updated successfully.")
-                    else:
-                        messages.success(request,"Profile image unchanged.")
-
-                    return redirect("profile")
+                if avatar:
+                    details.avatar_url = avatar
+                    details.save(update_fields=["avatar_url", "updated_at"])
+                    messages.success(request, "Profile image updated successfully.")
                 else:
-                    form = ProfileForm(initial={"name": details.name,"email": details.email})
-                    return render(request,"profile.html",{"details": details,"form": form,"avatar_form": avatar_form,"categories": categories,"active_page": "profile","show_search": False,"show_sidebar": True,})
+                    messages.success(request, "Profile image unchanged.")
 
-                        
+                return redirect("profile")
+            else:
+                form = ProfileForm(
+                    initial={"name": details.name, "email": details.email}
+                )
+                return render(
+                    request,
+                    "profile.html",
+                    {
+                        "details": details,
+                        "form": form,
+                        "avatar_form": avatar_form,
+                        "categories": categories,
+                        "active_page": "profile",
+                        "show_search": False,
+                        "show_sidebar": True,
+                    },
+                )
+
         if "save_profile" in request.POST:
-            form=ProfileForm(request.POST)
+            form = ProfileForm(request.POST)
 
             if form.is_valid():
                 new_name = form.cleaned_data["name"].strip()
@@ -274,28 +333,31 @@ def profile(request):
                 current_name = (details.name or "").strip()
                 current_email = (details.email or "").strip().lower()
 
-                name_changed=new_name!= current_name
-                email_changed =new_email !=current_email
+                name_changed = new_name != current_name
+                email_changed = new_email != current_email
 
                 if not name_changed and not email_changed:
                     messages.error(request, "No changes made.")
-                    return redirect('profile')
+                    return redirect("profile")
 
                 if name_changed and not email_changed:
                     details.name = new_name
                     details.save(update_fields=["name"])
                     messages.success(request, "Name updated successfully.")
                     return redirect("profile")
-                
-                if email_changed:
-                    if Users.objects.filter(email=new_email).exclude(id=details.id).exists():
-                            messages.error(request, "This email is already taken.")
-                            return redirect("profile")
-                
-                
-                EmailOTP.objects.filter(email=new_email,is_verified=False).delete()
 
-                otp=generate_otp()
+                if email_changed:
+                    if (
+                        Users.objects.filter(email=new_email)
+                        .exclude(id=details.id)
+                        .exists()
+                    ):
+                        messages.error(request, "This email is already taken.")
+                        return redirect("profile")
+
+                EmailOTP.objects.filter(email=new_email, is_verified=False).delete()
+
+                otp = generate_otp()
                 EmailOTP.objects.update_or_create(
                     email=new_email,
                     defaults={
@@ -314,27 +376,42 @@ def profile(request):
                 )
                 request.session["pending_email_change_user_id"] = details.id
                 request.session["pending_email_change_email"] = new_email
-                request.session["pending_email_change_name"] = new_name           
+                request.session["pending_email_change_name"] = new_name
                 messages.success(request, "OTP sent to your email.")
                 return redirect("verify_email_otp")
         else:
-            form=ProfileForm(initial={"name": details.name, "email": details.email})
-            
-    return render(request,'profile.html',{"details":details,"form":form,"categories":categories,  "form":form,"active_page":"profile","show_search":False,"show_sidebar": True})
+            form = ProfileForm(initial={"name": details.name, "email": details.email})
+
+    return render(
+        request,
+        "profile.html",
+        {
+            "details": details,
+            "form": form,
+            "categories": categories,
+            "form": form,
+            "active_page": "profile",
+            "show_search": False,
+            "show_sidebar": True,
+        },
+    )
 
 
-@login_required(login_url='login')
-def verify_email_otp(request): 
+@login_required(login_url="login")
+def verify_email_otp(request):
     pending_user_id = request.session.get("pending_email_change_user_id")
-    pending_email = request.session.get("pending_email_change_email")    
-    otp_record=(EmailOTP.objects.filter(email=pending_email,is_verified=False).order_by('-created_at').first())
-
+    pending_email = request.session.get("pending_email_change_email")
+    otp_record = (
+        EmailOTP.objects.filter(email=pending_email, is_verified=False)
+        .order_by("-created_at")
+        .first()
+    )
 
     if request.method == "POST":
         form = OTPForm(request.POST)
         if form.is_valid():
             entered_otp = form.cleaned_data["otp"]
-            
+
             if not otp_record:
                 messages.error(request, "OTP not found. Please resend it.")
                 return redirect("verify_email_otp")
@@ -372,18 +449,20 @@ def verify_email_otp(request):
 
             messages.success(request, "Email updated successfully.")
             return redirect("profile")
-      
-    
-    return render(request,'email_otp_verification.html', {"pending_email": pending_email})
 
-@login_required (login_url="login")
+    return render(
+        request, "email_otp_verification.html", {"pending_email": pending_email}
+    )
+
+
+@login_required(login_url="login")
 def change_password(request):
     details = request.user
 
-    if request.method=='POST':
-        current_password=request.POST.get('current_password')
-        new_password=request.POST.get('new_password')
-        confirm_password=request.POST.get('confirm_password')
+    if request.method == "POST":
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
         errors = {}
 
         if not current_password:
@@ -396,8 +475,14 @@ def change_password(request):
             errors["new_password"] = "New password is required"
         elif len(new_password) < 8:
             errors["new_password"] = "Password must be at least 8 characters"
-        elif not re.search(r'[A-Za-z]', new_password) or not re.search(r'\d', new_password) or not re.search(r'[^A-Za-z0-9\s]', new_password):
-            errors["new_password"] = "Password must contain at least one letter, number, and special character."
+        elif (
+            not re.search(r"[A-Za-z]", new_password)
+            or not re.search(r"\d", new_password)
+            or not re.search(r"[^A-Za-z0-9\s]", new_password)
+        ):
+            errors["new_password"] = (
+                "Password must contain at least one letter, number, and special character."
+            )
 
         if not confirm_password:
             errors["confirm_password"] = "Please confirm your password"
@@ -405,53 +490,65 @@ def change_password(request):
             errors["confirm_password"] = "Passwords do not match"
 
         if errors:
-            return render(request, "change_password.html", {"details": details,"errors": errors,})
+            return render(
+                request,
+                "change_password.html",
+                {
+                    "details": details,
+                    "errors": errors,
+                },
+            )
         details.set_password(new_password)
         details.save()
-        update_session_auth_hash(request,details)
-        messages.success(request,"password updated")
-        return redirect('profile')
+        update_session_auth_hash(request, details)
+        messages.success(request, "password updated")
+        return redirect("profile")
 
-    return render(request,'change_password.html',{"details":details})
+    return render(request, "change_password.html", {"details": details})
 
 
-@login_required(login_url='login')
+@login_required(login_url="login")
 def address_list(request):
-    details=request.user
+    details = request.user
     search = request.GET.get("search", "").strip()
 
-    all_address = Addresses.objects.filter(
-        user=request.user
-    )
+    all_address = Addresses.objects.filter(user=request.user)
 
     if search:
-        all_address = all_address.filter(
-            name__icontains=search
-           
-        )
+        all_address = all_address.filter(name__icontains=search)
 
     all_address = all_address.order_by("-created_at")
-    paginator=Paginator(all_address,1)
-    page_number=request.GET.get('page')
-    page_obj=paginator.get_page(page_number)
+    paginator = Paginator(all_address, 1)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
 
-    return render(request,'addresses.html',{'page_obj':page_obj,'details':details,"active_page": "addresses","show_search": True,"show_sidebar": True})
+    return render(
+        request,
+        "addresses.html",
+        {
+            "page_obj": page_obj,
+            "details": details,
+            "active_page": "addresses",
+            "show_search": True,
+            "show_sidebar": True,
+        },
+    )
 
 
-@login_required(login_url='login')
+@login_required(login_url="login")
 def new_address(request):
-    details=request.user
-    
-    if request.method =="POST":
-        name=request.POST.get('name')
-        phone=request.POST.get('phone')
-        state=request.POST.get('state')
-        district=request.POST.get('district')
-        country=request.POST.get('country')
-        postal_code=request.POST.get('postal_code')
-        address=request.POST.get('address')
-        is_default=request.POST.get("is_default")=="on"
-        errors={}
+    details = request.user
+
+    if request.method == "POST":
+        name = request.POST.get("name")
+        phone = request.POST.get("phone")
+        state = request.POST.get("state")
+        district = request.POST.get("district")
+        country = request.POST.get("country")
+        postal_code = request.POST.get("postal_code")
+        address = request.POST.get("address")
+        is_default = request.POST.get("is_default") == "on"
+        errors = {}
         if not name:
             errors["name"] = "Name is required"
         elif len(name) < 3:
@@ -482,18 +579,39 @@ def new_address(request):
             errors["country"] = "Country is required"
 
         if errors:
-            return render(request,"new_address.html",{"details": details,"errors": errors,"form_data": request.POST,"show_sidebar": True},)
-        Addresses.objects.create(user=request.user,name=name,phone=phone,state=state,district=district,country=country,postal_code=postal_code,address=address,is_default=is_default,)
+            return render(
+                request,
+                "new_address.html",
+                {
+                    "details": details,
+                    "errors": errors,
+                    "form_data": request.POST,
+                    "show_sidebar": True,
+                },
+            )
+        Addresses.objects.create(
+            user=request.user,
+            name=name,
+            phone=phone,
+            state=state,
+            district=district,
+            country=country,
+            postal_code=postal_code,
+            address=address,
+            is_default=is_default,
+        )
         messages.success(request, "Address added successfully.")
         return redirect("addresses")
-    return render(request,'new_address.html ',{'details': details,"show_sidebar": True})
+    return render(
+        request, "new_address.html ", {"details": details, "show_sidebar": True}
+    )
 
 
-@login_required(login_url='login')
-def edit_address(request,pk):
+@login_required(login_url="login")
+def edit_address(request, pk):
     details = request.user
 
-    address=get_object_or_404(Addresses,id=pk,user=request.user)
+    address = get_object_or_404(Addresses, id=pk, user=request.user)
     if request.method == "POST":
         name = request.POST.get("name")
         phone = request.POST.get("phone")
@@ -513,7 +631,6 @@ def edit_address(request,pk):
         elif not name.replace(" ", "").isalpha():
             errors["name"] = "Name should contain only letters"
 
-        
         if not phone:
             errors["phone"] = "Phone number is required"
         elif not phone.isdigit() or len(phone) != 10:
@@ -527,7 +644,6 @@ def edit_address(request,pk):
         if not full_address:
             errors["address"] = "Address is required"
 
-        
         if not state:
             errors["state"] = "State is required"
 
@@ -538,7 +654,17 @@ def edit_address(request,pk):
             errors["country"] = "Country is required"
 
         if errors:
-            return render(request,"edit_address.html",{"address": address,"details": details,"errors": errors,"form_data": request.POST,"show_sidebar": True},)
+            return render(
+                request,
+                "edit_address.html",
+                {
+                    "address": address,
+                    "details": details,
+                    "errors": errors,
+                    "form_data": request.POST,
+                    "show_sidebar": True,
+                },
+            )
 
         address.name = name
         address.phone = phone
@@ -552,50 +678,80 @@ def edit_address(request,pk):
         messages.success(request, "Address updated successfully.")
         return redirect("addresses")
 
-    return render(request,"edit_address.html",{"address": address,"details": details,"show_sidebar": True},)
-   
+    return render(
+        request,
+        "edit_address.html",
+        {"address": address, "details": details, "show_sidebar": True},
+    )
 
-@login_required(login_url='login')
-def set_default_address(request,pk):
-    user=request.user
-    details=Users.objects.get(id=user.id)
-
-    address = get_object_or_404(Addresses, id=pk, user=request.user)
-    if request.method =='POST':
-        Addresses.objects.filter(user=request.user).update(is_default=False)
-        address.is_default=True
-        address.save()
-
-    return redirect('addresses')
 
 @login_required(login_url="login")
-def delete_address(request,pk):
+def set_default_address(request, pk):
+    user = request.user
+    details = Users.objects.get(id=user.id)
+
+    address = get_object_or_404(Addresses, id=pk, user=request.user)
+    if request.method == "POST":
+        Addresses.objects.filter(user=request.user).update(is_default=False)
+        address.is_default = True
+        address.save()
+
+    return redirect("addresses")
+
+
+@login_required(login_url="login")
+def delete_address(request, pk):
     address = get_object_or_404(Addresses, id=pk, user=request.user)
     if request.method == "POST":
         address.delete()
-    return redirect('addresses') 
+    return redirect("addresses")
 
-
-@login_required(login_url='login')
-def wishlist(request):
-
-    profile=request.user
-    search = request.GET.get("search", "").strip()
-
-    wishlist=Wishlist.objects.filter(user=profile).first()
-
-    items=[]
-    if wishlist:
-        WishlistItem.objects.filter(wishlist=wishlist).filter(Q(variant__is_active=False) | Q(variant__product__is_active=False) |Q(variant__product__category__is_active=False)).delete()
-
-        items=WishlistItem.objects.filter(wishlist=wishlist,variant__is_active=True,variant__product__is_active=True,variant__product__category__is_active=True).select_related("variant","variant__product").prefetch_related("variant__images")
-        if search:
-            items = items.filter(variant__product__name__icontains=search)
-    return render(request,"wishlist/wishlist.html",{ "details":profile,"items":items,"serach":search,"active_page": "wishlist","show_search": True,"show_sidebar": True})
 
 @login_required(login_url="login")
-def add_to_wishlist(request,variant_id):
-    if request.method =="POST":
+def wishlist(request):
+
+    profile = request.user
+    search = request.GET.get("search", "").strip()
+
+    wishlist = Wishlist.objects.filter(user=profile).first()
+
+    items = []
+    if wishlist:
+        WishlistItem.objects.filter(wishlist=wishlist).filter(
+            Q(variant__is_active=False)
+            | Q(variant__product__is_active=False)
+            | Q(variant__product__category__is_active=False)
+        ).delete()
+
+        items = (
+            WishlistItem.objects.filter(
+                wishlist=wishlist,
+                variant__is_active=True,
+                variant__product__is_active=True,
+                variant__product__category__is_active=True,
+            )
+            .select_related("variant", "variant__product")
+            .prefetch_related("variant__images")
+        )
+        if search:
+            items = items.filter(variant__product__name__icontains=search)
+    return render(
+        request,
+        "wishlist/wishlist.html",
+        {
+            "details": profile,
+            "items": items,
+            "serach": search,
+            "active_page": "wishlist",
+            "show_search": True,
+            "show_sidebar": True,
+        },
+    )
+
+
+@login_required(login_url="login")
+def add_to_wishlist(request, variant_id):
+    if request.method == "POST":
         variant = ProductVariant.objects.filter(id=variant_id).first()
 
         if not variant:
@@ -610,8 +766,7 @@ def add_to_wishlist(request,variant_id):
             wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
 
             item, created = WishlistItem.objects.get_or_create(
-                wishlist=wishlist,
-                variant=variant
+                wishlist=wishlist, variant=variant
             )
 
             if created:
@@ -625,56 +780,97 @@ def add_to_wishlist(request,variant_id):
     return redirect("product_list")
 
 
-@login_required(login_url='login')
+@login_required(login_url="login")
 def orders(request):
-    profile=request.user
+    profile = request.user
 
-    orders=Orders.objects.filter(user=request.user).select_related("user").prefetch_related("addresses","items__variant__product","items__variant__images",).order_by("-created_at")
+    orders = (
+        Orders.objects.filter(user=request.user)
+        .select_related("user")
+        .prefetch_related(
+            "addresses",
+            "items__variant__product",
+            "items__variant__images",
+        )
+        .order_by("-created_at")
+    )
 
     search = request.GET.get("search", "").strip()
     if search:
         orders = orders.filter(items__variant__product__name__icontains=search)
 
-    paginator = Paginator(orders, 4) 
+    paginator = Paginator(orders, 4)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    return render(request,"orders.html",{"page_obj": page_obj,"details":profile,    "orders": orders,"active_page": "orders","show_search": True,"show_sidebar": True})
+    return render(
+        request,
+        "orders.html",
+        {
+            "page_obj": page_obj,
+            "details": profile,
+            "orders": orders,
+            "active_page": "orders",
+            "show_search": True,
+            "show_sidebar": True,
+        },
+    )
 
 
-@login_required(login_url='login')
+@login_required(login_url="login")
 def wallet(request):
-    profile=request.user
-    balance=get_object_or_404(Wallet,user=request.user)
-    wallet=get_object_or_404(Wallet,user=request.user)
-    transactions=WalletTransaction.objects.filter(wallet=wallet).order_by("-created_at")
-    paginator = Paginator(transactions, 5)  
-    page_number = request.GET.get('page')
+    profile = request.user
+    balance = get_object_or_404(Wallet, user=request.user)
+    wallet = get_object_or_404(Wallet, user=request.user)
+    transactions = WalletTransaction.objects.filter(wallet=wallet).order_by(
+        "-created_at"
+    )
+    paginator = Paginator(transactions, 5)
+    page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    return render(request,"wallet/wallet.html",{"show_sidebar": True,"active_page": "wallet","details":profile,"balance":balance,"page_obj": page_obj})
+    return render(
+        request,
+        "wallet/wallet.html",
+        {
+            "show_sidebar": True,
+            "active_page": "wallet",
+            "details": profile,
+            "balance": balance,
+            "page_obj": page_obj,
+        },
+    )
 
-@login_required(login_url='login')
+
+@login_required(login_url="login")
 def coupon(request):
-    profile=request.user
+    profile = request.user
 
-    coupons=Coupon.objects.filter(is_active=True).exclude(code="REFERRAL10")
-    user_coupons=UserCoupon.objects.filter(user=request.user,is_used=False,coupon__is_active=True).select_related("coupon")
+    coupons = Coupon.objects.filter(is_active=True).exclude(code="REFERRAL10")
+    user_coupons = UserCoupon.objects.filter(
+        user=request.user, is_used=False, coupon__is_active=True
+    ).select_related("coupon")
 
-    paginator = Paginator(coupons, 4)  
-    page_number = request.GET.get('page')
+    paginator = Paginator(coupons, 4)
+    page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    return render(request,"coupon.html",{"show_sidebar": True,"active_page": "coupon","coupons":coupons,"user_coupons": user_coupons,"details":profile,'page_obj': page_obj,})
-
-
+    return render(
+        request,
+        "coupon.html",
+        {
+            "show_sidebar": True,
+            "active_page": "coupon",
+            "coupons": coupons,
+            "user_coupons": user_coupons,
+            "details": profile,
+            "page_obj": page_obj,
+        },
+    )
 
 
 razorpay_client = razorpay.Client(
-    auth=(
-        settings.RAZORPAY_KEY_ID,
-        settings.RAZORPAY_KEY_SECRET
-    )
+    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
 )
 
 
@@ -683,7 +879,8 @@ def create_wallet_topup(request):
 
     if request.method != "POST":
         return JsonResponse(
-            {"status": "error","message": "POST request required."},status=405)
+            {"status": "error", "message": "POST request required."}, status=405
+        )
 
     try:
 
@@ -694,121 +891,61 @@ def create_wallet_topup(request):
     except (json.JSONDecodeError, TypeError, ValueError):
 
         return JsonResponse(
-            {
-                "status": "error",
-                "message": "Invalid amount."
-            },
-            status=400
+            {"status": "error", "message": "Invalid amount."}, status=400
         )
 
-
-
-    allowed_amounts = {
-        100,
-        500,
-        1000,
-        2000
-    }
+    allowed_amounts = {100, 500, 1000, 2000}
 
     if amount not in allowed_amounts:
 
         return JsonResponse(
-            {
-                "status": "error",
-                "message": "Invalid top-up amount."
-            },
-            status=400
+            {"status": "error", "message": "Invalid top-up amount."}, status=400
         )
 
-
-
-    wallet = get_object_or_404(
-        Wallet,
-        user=request.user
-    )
+    wallet = get_object_or_404(Wallet, user=request.user)
 
     amount_paise = amount * 100
 
-
     try:
 
-
-        razorpay_order = razorpay_client.order.create({
-
-            "amount": amount_paise,
-
-            "currency": "INR",
-
-            "receipt":
-                f"wallet_{uuid.uuid4().hex[:20]}",
-
-            "notes": {
-
-                "user_id":
-                    str(request.user.id),
-
-                "purpose":
-                    "wallet_topup"
-
+        razorpay_order = razorpay_client.order.create(
+            {
+                "amount": amount_paise,
+                "currency": "INR",
+                "receipt": f"wallet_{uuid.uuid4().hex[:20]}",
+                "notes": {"user_id": str(request.user.id), "purpose": "wallet_topup"},
             }
-
-        })
-
+        )
 
     except Exception as e:
 
-        print("RAZORPAY ORDER ERROR:", e)
 
         return JsonResponse(
-            {
-                "status": "error",
-                "message":
-                    "Unable to create Razorpay order."
-            },
-            status=500
+            {"status": "error", "message": "Unable to create Razorpay order."},
+            status=500,
         )
-
 
     # Create pending transaction
 
     topup = WalletTransaction.objects.create(
-
         wallet=wallet,
-
         amount=Decimal(str(amount)),
-
         type="credit",
-
         status="pending",
-
-        razorpay_order_id=
-            razorpay_order["id"]
-
+        razorpay_order_id=razorpay_order["id"],
     )
 
-
-    return JsonResponse({
-
-        "status": "success",
-
-        "topup_id": topup.id,
-
-        "razorpay_key":
-            settings.RAZORPAY_KEY_ID,
-
-        "razorpay_order_id":
-            razorpay_order["id"],
-
-        "amount":
-            amount_paise,
-
-        "customer_name":
-            request.user.name,
-
-        "customer_email":
-            request.user.email,
-
-    })
+    return JsonResponse(
+        {
+            "status": "success",
+            "topup_id": topup.id,
+            "razorpay_key": settings.RAZORPAY_KEY_ID,
+            "razorpay_order_id": razorpay_order["id"],
+            "amount": amount_paise,
+            "customer_name": request.user.name,
+            "customer_email": request.user.email,
+        }
+    )
 
 
 @login_required(login_url="login")
@@ -817,13 +954,8 @@ def verify_wallet_topup(request):
     if request.method != "POST":
 
         return JsonResponse(
-            {
-                "status": "error",
-                "message": "POST request required."
-            },
-            status=405
+            {"status": "error", "message": "POST request required."}, status=405
         )
-
 
     try:
 
@@ -832,139 +964,68 @@ def verify_wallet_topup(request):
     except json.JSONDecodeError:
 
         return JsonResponse(
-            {
-                "status": "error",
-                "message": "Invalid request."
-            },
-            status=400
+            {"status": "error", "message": "Invalid request."}, status=400
         )
-
 
     topup_id = data.get("topup_id")
 
-    payment_id = data.get(
-        "razorpay_payment_id"
-    )
+    payment_id = data.get("razorpay_payment_id")
 
-    razorpay_order_id = data.get(
-        "razorpay_order_id"
-    )
+    razorpay_order_id = data.get("razorpay_order_id")
 
-    signature = data.get(
-        "razorpay_signature"
-    )
+    signature = data.get("razorpay_signature")
 
-
-    if not all([
-        topup_id,
-        payment_id,
-        razorpay_order_id,
-        signature
-    ]):
+    if not all([topup_id, payment_id, razorpay_order_id, signature]):
 
         return JsonResponse(
-            {
-                "status": "error",
-                "message":
-                    "Missing payment information."
-            },
-            status=400
+            {"status": "error", "message": "Missing payment information."}, status=400
         )
 
-
-
-    topup = get_object_or_404(
-        WalletTransaction,
-        id=topup_id,
-        wallet__user=request.user
-    )
-
-
+    topup = get_object_or_404(WalletTransaction, id=topup_id, wallet__user=request.user)
 
     if topup.status == "completed":
 
-        return JsonResponse({
-
-            "status": "success",
-
-            "message":
-                "Payment already processed."
-
-        })
-
-
-
-    if (
-        topup.razorpay_order_id
-        != razorpay_order_id
-    ):
-
         return JsonResponse(
-            {
-                "status": "error",
-                "message":
-                    "Invalid Razorpay order."
-            },
-            status=400
+            {"status": "success", "message": "Payment already processed."}
         )
 
+    if topup.razorpay_order_id != razorpay_order_id:
 
+        return JsonResponse(
+            {"status": "error", "message": "Invalid Razorpay order."}, status=400
+        )
 
     try:
 
-        razorpay_client.utility.verify_payment_signature({
-
-            "razorpay_order_id":
-                razorpay_order_id,
-
-            "razorpay_payment_id":
-                payment_id,
-
-            "razorpay_signature":
-                signature
-
-        })
+        razorpay_client.utility.verify_payment_signature(
+            {
+                "razorpay_order_id": razorpay_order_id,
+                "razorpay_payment_id": payment_id,
+                "razorpay_signature": signature,
+            }
+        )
 
     except razorpay.errors.SignatureVerificationError:
 
         topup.status = "failed"
 
-        topup.save(
-            update_fields=["status"]
-        )
+        topup.save(update_fields=["status"])
 
         return JsonResponse(
-            {
-                "status": "error",
-                "message":
-                    "Payment verification failed."
-            },
-            status=400
+            {"status": "error", "message": "Payment verification failed."}, status=400
         )
-
-
 
     with transaction.atomic():
 
-        wallet = Wallet.objects.select_for_update().get(
-            id=topup.wallet.id
-        )
-
-
+        wallet = Wallet.objects.select_for_update().get(id=topup.wallet.id)
 
         topup.refresh_from_db()
 
         if topup.status == "completed":
 
-            return JsonResponse({
-
-                "status": "success",
-
-                "message":
-                    "Payment already processed."
-
-            })
-
+            return JsonResponse(
+                {"status": "success", "message": "Payment already processed."}
+            )
 
         # Save payment
 
@@ -972,34 +1033,22 @@ def verify_wallet_topup(request):
 
         topup.status = "completed"
 
-        topup.save(
-            update_fields=[
-                "razorpay_payment_id",
-                "status"
-            ]
-        )
-
+        topup.save(update_fields=["razorpay_payment_id", "status"])
 
         # Add money
 
         wallet.balance += topup.amount
 
-        wallet.save(
-            update_fields=["balance"]
-        )
+        wallet.save(update_fields=["balance"])
 
+    return JsonResponse(
+        {
+            "status": "success",
+            "message": "Wallet credited successfully.",
+            "balance": str(wallet.balance),
+        }
+    )
 
-    return JsonResponse({
-
-        "status": "success",
-
-        "message":
-            "Wallet credited successfully.",
-
-        "balance":
-            str(wallet.balance)
-
-    })
 
 @login_required(login_url="login")
 def wallet_topup_failed(request):
@@ -1007,13 +1056,8 @@ def wallet_topup_failed(request):
     if request.method != "POST":
 
         return JsonResponse(
-            {
-                "status": "error",
-                "message": "POST request required."
-            },
-            status=405
+            {"status": "error", "message": "POST request required."}, status=405
         )
-
 
     try:
 
@@ -1022,60 +1066,27 @@ def wallet_topup_failed(request):
     except json.JSONDecodeError:
 
         return JsonResponse(
-            {
-                "status": "error",
-                "message": "Invalid request."
-            },
-            status=400
+            {"status": "error", "message": "Invalid request."}, status=400
         )
 
-
     topup_id = data.get("topup_id")
-
 
     if not topup_id:
 
         return JsonResponse(
-            {
-                "status": "error",
-                "message": "Transaction ID required."
-            },
-            status=400
+            {"status": "error", "message": "Transaction ID required."}, status=400
         )
 
-
-    topup = get_object_or_404(
-        WalletTransaction,
-        id=topup_id,
-        wallet__user=request.user
-    )
-
-
+    topup = get_object_or_404(WalletTransaction, id=topup_id, wallet__user=request.user)
 
     if topup.status == "completed":
 
-        return JsonResponse({
-
-            "status": "success",
-
-            "message":
-                "Payment already completed."
-
-        })
-
+        return JsonResponse(
+            {"status": "success", "message": "Payment already completed."}
+        )
 
     topup.status = "failed"
 
-    topup.save(
-        update_fields=["status"]
-    )
+    topup.save(update_fields=["status"])
 
-
-    return JsonResponse({
-
-        "status": "failed",
-
-        "message":
-            "Wallet top-up failed."
-
-    })
+    return JsonResponse({"status": "failed", "message": "Wallet top-up failed."})

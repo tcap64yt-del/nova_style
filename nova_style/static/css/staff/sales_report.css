@@ -617,3 +617,220 @@ button{
         height: 40px;
     }
 }
+
+
+.report-search-form {
+    margin-bottom: 32px;
+}
+
+
+/* ==========================
+   PAGE HEADER CONTROLS
+========================== */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+
+/* ==========================
+   DAILY / MONTHLY / YEARLY
+========================== */
+
+.toggle-group {
+    display: flex;
+    align-items: center;
+    background: var(--color-border);
+    border-radius: 8px;
+    padding: 4px;
+    margin-right: 4px;
+}
+
+.toggle-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.toggle-btn.active {
+    background: #fff;
+    color: var(--color-text-dark);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+
+/* ==========================
+   DATE RANGE
+========================== */
+
+.date-filter-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 6px;
+}
+
+.date-filter-form input[type="date"] {
+    height: 42px;
+    min-width: 145px;
+    padding: 0 12px;
+
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+
+    color: var(--color-text-dark);
+    font-family: var(--font-family);
+    font-size: 13px;
+    font-weight: 600;
+
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.date-filter-form input[type="date"]:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(29, 82, 217, 0.08);
+}
+
+.date-filter-form span {
+    color: var(--color-text-muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+/* ==========================
+   APPLY
+========================== */
+
+.date-filter-form .btn-primary {
+    height: 42px;
+    padding: 0 18px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+
+/* ==========================
+   CLEAR
+========================== */
+
+.clear-btn {
+    height: 42px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 18px;
+
+    background: #fff;
+    color: var(--color-text-muted);
+
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+
+    transition: all 0.2s ease;
+
+    margin-left: 2px;
+}
+
+.clear-btn:hover {
+    color: var(--color-primary);
+    border-color: #cbd5e1;
+    background: var(--color-bg-main);
+}
+
+
+/* ==========================
+   MOBILE
+========================== */
+
+@media (max-width: 1024px) {
+
+    .report-search-form {
+        margin-bottom: 28px;
+    }
+
+    .page-header {
+        gap: 20px;
+    }
+
+    .header-actions {
+        width: 100%;
+        gap: 12px;
+    }
+
+    .date-filter-form {
+        margin-left: 0;
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .report-search-form {
+        margin-bottom: 24px;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toggle-group {
+        width: fit-content;
+    }
+
+    .date-filter-form {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .date-filter-form input[type="date"] {
+        flex: 1;
+        min-width: 140px;
+    }
+
+    .clear-btn {
+        width: fit-content;
+    }
+}
+
+
+@media (max-width: 640px) {
+
+    .date-filter-form {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .date-filter-form input[type="date"],
+    .date-filter-form .btn-primary,
+    .clear-btn {
+        width: 100%;
+    }
+
+    .date-filter-form span {
+        display: none;
+    }
+}
