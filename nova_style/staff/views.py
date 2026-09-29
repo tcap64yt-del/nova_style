@@ -34,7 +34,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from coupon.models import Coupon
+from coupon.models import Coupon,CouponUsage
 from order.models import (
     OrderAddress,
     OrderItemReturn,
@@ -792,7 +792,8 @@ def edit_product(request, product_id):
                     "errors": errors,
                     "products": products,
                     "variants": variants,
-                },
+
+                },status=400
             )
         category_obj = get_object_or_404(Category, id=category)
 

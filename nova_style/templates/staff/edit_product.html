@@ -332,6 +332,11 @@ Edit Nova Style product
                                         class="color-square"
                                         value="{{ variant.color }}"
                                     >
+ {% if variant.errors.duplicate %}
+        <small class="field-error">
+            {{ variant.errors.duplicate }}
+        </small>
+    {% endif %}
 
                                 </div>
 
@@ -424,6 +429,7 @@ Edit Nova Style product
         {{ variant.errors.offer }}
     </small>
 {% endif %}
+
                                     </div>
 
 
@@ -998,7 +1004,7 @@ Edit Nova Style product
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-<script src="{% static 'js/edit_product.js' %}?v=16"></script>
+<script src="{% static 'js/edit_product.js' %}?v=18"></script>
 
 
 {% endblock %}
