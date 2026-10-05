@@ -100,19 +100,34 @@ def validate_coupon(data, coupon_id=None):
         except (InvalidOperation, ValueError):
             errors["min_order_amount"] = "Enter a valid minimum purchase amount"
             min_order_amount = None
-    if not max_discount:
-        errors["max_discount"] = "Maximum discount amount is required."
-        max_discount = None
-    else:
-        try:
-            if max_discount:
+    if (
+    discount_type == "fixed"
+    and isinstance(discount_value, Decimal)
+    and isinstance(min_order_amount, Decimal)
+    and discount_value >= min_order_amount
+    ):
+        errors["discount_value"] = (
+            "Fixed discount amount must be lower than the minimum order amount."
+        )
+    if discount_type == "percentage":
+        if not max_discount:
+            errors["max_discount"] = "Maximum discount amount is required."
+            max_discount = None
+        else:
+            try:
                 max_discount = Decimal(max_discount)
+
                 if max_discount <= 0:
-                    errors["max_discount"] = "maximum discount must greater than zero"
-            else:
-                max_discount = None
-        except (InvalidOperation, ValueError):
-            errors["max_discount"] = "enter a valid maximum discount amount"
+                    errors["max_discount"] = (
+                        "Maximum discount must be greater than zero"
+                    )
+
+            except (InvalidOperation, ValueError):
+                errors["max_discount"] = (
+                    "Enter a valid maximum discount amount"
+                )
+    else:
+        max_discount = Decimal("0.00")
 
     if not max_usage:
         errors["max_usage"] = "Maximum usage is required."
@@ -179,9 +194,9 @@ def admin_login(request):
                 login(request, admin)
                 return redirect("user_management")
         else:
-            messages.error(request, "invaild credentials")
+            messages.error(request, "invaild credentials",)
 
-    return render(request, "staff/admin_login.html")
+    return render(request, "staff/admin_login.html",status=400)
 
 
 @login_required(login_url="admin_login")
@@ -321,7 +336,7 @@ def new_category(request):
                     "offer": offer,
                     "start_date": start_date,
                     "end_date": end_date,
-                },
+                },status=400,
             )
         Category.objects.create(
             name=name,
@@ -390,7 +405,7 @@ def edit_category(request, category_id):
                     "errors": errors,
                     "start_date": start_date,
                     "end_date": end_date,
-                },
+                },status=400,
             )
 
         category.name = name
@@ -577,7 +592,7 @@ def add_product(request):
                     "product_name": product_name,
                     "description": description,
                     "selected_category": category,
-                },
+                },status=400,
             )
 
         category_obj = get_object_or_404(Category, id=category)
@@ -770,12 +785,32 @@ def edit_product(request, product_id):
             total_images = existing_count + len(variant_images)
             if total_images < 3:
                 variant["errors"]["images"] = "upload atleast 3 image"
-        seen = set()
+        seen = {}
+
         for i, variant in enumerate(variants):
-            key = (variant["size"], variant["color"])
+
+            size = str(variant["size"]).strip()
+            color = str(variant["color"]).strip()
+
+            if not size or not color:
+                continue
+
+            key = (size, color)
+
             if key in seen:
-                variant["errors"]["duplicate"] = "color and size already exists."
-            seen.add(key)
+
+                variant["errors"]["duplicate"] = (
+                    "This size and color combination already exists."
+                )
+
+                previous_index = seen[key]
+
+                variants[previous_index]["errors"]["duplicate"] = (
+                    "This size and color combination already exists."
+                )
+
+            else:
+                seen[key] = i
 
         variant_has_errors = any(variant["errors"] for variant in variants)
 
@@ -1410,7 +1445,7 @@ def edit_coupon(request, coupon_id):
             return redirect("coupon_management")
         return render(
             request,
-            "staff/add_coupon.html",
+            "staff/edit_coupon.html",
             {
                 "errors": errors,
                 "data": request.POST,

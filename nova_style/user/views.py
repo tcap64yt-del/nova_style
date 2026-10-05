@@ -68,7 +68,7 @@ def signup(request):
                 ).first()
                 if not referrer:
                     form.add_error("referral_code", "invalid referral code")
-                    return render(request, "signup.html", {"form": form})
+                    return render(request, "signup.html", {"form": form}, status=400,)
 
             request.session["signup_data"] = {
                 "name": form.cleaned_data["name"],
@@ -100,7 +100,7 @@ def signup(request):
     else:
         form = SignupForm()
 
-    return render(request, "signup.html", {"form": form})
+    return render(request, "signup.html", {"form": form},status=400,)
 
 
 def verify_otp(request):
@@ -393,7 +393,7 @@ def profile(request):
             "active_page": "profile",
             "show_search": False,
             "show_sidebar": True,
-        },
+        }, status=400,
     )
 
 
@@ -496,7 +496,7 @@ def change_password(request):
                 {
                     "details": details,
                     "errors": errors,
-                },
+                },status=400,
             )
         details.set_password(new_password)
         details.save()
@@ -587,7 +587,7 @@ def new_address(request):
                     "errors": errors,
                     "form_data": request.POST,
                     "show_sidebar": True,
-                },
+                },status=400,
             )
         Addresses.objects.create(
             user=request.user,
@@ -663,7 +663,7 @@ def edit_address(request, pk):
                     "errors": errors,
                     "form_data": request.POST,
                     "show_sidebar": True,
-                },
+                },status=400,
             )
 
         address.name = name
@@ -1027,7 +1027,6 @@ def verify_wallet_topup(request):
                 {"status": "success", "message": "Payment already processed."}
             )
 
-        # Save payment
 
         topup.razorpay_payment_id = payment_id
 
