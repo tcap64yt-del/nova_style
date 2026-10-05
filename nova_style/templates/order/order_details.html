@@ -433,8 +433,7 @@
               <p class="product-subtitle">Size {{ item.variant.size }}</p>
 
 <p class="product-subtitle">Price ₹{{ item.unit_price }}</p>
-{% if order.status == "return pending" or order.status == "returned" or order.status == "rejected" %}
-
+{% if order.status == "cancelled" or order.status == "return pending" or order.status == "returned" or order.status == "rejected" %}
 
 {% elif item.cancelled_quantity > 0 %}
 
@@ -612,7 +611,7 @@
             <div class="form-group">
                 <label>Quantity to Cancel</label>
                 
-               <select class="form-select" name="quantity" id="cancelQuantity">
+                <select class="form-select" name="quantity" id="cancelQuantity" required>
 </select>
                
                         </div>
@@ -620,7 +619,7 @@
             <div class="form-group">
                 <label>Reason</label>
 
-                <select class="form-select" name="reason" >
+                <select class="form-select" name="reason" required>
                     <option value="" selected disabled>Select a reason</option>
                     <option value="changed_mind">Changed my mind</option>
                     <option value="ordered_by_mistake">Ordered by mistake</option>
@@ -803,6 +802,13 @@
 
     </div>
 </div>
+{% if messages %}
+    {% for message in messages %}
+        <div class="django-message {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
  <script src="{% static 'js/order/order_details.js' %}?v=30"></script>

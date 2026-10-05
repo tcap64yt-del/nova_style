@@ -35,7 +35,8 @@
                         id="name"
                         name="name"
                         placeholder="Enter your name"
-                        value="{{ form_date.name }}">
+                        value="{{ form_data.name }}"
+                        >
 
                     {% if errors.name %}
                         <small class="error-text">{{ errors.name }}</small>
@@ -53,7 +54,7 @@
                         id="phone"
                         name="phone"
                         placeholder="Enter phone number"
-                        value="{{ form_date.phone }}">
+                        value="{{ form_data.phone }}">
 
                     {% if errors.phone %}
                         <small class="error-text">{{ errors.phone }}</small>
@@ -68,7 +69,7 @@
                         id="state"
                         name="state"
                         placeholder="Enter state"
-                        value="{{ form_date.state }}">
+                        value="{{ form_data.state }}">
 
                     {% if errors.state %}
                         <small class="error-text">{{ errors.state }}</small>
@@ -83,7 +84,7 @@
                         id="district"
                         name="district"
                         placeholder="Enter district"
-                        value="{{ form_date.district }}">
+                        value="{{ form_data.district }}">
 
                     {% if errors.district %}
                         <small class="error-text">{{ errors.district }}</small>
@@ -102,7 +103,7 @@
                         id="country"
                         name="country"
                         placeholder="Enter country"
-                        value="{{ form_date.country }}">
+                        value="{{ form_data.country }}">
 
                     {% if errors.country %}
                         <small class="error-text">{{ errors.country }}</small>
@@ -117,7 +118,7 @@
                         id="postal-code"
                         name="postal_code"
                         placeholder="Enter postal code"
-                        value="{{ form_date.postal_code }}">
+                        value="{{ form_data.postal_code }}">
 
                     {% if errors.postal_code %}
                         <small class="error-text">{{ errors.postal_code }}</small>
@@ -135,7 +136,7 @@
                     <textarea
                         id="address"
                         name="address"
-                        placeholder="Enter your address"></textarea>
+                        placeholder="Enter your address">{{ form_data.address }}</textarea>
 
                     {% if errors.address %}
                         <small class="error-text">{{ errors.address }}</small>
