@@ -18,6 +18,7 @@ from reportlab.lib.styles import (
     ParagraphStyle,
     getSampleStyleSheet,
 )
+from django.db.models import Q, Sum
 from reportlab.lib.units import mm
 from reportlab.platypus import (
     HRFlowable,
@@ -274,8 +275,10 @@ def apply_coupon(request):
 @login_required(login_url="login")
 def checkout(request, variant_id=None):
     wallet = get_object_or_404(Wallet, user=request.user)
-
-    available_coupons = Coupon.objects.filter(is_active=True)
+    today = timezone.now().date()
+    available_coupons = Coupon.objects.filter(is_active=True).filter(
+    Q(end_date__isnull=True) | Q(end_date__gte=today)
+)
     addersses = Addresses.objects.filter(user=request.user).order_by("-created_at")
     default_address = addersses.filter(is_default=True).first()
 

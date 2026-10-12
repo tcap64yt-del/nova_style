@@ -845,8 +845,8 @@ def wallet(request):
 @login_required(login_url="login")
 def coupon(request):
     profile = request.user
-
-    coupons = Coupon.objects.filter(is_active=True).exclude(code="REFERRAL10")
+    today = timezone.now().date()
+    coupons = Coupon.objects.filter(is_active=True).filter(Q(end_date__isnull=True) | Q(end_date__gte=today)).exclude(code="REFERRAL10")
     user_coupons = UserCoupon.objects.filter(
         user=request.user, is_used=False, coupon__is_active=True
     ).select_related("coupon")
