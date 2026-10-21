@@ -203,7 +203,7 @@
             name="variant_id"
             value="{{ variant.id }}"
         >
-
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <button class="btn btn-secondary">
             Add to Cart
         </button>

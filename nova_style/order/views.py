@@ -276,9 +276,17 @@ def apply_coupon(request):
 def checkout(request, variant_id=None):
     wallet = get_object_or_404(Wallet, user=request.user)
     today = timezone.now().date()
-    available_coupons = Coupon.objects.filter(is_active=True).filter(
-    Q(end_date__isnull=True) | Q(end_date__gte=today)
-)
+    used_coupon_ids = CouponUsage.objects.filter(
+        user=request.user
+    ).values_list("coupon_id", flat=True)
+
+    available_coupons = (
+        Coupon.objects.filter(is_active=True)
+        .filter(Q(end_date__isnull=True) | Q(end_date__gte=today))
+        .exclude(id__in=used_coupon_ids)
+        .filter(Q(start_date__isnull=True) | Q(start_date__lte=today))
+        .filter(usage_remaining__gt=0)
+    )
     addersses = Addresses.objects.filter(user=request.user).order_by("-created_at")
     default_address = addersses.filter(is_default=True).first()
 
@@ -479,6 +487,10 @@ def checkout(request, variant_id=None):
                     "available_coupons": available_coupons,
                     "wallet": wallet,
                     "balance_after_payment": balance_after_payment,
+                    "discount_amount": discount_amount,
+                    "final_amount": final_amount,
+                    "coupon_code": coupon_code,
+                    "coupon_error": coupon_error,
                 },
             )
 
@@ -962,6 +974,7 @@ def order_details(request, order_id):
             "payment": payment,
             "discount_amount": order.discount_amount or Decimal("0.00"),
             "coupon_code": order.coupon_code,
+            "show_sidebar" :True,
         },
     )
 

@@ -102,6 +102,11 @@
         document.getElementById('orderName').textContent = formattedName;
       }
     });
+      history.pushState(null, "", location.href);
+
+    window.addEventListener("popstate", function () {
+        window.location.replace("{% url 'product_list' %}");
+    });
   </script>
 </body>
 </html>

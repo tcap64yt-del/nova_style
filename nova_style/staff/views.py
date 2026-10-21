@@ -1517,6 +1517,7 @@ def sales_report(request):
             status__in=[
                 "cancelled",
                 "rejected",
+                "returned",
             ]
         )
         .select_related("user")
@@ -1596,7 +1597,7 @@ def sales_report_pdf(request):
 
     orders = (
         Orders.objects.filter(created_at__date__gte=start, created_at__date__lte=end)
-        .exclude(status__in=["cancelled", "rejected"])
+        .exclude(status__in=["cancelled", "rejected","returned"])
         .select_related("user")
         .prefetch_related("payments")
         .order_by("-created_at")
@@ -1734,7 +1735,7 @@ def sales_report_excel(request):
     # GET ORDERS
     orders = (
         Orders.objects.filter(created_at__date__gte=start, created_at__date__lte=end)
-        .exclude(status__in=["cancelled", "rejected"])
+        .exclude(status__in=["cancelled", "rejected","returned"])
         .select_related("user")
         .prefetch_related("payments")
         .order_by("-created_at")
@@ -1804,6 +1805,8 @@ def admin_dashboard(request):
 
     active_users = Users.objects.filter(status=True).count()
     total_orders = Orders.objects.filter(status="delivered").count()
+    cancelled_orders = Orders.objects.filter(status="cancelled").count()
+    returned_orders = Orders.objects.filter(status="returned").count()
     total_revenue = OrderItems.objects.filter(
         order__status="delivered",
         status="active",
@@ -1931,5 +1934,7 @@ def admin_dashboard(request):
             "chart_type": chart_type,
             "chart_labels": chart_labels,
             "chart_values": chart_values,
+            "cancelled_orders": cancelled_orders,
+            "returned_orders": returned_orders,
         },
     )
