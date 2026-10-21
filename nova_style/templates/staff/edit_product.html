@@ -445,7 +445,7 @@ Edit Nova Style product
                                                 type="date"
                                                 name="start_date[]"
                                                 class="form-input date-input start-date"
-                                                value="{{ variant.start_date|date:'Y-m-d' }}"
+                                                value="{{ variant.start_date|default:'' }}"
                                             >
 
                                             <span class="calendar-icon">
@@ -515,7 +515,7 @@ Edit Nova Style product
                                                 type="date"
                                                 name="end_date[]"
                                                 class="form-input date-input end-date"
-                                                value="{{ variant.end_date|date:'Y-m-d' }}"
+                                                value="{{ variant.end_date|default:'' }}"
                                             >
 
                                             <span class="calendar-icon">
