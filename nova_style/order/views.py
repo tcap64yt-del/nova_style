@@ -213,7 +213,7 @@ def calculate_item_refund(order_item, quantity):
     return max(refund, Decimal("0.00"))
 
 
-def refund_to_wallet(user, amount):
+def refund_to_wallet(user, amount , order=None):
 
     amount = Decimal(str(amount)).quantize(Decimal("0.01"))
     if amount <= 0:
@@ -225,6 +225,7 @@ def refund_to_wallet(user, amount):
 
     WalletTransaction.objects.create(
         wallet=wallet,
+        order=order,
         amount=amount,
         type="refund",
         status="completed",
@@ -708,7 +709,7 @@ def checkout(request, variant_id=None):
             wallet.balance -= final_amount
             wallet.save(update_fields=["balance"])
             WalletTransaction.objects.create(
-                wallet=wallet, amount=final_amount, type="debit", status="completed"
+                wallet=wallet,order=order, amount=final_amount, type="debit", status="completed"
             )
 
             Payment.objects.create(
@@ -1012,7 +1013,7 @@ def cancel_product(request, item_id):
         item.variant.stock += quantity
         item.variant.save()
         if item.order.payment_status == "paid":
-            refund_to_wallet(item.order.user, refund_amount)
+            refund_to_wallet(item.order.user, refund_amount,order=item.order)
         cancelled_qty = item.cancellation.aggregate(total=Sum("quantity"))["total"] or 0
 
         if cancelled_qty >= item.quantity:
@@ -1076,7 +1077,7 @@ def cancel_order(request, order_id):
             item.status = "cancelled"
             item.save(update_fields=["status"])
         if order.payment_status == "paid":
-            refund_to_wallet(order.user, refund_amount)
+            refund_to_wallet(order.user, refund_amount,order=order)
             order.payment_status = "refunded"
 
         order.status = "cancelled"
@@ -1604,7 +1605,10 @@ def download_invoice(request, order_id):
     # TOTALS
     # =========================================================
 
+ 
     subtotal = total
+    discount_amount = Decimal(str(order.discount_amount or 0))
+    final_amount = max(subtotal - discount_amount, Decimal("0.00"))
 
     totals_data = [
         [
@@ -1612,6 +1616,19 @@ def download_invoice(request, order_id):
             Paragraph("Subtotal", normal_style),
             Paragraph(money(subtotal), normal_style),
         ],
+    ]
+
+    # Show coupon details only when a discount was applied.
+    if discount_amount > 0:
+        coupon_label = f"Coupon Discount ({escape(str(order.coupon_code or 'Applied'))})"
+
+        totals_data.append([
+            "",
+            Paragraph(coupon_label, normal_style),
+            Paragraph(f"- {money(discount_amount)}", normal_style),
+        ])
+
+    totals_data.extend([
         [
             "",
             Paragraph("Shipping", normal_style),
@@ -1620,9 +1637,10 @@ def download_invoice(request, order_id):
         [
             "",
             Paragraph("TOTAL", total_label_style),
-            Paragraph(money(total), total_value_style),
+            Paragraph(money(final_amount), total_value_style),
         ],
-    ]
+    ])
+
 
     totals_table = Table(
         totals_data,
@@ -1655,6 +1673,15 @@ def download_invoice(request, order_id):
     # PAYMENT / ORDER INFORMATION
     # =========================================================
 
+
+    payment = Payment.objects.filter(order=order).order_by("-id").first()
+
+    payment_status = (
+        str(payment.status).replace("_", " ").title()
+        if payment
+        else "Not Available"
+    )
+
     payment_box = Table(
         [
             [Paragraph("PAYMENT & ORDER INFORMATION", bold_style)],
@@ -1664,7 +1691,9 @@ def download_invoice(request, order_id):
                     Invoice generated for Order
                     <b>#{escape(str(frontend_order_id))}</b>.<br/>
                     Order Status:
-                    <b>{escape(order_status)}</b><br/>
+                    <b>{escape(str(order_status))}</b><br/>
+                    Payment Status:
+                    <b>{escape(payment_status)}</b><br/>
                     Thank you for shopping with Nova Style.
                     """,
                     normal_style,
@@ -1673,6 +1702,7 @@ def download_invoice(request, order_id):
         ],
         colWidths=[170 * mm],
     )
+
 
     payment_box.setStyle(
         TableStyle(
