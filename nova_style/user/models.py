@@ -187,6 +187,13 @@ class WalletTransaction(models.Model):
     wallet = models.ForeignKey(
         Wallet, on_delete=models.CASCADE, related_name="transactions"
     )
+    order = models.ForeignKey(
+        "order.Orders", 
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="wallet_transactions"
+    )
 
     amount = models.DecimalField(max_digits=12, decimal_places=2)
 
