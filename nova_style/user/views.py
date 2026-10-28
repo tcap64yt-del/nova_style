@@ -26,7 +26,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from coupon.models import Coupon, UserCoupon
+from coupon.models import Coupon, UserCoupon,CouponUsage
 from order.models import Orders
 from product.models import Category
 
@@ -40,12 +40,11 @@ from .models import (
     Wishlist,
     WishlistItem,
 )
-
 ProductVariant = apps.get_model("product", "ProductVariant")
 MAX_ATTEMPTS = 5
 MAX_RESENDS = 3
 OTP_SECONDS = 120
-
+from django.db.models import Sum
 
 def generate_otp():
     return f"{random.randint(100000, 999999)}"
@@ -286,6 +285,8 @@ def home(request):
 
 @login_required(login_url="login")
 def profile(request):
+   
+ 
     details = request.user
     categories = Category.objects.all()
     form = ProfileForm(initial={"name": details.name, "email": details.email})
