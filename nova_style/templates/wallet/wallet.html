@@ -101,6 +101,11 @@
                         <div class="tx-date">
                             {{ transaction.created_at|date:"M d, Y, h:i A" }}
                         </div>
+                        {% if transaction.order %}
+    <div class="tx-order-reference">
+        Order ID: #{{ transaction.order.order_id }}
+    </div>
+{% endif %}
 
                     </div>
 
