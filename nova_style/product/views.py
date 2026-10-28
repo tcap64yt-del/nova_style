@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Case, DecimalField, ExpressionWrapper, F, Value, When
+from django.db.models import Case, DecimalField, ExpressionWrapper, F, Value, When , Max
 from django.db.models.functions import Coalesce, Greatest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -87,6 +87,11 @@ def product_list(request):
         variants = variants.order_by("-product__name")
     elif sort == "new":
         variants = variants.order_by("-created_at")
+    price_max = variants.aggregate(
+        max_price=Max("final_price")
+    )["max_price"] or 0
+
+    price_slider_max = max(int(price_max), 1)
     paginator = Paginator(variants, 12)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
@@ -114,6 +119,8 @@ def product_list(request):
             "details": details,
             "wishlist_variant_ids": wishlist_variants,
             "show_search": True,
+            "price_max": price_max,
+            "price_slider_max": price_slider_max,
         },
     )
 
